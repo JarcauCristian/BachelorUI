@@ -5,6 +5,8 @@ const useAuth = () => {
     const isRun = useRef(false);
     const [isLogin, setLogin] = useState(false);
     const [token, setToken] = useState(null);
+    const [userInfo, setUserInfo] = useState(null);
+    const [keycloakInstance, setKeycloakInstance] = useState(null);
     const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
 
     useEffect(() => {
@@ -22,10 +24,11 @@ const useAuth = () => {
         client.init({onLoad: "login-required"}).then((res) => {
             setLogin(res);
             setToken(client.token);
+            setUserInfo(client.hasRealmRole("clinician"));
+            setKeycloakInstance(keycloakInstance);
         });
     }, [REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT]);
 
-    return [isLogin, token];
+    return { isLogin, token, userInfo, keycloakInstance };
 }
-
 export default useAuth;

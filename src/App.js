@@ -7,17 +7,17 @@ import React from "react";
 import Public from "./components/Public";
 import useAuth from "./hooks/useAuth";
 
-
 function App() {
-    const [isLogin, token] = useAuth();
 
-  return (isLogin ?
+    const { isLogin, token, userInfo, keycloakInstance } = useAuth()
+
+
+  return ( isLogin ?
       <BrowserRouter>
           <Routes>
-              <Route path="/" element={<Layout />}>
+              <Route path="/" element={<Layout logout={keycloakInstance}/>}>
                   <Route index element={<Home />} />
-                  <Route path="visualizer" element={<Visualizer token={token}/>} />
-                  <Route path="ai_service" element={<Home />} />
+                  <Route path="visualizer" element={<Visualizer token={token} />} />
               </Route>
           </Routes>
       </BrowserRouter>

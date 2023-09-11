@@ -16,6 +16,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SvgIcon from '@mui/material/SvgIcon';
+import LogoutIcon from '@mui/icons-material/Logout';
 import {Link, Typography} from "@mui/material";
 
 const drawerWidth = 240;
@@ -83,7 +84,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     }),
 );
 
-export default function MiniDrawer() {
+export default function MiniDrawer({logout}) {
     const [open, setOpen] = React.useState(true);
 
     const handleDrawer = () => {
@@ -134,7 +135,7 @@ export default function MiniDrawer() {
                 </List>
                 <Divider style={{ backgroundColor: "white" }}/>
                 <List>
-                    {['Settings'].map((text) => (
+                    {['Settings', 'Logout'].map((text) => (
                         <ListItem key={text} disablePadding sx={{ display: 'block' }}>
                             <ListItemButton
                                 sx={{
@@ -142,6 +143,7 @@ export default function MiniDrawer() {
                                     justifyContent: open ? 'initial' : 'center',
                                     px: 2.5,
                                 }}
+                                onClick={text === 'Logout' ? {} : {}}
                             >
                                 <ListItemIcon
                                     sx={{
@@ -150,7 +152,7 @@ export default function MiniDrawer() {
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <SettingsIcon fontSize="large" sx={{ color: "white" }}/>
+                                    {text==="Settings" ? <SettingsIcon fontSize="large" sx={{ color: "white" }}/> : <LogoutIcon fontSize="large" sx={{ color: "white" }}/>}
                                 </ListItemIcon>
                                 <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
                             </ListItemButton>
