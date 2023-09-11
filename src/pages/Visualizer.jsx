@@ -11,30 +11,30 @@ const Visualizer = ({token}) => {
 
     const [patientsData, setPatientsData] = useState([]);
 
-    const get = async () => {
-        const response = await fetch("http://localhost:8000/get_all_objects?extension=jsonld", {
-            method: 'GET',
-            headers: {
-              "Authorization": "Bearer " + token
-            },
-        }
-        );
-        if (response.ok) {
-            const body = await response.json();
-            console.log(body);
-            setPatientsData(body)
-        } else {
-            console.log(response.json());
-        }
-    }
-
     useEffect(() => {
         if (isRun.current) return;
 
         isRun.current = true;
 
+        const get = async () => {
+            const response = await fetch("http://localhost:8000/get_all_objects?extension=jsonld", {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                }
+            );
+            if (response.ok) {
+                const body = await response.json();
+                console.log(body);
+                setPatientsData(body)
+            } else {
+                console.log(response.json());
+            }
+        }
+
         get().then(() => {}).catch((error) => console.log(error));
-    }, []);
+    }, [token]);
 
     return (
         <div style={{ width: "70%", marginLeft: "150px", marginTop: "50px"}}>

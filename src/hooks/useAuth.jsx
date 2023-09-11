@@ -25,7 +25,7 @@ const useAuth = () => {
             setLogin(res);
             setToken(client.token);
             setUserInfo(client.hasRealmRole("clinician"));
-            setKeycloakInstance(keycloakInstance);
+            setKeycloakInstance(client);
         });
     }, [REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT]);
 

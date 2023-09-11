@@ -18,6 +18,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SvgIcon from '@mui/material/SvgIcon';
 import LogoutIcon from '@mui/icons-material/Logout';
 import {Link, Typography} from "@mui/material";
+import {useNavigate} from "react-router-dom";
 
 const drawerWidth = 240;
 
@@ -86,10 +87,24 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function MiniDrawer({logout}) {
     const [open, setOpen] = React.useState(true);
+    const navigate = useNavigate()
 
     const handleDrawer = () => {
         setOpen(!open);
     };
+
+    const handleLogout = () => {
+        logout.logout();
+        navigate("/landing");
+    }
+
+    const getWhatToHandle = (text) => {
+        if (text === "Logout") {
+            return handleLogout
+        } else {
+            return () => {}
+        }
+    }
 
     return (
         <Box sx={{ display: 'flex'}}>
@@ -107,7 +122,7 @@ export default function MiniDrawer({logout}) {
                 <List>
                     {['Landing Page', 'Patient Visualizer', 'ML Model Creation'].map((text) => (
                         <ListItem key={text} disablePadding sx={{ display: 'block' }}>
-                            <Link href={text === "Landing Page" ? "/" : text === "Patient Visualizer" ? "/visualizer" : "/ai_service" } sx={{ color: 'inherit' }} underline="none">
+                            <Link href={text === "Landing Page" ? "/landing" : text === "Patient Visualizer" ? "/pages/visualizer" : "/ai_service" } sx={{ color: 'inherit' }} underline="none">
                             <ListItemButton
                                 sx={{
                                     minHeight: 48,
@@ -143,7 +158,7 @@ export default function MiniDrawer({logout}) {
                                     justifyContent: open ? 'initial' : 'center',
                                     px: 2.5,
                                 }}
-                                onClick={text === 'Logout' ? {} : {}}
+                                onClick={getWhatToHandle(text)}
                             >
                                 <ListItemIcon
                                     sx={{
