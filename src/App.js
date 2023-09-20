@@ -10,13 +10,14 @@ import useAuth from "./hooks/useAuth";
 function App() {
 
     const { isLogin, token, userInfo, keycloakInstance } = useAuth()
+    console.log(token);
 
 
   return ( isLogin ?
       <BrowserRouter>
           <Routes>
               <Route path="/" element={<Layout logout={keycloakInstance}/>}>
-                  <Route index element={<Home />} />
+                  <Route index element={<Home token={token} />} />
                   <Route path="visualizer" element={<Visualizer token={token} />} />
               </Route>
           </Routes>
