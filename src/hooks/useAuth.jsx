@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import Keycloak from "keycloak-js";
 
+const roles = ['clinician', 'data_scientist', 'data_orchestrator']
+
 const useAuth = () => {
     const isRun = useRef(false);
     const [isLogin, setLogin] = useState(false);
     const [token, setToken] = useState(null);
-    const [userInfo, setUserInfo] = useState(null);
+    const [userRole, setUserRole] = useState(null);
     const [keycloakInstance, setKeycloakInstance] = useState(null);
     const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
 
@@ -24,11 +26,17 @@ const useAuth = () => {
         client.init({onLoad: "login-required"}).then((res) => {
             setLogin(res);
             setToken(client.token);
-            setUserInfo(client.hasRealmRole("clinician"));
-            setKeycloakInstance(keycloakInstance);
+            for (var i = 0; i < roles.length; i++) {
+                if (client.hasRealmRole(roles[i]))
+                {
+                    setUserRole(roles[i]);
+                    break;
+                }
+            }
+            setKeycloakInstance(client);
         });
     }, [REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT]);
 
-    return { isLogin, token, userInfo, keycloakInstance };
+    return { isLogin, token, userRole, keycloakInstance };
 }
 export default useAuth;

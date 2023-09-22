@@ -1,30 +1,35 @@
-import React, { useEffect, useRef } from 'react';
+import React from "react";
+import { useState, useEffect, useRef } from "react";
+
+const number = 1;
 
 const Home = ({token}) => {
-    const isRun = useRef(false)
-
-    useEffect( () => {
-        if (isRun.current) return;
-
-        isRun.current = true;
-
-        const iframe = document.getElementById('myIframe');
-
-        const srcUrl = `http://localhost:8050?token=${token}`;
-        iframe.src = srcUrl;
-    }, [token])
-
-
-    return (
-        <div>
-          <iframe
-            id="myIframe"
-            width="1900"
-            height="1080"
-            title="Embedded Streamlit App"
-          ></iframe>
-        </div>
-      );
+  return (
+    <div>
+      <iframe
+        title="Streamlit App"
+        src="http://localhost:8443"
+        width="100%"
+        height="500px"
+        frameBorder="0"
+        referrerPolicy="no-referrer"
+        onLoad={() => {
+          async function getSrc() {
+            const res = await fetch("http://localhost:8443", {
+              method: 'GET',
+              headers: {
+                "Authorization": "Bearer " + token
+              }
+            });
+            const blob = await res.blob();
+            const urlObject = URL.createObjectURL(blob);
+            document.querySelector('iframe[title="Streamlit App"]').setAttribute("src", urlObject)
+          }
+          getSrc();
+        }}
+      />
+    </div>
+  );
 };
 
 export default Home;

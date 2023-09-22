@@ -4,25 +4,24 @@ import {BrowserRouter, Routes, Route} from "react-router-dom";
 import Home from "./pages/Home";
 import Visualizer from "./pages/Visualizer";
 import React from "react";
-import Public from "./components/Public";
 import useAuth from "./hooks/useAuth";
 
 function App() {
 
-    const { isLogin, token, userInfo, keycloakInstance } = useAuth()
-    console.log(token);
+    const { isLogin, token, userRole, keycloakInstance } = useAuth();
+    console.log(token)
 
-
-  return ( isLogin ?
+  return (
       <BrowserRouter>
           <Routes>
-              <Route path="/" element={<Layout logout={keycloakInstance}/>}>
+            {isLogin ? 
+              <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} />}>
                   <Route index element={<Home token={token} />} />
                   <Route path="visualizer" element={<Visualizer token={token} />} />
               </Route>
+              : <Route path='/home' element={<Home token={token}/>} /> }
           </Routes>
       </BrowserRouter>
-          : <Public />
   );
 }
 
