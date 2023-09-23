@@ -13,13 +13,22 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
+import {Divider} from "@mui/material";
 
 const pages = ["Landing Page", "Data Upload", "Data Orchestrator"];
 const settings = ["Account", "Logout"];
 
+function getWindowDimensions() {
+  const { innerWidth: width } = window;
+  return width;
+}
+
 function ResponsiveAppBar({logout, role}) {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [anchorEl, setAnchorEl] = React.useState(null);
   const [hoverEffet, setHoverEffet] = React.useState([false, false, false]);
+  const [logoHover, setLogoHover] = React.useState(false);
+  const [windowDimensions, setWindowDimensions] = React.useState(getWindowDimensions());
   const isRun = React.useRef(false);
   const navigate = useNavigate()
 
@@ -34,12 +43,10 @@ function ResponsiveAppBar({logout, role}) {
       newArr.push(false);
     }
     setHoverEffet(newArr);
-    console.log(hoverEffet);
   }, [pages]);
 
   const handleLogout = () => {
     logout.logout();
-    navigate("/landing");
   };
 
   const getWhatToHandle = (text) => {
@@ -50,6 +57,10 @@ function ResponsiveAppBar({logout, role}) {
     }
   };
 
+  const goToHome = () => {
+    navigate("");
+  }
+
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -57,6 +68,22 @@ function ResponsiveAppBar({logout, role}) {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const handleOpenMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogoEnter = () => {
+      setLogoHover(true);
+  }
+
+  const handleLogoLeave = () => {
+      setLogoHover(false);
+  }
 
   const handleMouseEnter = (index) => {
     let newArray = [];
@@ -82,28 +109,24 @@ function ResponsiveAppBar({logout, role}) {
     setHoverEffet(newArray);
   };
 
+  useEffect(() => {
+    function handleResize() {
+      setWindowDimensions(getWindowDimensions());
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <AppBar position="static" style={{ backgroundColor: "#000" }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="/"
-            sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            LOGO
-          </Typography>
+          <AdbIcon sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
+                   onMouseLeave={handleLogoLeave}
+                   onMouseEnter={handleLogoEnter}
+                   onClick={windowDimensions > 600 ? goToHome : handleOpenMenu} />
+          {windowDimensions > 600 ?
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page, index) => (
               <Button
@@ -115,14 +138,44 @@ function ResponsiveAppBar({logout, role}) {
                   border: hoverEffet[index] ? "2px solid white" : "0px",
                   color: "white",
                   display: "block",
+                  fontFamily: "monospace",
+                  fontWeight: "bold"
                 }}
               >
                 {page}
               </Button>
             ))}
+          </Box> :
+              <Box>
+            <Menu
+                sx={{ mt: "45px" }}
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+            >
+              {pages.map((page) => (
+                  <MenuItem key={page}>
+                    <Typography textAlign="center" >
+                      {page}
+                      <Divider sx={{ color: "black", backgroundColor: "black" }}/>
+                    </Typography>
+                  </MenuItem>
+              ))}
+            </Menu>
           </Box>
+            }
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{ flexGrow: 0, marginLeft: windowDimensions > 1000 ? 0 : windowDimensions/10 - 3}}>
             <Tooltip title="Open settings">
               <IconButton sx={{ p: 0 }} onClick={handleOpenUserMenu}>
                 <AccountBoxIcon

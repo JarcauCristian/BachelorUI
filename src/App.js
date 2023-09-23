@@ -5,18 +5,18 @@ import Home from "./pages/Home";
 import Visualizer from "./pages/Visualizer";
 import React from "react";
 import useAuth from "./hooks/useAuth";
+import DataUploader from "./pages/DataUploader";
 
 function App() {
 
     const { isLogin, token, userRole, keycloakInstance } = useAuth();
-    console.log(token)
 
   return (
       <BrowserRouter>
           <Routes>
             {isLogin ? 
               <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} />}>
-                  <Route index element={<Home token={token} />} />
+                  <Route index element={<DataUploader />} />
                   <Route path="visualizer" element={<Visualizer token={token} />} />
               </Route>
               : <Route path='/home' element={<Home token={token}/>} /> }
