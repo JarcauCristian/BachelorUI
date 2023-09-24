@@ -15,7 +15,7 @@ import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import {Divider} from "@mui/material";
 
-const pages = ["Landing Page", "Data Upload", "Data Orchestrator"];
+const pages = ["Landing Page", "Data Upload", "Data Orchestration"];
 const settings = ["Account", "Logout"];
 
 function getWindowDimensions() {

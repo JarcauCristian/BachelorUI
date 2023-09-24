@@ -1,16 +1,16 @@
-import React from "react";
+import * as React from "react";
 
 const Home = ({token}) => {
-
+    const [data, setData] = React.useState(null);
   return (
     <div>
       <iframe
         title="Streamlit App"
-        src={`http://localhost:8443?authorization=${token}`}
+        id="output-frame-id"
+        src="http://localhost:8443"
         width="100%"
         height="500px"
         frameBorder="0"
-        referrerPolicy="no-referrer"
       />
     </div>
   );
