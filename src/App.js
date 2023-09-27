@@ -16,7 +16,7 @@ function App() {
           <Routes>
             {isLogin ? 
               <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} />}>
-                  <Route index element={<DataUploader />} />
+                  <Route index element={<DataUploader token={token} />} />
                   <Route path="visualizer" element={<Visualizer token={token} />} />
               </Route>
               : <Route path='/home' element={<Home token={token}/>} /> }
