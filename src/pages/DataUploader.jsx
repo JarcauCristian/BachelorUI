@@ -1,7 +1,7 @@
 import * as React from 'react';
 import '../styles/data_uploader.css';
 import Box from "@mui/material/Box";
-import {Autocomplete, Paper, TextField} from "@mui/material";
+import {Autocomplete, TextField} from "@mui/material";
 import {useEffect} from "react";
 import CsvUploader from "../components/connectors/CsvUploader";
 

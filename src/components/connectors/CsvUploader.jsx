@@ -54,26 +54,24 @@ const CsvUploader = ({token, display, windowWidth}) => {
                         "Authorization": `Bearer ${token}`
                     }
                 }
-                const reader = new FileReader();
-                reader.onload = async ({ target }) => {
-                    const csv = Papa.parse(target.result, { header: true });
-                    const parsedData = csv?.data;
-                    console.log(parsedData);
-                    setData(parsedData);
-                    console.log(data);
-                };
-                reader.readAsText(fileToUpload)
 
-                // await fetch('http://localhost:8000/upload', options).then(
-                //     (response) =>  response.json()
-                // ).then((data) => {
-                //     const location = data.message.location
-                // }).catch(
-                //     (err) => {
-                //         setMessage(err.message);
-                //         setOpen(true);
-                //     }
-                // )
+                await fetch('http://localhost:8000/upload', options).then(
+                    (response) =>  response.json()
+                ).then((data) => {
+                    const location = data.message.location
+                    const reader = new FileReader();
+                    reader.onload = async ({ target }) => {
+                        const csv = Papa.parse(target.result, { header: true });
+                        const parsedData = csv?.data;
+                        setData(parsedData);
+                    };
+                    reader.readAsText(fileToUpload)
+                }).catch(
+                    (err) => {
+                        setMessage(err.message);
+                        setOpen(true);
+                    }
+                )
             }
         } else {
             setMessage("Please fill in all the fields");

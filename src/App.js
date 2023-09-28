@@ -14,7 +14,7 @@ function App() {
   return (
       <BrowserRouter>
           <Routes>
-            {!isLogin ?
+            {isLogin ?
               <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} />}>
                   <Route index element={<DataUploader token={token} />} />
                   <Route path="visualizer" element={<Visualizer token={token} />} />
