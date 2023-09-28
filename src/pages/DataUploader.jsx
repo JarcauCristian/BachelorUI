@@ -37,9 +37,8 @@ const DataUploader = ({token}) => {
                               setValue(newValue);
                           }}
             />
-            <Paper elevation={24} sx={{backgroundColor: "#F5F5F5", margin: 10, padding: 10, display: value === null ? "none" : "flex", maxWidth: windowWidth - 100, alignItem: "center", justifyContent: "space-evenly"}}>
-                <CsvUploader token={token} />
-            </Paper>
+            {/*<Paper elevation={24} sx={{backgroundColor: "#F5F5F5", margin: 10, padding: 10, display: value === null ? "none" : "flex", maxWidth: windowWidth - 100, alignItem: "center", justifyContent: "space-evenly"}}>*/}
+            <CsvUploader token={token} display={value} windowWidth={windowWidth}/>
         </Box>
     );
 }
