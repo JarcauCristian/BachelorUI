@@ -19,6 +19,7 @@ const DataTable = ({data}) => {
             getRowId={(row) => row.ID}
             component={Paper}
             pageSizeOptions={[5, 10]}
+            sx={{maxWidth: 500}}
         />
     );
 }
