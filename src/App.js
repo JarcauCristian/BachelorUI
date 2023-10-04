@@ -6,6 +6,7 @@ import Visualizer from "./pages/Visualizer";
 import React, {useEffect} from "react";
 import useAuth from "./hooks/useAuth";
 import DataUploader from "./pages/DataUploader";
+import DataOrchestrator from "./pages/DataOrchestrator";
 
 function App() {
 
@@ -16,8 +17,8 @@ function App() {
           <Routes>
             {isLogin ?
               <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} />}>
-                  <Route index element={<Home token={token} />} />
-                  <Route path="visualizer" element={<Visualizer token={token} />} />
+                  <Route index element={<DataUploader token={token} />} />
+                  <Route path="data_orchestration" element={<DataOrchestrator token={token} />} />
               </Route>
               : <Route path='/home' element={<Home token={token}/>} /> }
           </Routes>

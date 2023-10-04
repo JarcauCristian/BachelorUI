@@ -109,6 +109,10 @@ function ResponsiveAppBar({logout, role}) {
     setHoverEffet(newArray);
   };
 
+  const handleRedirect = (whereTo) => {
+    navigate(`/${whereTo.toLowerCase().replaceAll(" ", "_")}`)
+  }
+
   useEffect(() => {
     function handleResize() {
       setWindowDimensions(getWindowDimensions());
@@ -133,6 +137,7 @@ function ResponsiveAppBar({logout, role}) {
                 key={index}
                 onMouseEnter={() => handleMouseEnter(index)}
                 onMouseLeave={() => handleMouseLeave(index)}
+                onClick={() => handleRedirect(page)}
                 sx={{
                   my: 2,
                   border: hoverEffet[index] ? "2px solid white" : "0px",
