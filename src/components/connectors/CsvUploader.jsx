@@ -102,7 +102,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
                 }
                 setIsLoading(true);
 
-                await fetch('http://localhost:8000/upload', options).then(
+                await fetch('https://go.sedimark.work/upload', options).then(
                     (response) =>  {
                         if (response.status !== 201) {
                             handleToast(`An error occurred when uploading the dataset! Status Code: ${response.status}`, "error")
@@ -118,6 +118,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
                         const parsedData = csv?.data;
                         console.log("Something");
                         getStatistics(parsedData);
+                        console.log(parsedData);
                         setData(parsedData);
                     };
                     reader.readAsText(fileToUpload)
