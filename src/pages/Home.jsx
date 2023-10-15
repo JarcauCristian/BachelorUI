@@ -8,10 +8,11 @@ const Home = ({token}) => {
 		const method = "GET"
 		const authorization = `Bearer ${token}`
 		const headers = {"Authorization": authorization,
-			"Content-Type": "application/json"}
+			"Content-Type": "application/json",
+		"Access-Control-Allow-Origin": "*"}
 		const options = {method, headers}
 
-		fetch("http://localhost:8000/validate_token", options)
+		fetch("http://localhost:8050", options)
 			.then(response => response.blob())
 			.then(response => {
 				var blob = new Blob([response], {type: "application/json"})
@@ -25,7 +26,7 @@ const Home = ({token}) => {
       <iframe
         title="Streamlit App"
         id="output-frame-id"
-        src={data != null ? "http://localhost:8050" : ""}
+        src={`http://localhost:8050?token=${token}`}
         width="100%"
         height="500px"
         frameBorder="0"

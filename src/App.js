@@ -3,7 +3,7 @@ import Layout from "./components/layout/Layout";
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 import Home from "./pages/Home";
 import Visualizer from "./pages/Visualizer";
-import React from "react";
+import React, {useEffect} from "react";
 import useAuth from "./hooks/useAuth";
 import DataUploader from "./pages/DataUploader";
 import DataOrchestrator from "./pages/DataOrchestrator";

@@ -63,16 +63,8 @@ const CsvUploader = ({token, display, windowWidth}) => {
 
     const getStatistics = (data) => {
         const columnStatistics = {}
-        console.log("Hello");
         Object.keys(data[0]).forEach((column) => {
-            const values = data.map((row) => row[column]);
-            if (values.every((value) => typeof value === 'number')) {
-                const mean = values.reduce((acc, value) => acc + value, 0) / values.length;
-                const stdDev = Math.sqrt(
-                    values.reduce((acc, value) => acc + (value - mean) ** 2, 0) / values.length
-                );
-                columnStatistics[column] = { Mean: mean, 'Standard Deviation': stdDev };
-            }
+            console.log(typeof column);
         });
         console.log(columnStatistics);
 
@@ -82,10 +74,12 @@ const CsvUploader = ({token, display, windowWidth}) => {
     const uploadFiles = async () => {
         if (datasetName !== null && fileToUpload !== null && datasetDescription !== null)
         {
-            if (/^([a-z]?[0-9]?_?])$/.test(datasetName))
+            const regex = /^([a-z]?[0-9]?-?_?)+$/;
+            console.log(regex.test(datasetName))
+
+            if (!regex.test(datasetName))
             {
-                setMessage("Dataset Name should only contain letters, numbers and underscores.");
-                setOpen(true);
+                handleToast("Dataset Name should only contain letters, numbers and underscores.", "error")
             } else {
                 let formData = new FormData()
                 formData.append("file", fileToUpload)
@@ -101,7 +95,6 @@ const CsvUploader = ({token, display, windowWidth}) => {
                     }
                 }
                 setIsLoading(true);
-
                 await fetch('https://go.sedimark.work/upload', options).then(
                     (response) =>  {
                         if (response.status !== 201) {
@@ -116,12 +109,12 @@ const CsvUploader = ({token, display, windowWidth}) => {
                     reader.onload = async ({ target }) => {
                         const csv = Papa.parse(target.result, { header: true });
                         const parsedData = csv?.data;
-                        console.log("Something");
                         getStatistics(parsedData);
                         console.log(parsedData);
                         setData(parsedData);
                     };
                     reader.readAsText(fileToUpload)
+                    setIsLoading(true);
                 }).catch(
                     (err) => {
                         handleToast(err.message, "error");

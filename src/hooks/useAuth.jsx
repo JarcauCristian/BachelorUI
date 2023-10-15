@@ -8,6 +8,7 @@ const useAuth = () => {
     const [isLogin, setLogin] = useState(false);
     const [token, setToken] = useState(null);
     const [userRole, setUserRole] = useState(null);
+    const [isExpired, setIsExpired] = useState(false);
     const [keycloakInstance, setKeycloakInstance] = useState(null);
     const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
 
@@ -34,8 +35,16 @@ const useAuth = () => {
                 }
             }
             setKeycloakInstance(client);
+            client.updateToken(5).then((refresh) => {
+                if (refresh) {
+                    setIsExpired(true)
+                } else {
+                    setIsExpired(false)
+                }
+
+            }).catch((err) => {console.error(err)})
         });
-    }, [REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT]);
+    }, [REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT, isExpired]);
 
     return { isLogin, token, userRole, keycloakInstance };
 }
