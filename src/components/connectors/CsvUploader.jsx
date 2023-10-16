@@ -75,7 +75,6 @@ const CsvUploader = ({token, display, windowWidth}) => {
         if (datasetName !== null && fileToUpload !== null && datasetDescription !== null)
         {
             const regex = /^([a-z]?[0-9]?-?_?)+$/;
-            console.log(regex.test(datasetName))
 
             if (!regex.test(datasetName))
             {
@@ -95,10 +94,10 @@ const CsvUploader = ({token, display, windowWidth}) => {
                     }
                 }
                 setIsLoading(true);
-                await fetch('https://go.sedimark.work/upload', options).then(
+                await fetch('http://localhost:8000/upload', options).then(
                     (response) =>  {
                         if (response.status !== 201) {
-                            handleToast(`An error occurred when uploading the dataset! Status Code: ${response.status}`, "error")
+                            //handleToast(`An error occurred when uploading the dataset! Status Code: ${response.status}`, "error")
                             setIsLoading(false);
                         }
                     }
