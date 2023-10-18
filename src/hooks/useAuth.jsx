@@ -28,23 +28,24 @@ const useAuth = () => {
             setLogin(res);
             setToken(client.token);
             for (var i = 0; i < roles.length; i++) {
-                if (client.hasRealmRole(roles[i]))
-                {
+                if (client.hasRealmRole(roles[i])) {
                     setUserRole(roles[i]);
                     break;
                 }
             }
             setKeycloakInstance(client);
-            client.updateToken(5).then((refresh) => {
-                if (refresh) {
-                    setIsExpired(true)
-                } else {
-                    setIsExpired(false)
-                }
-
-            }).catch((err) => {console.error(err)})
+            setInterval(() => {
+                client.updateToken(1).then((refreshed) => {
+                    if (refreshed) {
+                        console.log('Token was refreshed!');
+                    } else {
+                        console.log('Token is still valid!');
+                    }}).catch(() => {
+                        console.log("An error occurred when refreshing the token")
+                })
+            }, 1000*60);
         });
-    }, [isExpired]);
+    });
 
     return { isLogin, token, userRole, keycloakInstance };
 }
