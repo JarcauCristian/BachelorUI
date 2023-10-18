@@ -44,7 +44,7 @@ const useAuth = () => {
 
             }).catch((err) => {console.error(err)})
         });
-    }, [REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT, isExpired]);
+    }, [isExpired]);
 
     return { isLogin, token, userRole, keycloakInstance };
 }

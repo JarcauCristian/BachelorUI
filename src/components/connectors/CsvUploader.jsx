@@ -1,4 +1,5 @@
 import React from 'react'
+import axios from 'axios'
 import {
     Divider,
     FormControl,
@@ -20,10 +21,10 @@ const CsvUploader = ({token, display, windowWidth}) => {
     const [datasetName, setDatasetName] = React.useState(null);
     const [datasetDescription, setDatasetDescription] = React.useState(null);
     const [message, setMessage] = React.useState(null);
+    const [statistics, setStatistics] = React.useState(null);
     const [open, setOpen] = React.useState(false);
     const [data, setData] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(false);
-    const [statisctics, setStatistics] = React.useState(null);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"}
 
     const handleFilesChange = (files) => {
@@ -61,21 +62,34 @@ const CsvUploader = ({token, display, windowWidth}) => {
         setOpen(false);
     };
 
-    const getStatistics = (data) => {
-        const columnStatistics = {}
-        Object.keys(data[0]).forEach((column) => {
-            console.log(typeof column);
-        });
-        console.log(columnStatistics);
+    const getStatistics = () => {
+        const location = window.sessionStorage.getItem("location");
 
-        setStatistics(columnStatistics);
+        const customHeaders = {
+            'Authorization': `Bearer ${token}`,
+        };
+
+        const axiosInstance = axios.create({
+            baseURL: `http://localhost:8000`,
+            headers: customHeaders,
+        });
+
+        axiosInstance.get(`/get_statistics?dataset_path=${location}`)
+            .then(response => {
+                console.log(response.data)
+                setStatistics(response.data);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                handleToast("Error getting the statistics!", "error");
+                setIsLoading(false);
+            });
     }
 
     const uploadFiles = async () => {
         if (datasetName !== null && fileToUpload !== null && datasetDescription !== null)
         {
             const regex = /^([a-z]?[0-9]?-?_?)+$/;
-            console.log(regex.test(datasetName))
 
             if (!regex.test(datasetName))
             {
@@ -95,15 +109,8 @@ const CsvUploader = ({token, display, windowWidth}) => {
                     }
                 }
                 setIsLoading(true);
-
-                await fetch('http://localhost:8000/upload', options).then(
-                    (response) =>  response.json() //{
-                    //     response.json()
-                    //     if (response.status !== 201) {
-                    //         handleToast(`An error occurred when uploading the dataset! Status Code: ${response.status}`, "error")
-                    //         setIsLoading(false);
-                    //     }
-                    // }
+                await fetch('http://localhost:9000/upload', options).then(
+                    (response) =>  response.json()
                 ).then((data) => {
                     setIsLoading(false);
                     window.sessionStorage.setItem("location", data.message.location)
@@ -111,11 +118,11 @@ const CsvUploader = ({token, display, windowWidth}) => {
                     reader.onload = async ({ target }) => {
                         const csv = Papa.parse(target.result, { header: true });
                         const parsedData = csv?.data;
-                        getStatistics(parsedData);
                         setData(parsedData);
                     };
                     reader.readAsText(fileToUpload)
                     setIsLoading(true);
+                    getStatistics();
                 }).catch(
                     (err) => {
                         handleToast(err.message, "error");
@@ -182,8 +189,26 @@ const CsvUploader = ({token, display, windowWidth}) => {
                 justifyContent: "space-around",
                 gap: 5
             }}>
-            {data !== null ? <DataTable data={data} name={datasetName} /> : ""}
+            {data !== null ? <DataTable data={data} name={datasetName} ids={null}/> : ""}
             </Paper>
+            { statistics !== null ?
+            <Paper elevation={24} sx={{
+                backgroundColor: "#F5F5F5",
+                margin: 10,
+                padding: 10,
+                display: data === null ? "none" : "block",
+                flexDirection: "row",
+                maxWidth: windowWidth - 100,
+                alignItems: "center",
+                justifyContent: "space-around",
+                gap: 5
+            }}>
+                <div style={{ flex: 2 }}>
+                    {statistics !== null ? <DataTable data={statistics.df} name={"Statistics"} ids={statistics.columns_dataset} /> : ""}
+                </div>
+            </Paper>
+                : ""
+            }
         </div>
     );
 }
