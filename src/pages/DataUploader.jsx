@@ -27,7 +27,7 @@ const DataUploader = ({token}) => {
             sx={{
                 backgroundColor: '#001F3F',
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
             }}
         >
             <Autocomplete sx={{ color: 'white', backgroundColor: "white" }} renderInput={(params) => <TextField {...params} sx={{color: "white"}} label="Data Source" />}

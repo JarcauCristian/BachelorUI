@@ -8,7 +8,6 @@ const useAuth = () => {
     const [isLogin, setLogin] = useState(false);
     const [token, setToken] = useState(null);
     const [userRole, setUserRole] = useState(null);
-    const [isExpired, setIsExpired] = useState(false);
     const [keycloakInstance, setKeycloakInstance] = useState(null);
     const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
 
@@ -44,6 +43,13 @@ const useAuth = () => {
                         console.log("An error occurred when refreshing the token")
                 })
             }, 1000*60);
+            setInterval(() => {
+                if (!res) {
+                    window.location.reload();
+                } else {
+                    console.log("Still logged in!");
+                }
+            }, 1000*60*10);
         });
     });
 

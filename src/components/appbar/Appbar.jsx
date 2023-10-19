@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useEffect } from "react";
-import {useNavigate} from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -14,6 +13,8 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import {Divider} from "@mui/material";
+import useAppBarHeight from "../utils/appBarHeight";
+import {useNavigate} from "react-router-dom";
 
 const pages = ["Landing Page", "Data Upload", "Data Orchestration"];
 const settings = ["Account", "Logout"];
@@ -30,12 +31,15 @@ function ResponsiveAppBar({logout, role}) {
   const [logoHover, setLogoHover] = React.useState(false);
   const [windowDimensions, setWindowDimensions] = React.useState(getWindowDimensions());
   const isRun = React.useRef(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [appBarRef] = useAppBarHeight();
+
 
   useEffect(() => {
     if (isRun.current) return;
 
     isRun.current = true;
+    window.sessionStorage.setItem("appBarHeight", JSON.stringify(appBarRef.current.clientHeight));
 
     let newArr = [];
 
@@ -43,7 +47,7 @@ function ResponsiveAppBar({logout, role}) {
       newArr.push(false);
     }
     setHoverEffet(newArr);
-  }, [pages]);
+  }, [appBarRef]);
 
   const handleLogout = () => {
     logout.logout();
@@ -123,7 +127,7 @@ function ResponsiveAppBar({logout, role}) {
   }, []);
 
   return (
-    <AppBar position="static" style={{ backgroundColor: "#000" }}>
+    <AppBar ref={appBarRef} position="static" style={{ backgroundColor: "#000"}} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <AdbIcon sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
