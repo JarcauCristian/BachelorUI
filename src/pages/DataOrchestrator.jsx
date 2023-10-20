@@ -9,7 +9,7 @@ import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import MuiAccordionDetails from '@mui/material/AccordionDetails';
 import Typography from "@mui/material/Typography";
 import {useEffect} from "react";
-import {List} from "@mui/material";
+import {Alert, List, Snackbar} from "@mui/material";
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -58,22 +58,63 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 const DataOrchestrator = () => {
     const [expanded, setExpanded] = React.useState('panel1');
     const [appBarHeight, setAppBarHeight] = React.useState(null);
+    const [transformers, setTransformers] = React.useState(null);
     const isSet = React.useRef(false);
+    const [toastMessage, setToastMessage] = React.useState("");
+    const [toastSeverity, setToastSeverity] = React.useState("error");
+    const [open, setOpen] = React.useState(false);
+    const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setOpen(false);
+    };
+
+    const handleToast = (message, severity)  => {
+        setToastMessage(message);
+        setToastSeverity(severity);
+        setOpen(true);
+    }
 
     const handleChange = (panel) => (event, newExpanded) => {
         setExpanded(newExpanded ? panel : false);
     };
 
+    const getTransformers = async () => {
+        axios.get(`http://localhost:8000/get_transformers_params`)
+            .then(response => {
+                console.log(response.data)
+                setTransformers(response.data);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+
     useEffect(() => {
         if (isSet.current) return;
 
         isSet.current = true;
+        getTransformers();
 
        setAppBarHeight(JSON.parse(window.sessionStorage.getItem("appBarHeight")));
     }, [appBarHeight]);
 
     return (
         <Box sx={{ display: 'flex'}}>
+            <Snackbar
+                open={open}
+                autoHideDuration={2000}
+                onClose={handleClose}
+                anchorOrigin={{vertical, horizontal}}
+            >
+                <Alert onClose={handleClose} severity={toastSeverity}>
+                    {toastMessage}
+                </Alert>
+            </Snackbar>
             <Drawer
                 sx={{
                     width: drawerWidth,

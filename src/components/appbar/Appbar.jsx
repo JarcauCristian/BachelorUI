@@ -133,8 +133,8 @@ function ResponsiveAppBar({logout, role}) {
           <AdbIcon sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
                    onMouseLeave={handleLogoLeave}
                    onMouseEnter={handleLogoEnter}
-                   onClick={windowDimensions > 600 ? goToHome : handleOpenMenu} />
-          {windowDimensions > 600 ?
+                   onClick={windowDimensions > 1000 ? goToHome : handleOpenMenu} />
+          {windowDimensions > 1000 ?
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page, index) => (
               <Button

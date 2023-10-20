@@ -15,6 +15,7 @@ import {
 import Button from "@mui/material/Button";
 import DataTable from "../DataTable";
 import Papa from "papaparse";
+import Toast from "../utils/toast";
 const CsvUploader = ({token, display, windowWidth}) => {
     const [fileToUpload, setFileToUpload] = React.useState(null);
     const [severity, setSeverity] = React.useState(null);
@@ -25,6 +26,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
     const [open, setOpen] = React.useState(false);
     const [data, setData] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [id, setId] = React.useState(0);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"}
 
     const handleFilesChange = (files) => {
