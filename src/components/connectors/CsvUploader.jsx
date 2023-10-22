@@ -15,7 +15,6 @@ import {
 import Button from "@mui/material/Button";
 import DataTable from "../DataTable";
 import Papa from "papaparse";
-import Toast from "../utils/toast";
 const CsvUploader = ({token, display, windowWidth}) => {
     const [fileToUpload, setFileToUpload] = React.useState(null);
     const [severity, setSeverity] = React.useState(null);

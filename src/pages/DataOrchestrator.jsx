@@ -9,15 +9,43 @@ import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import MuiAccordionDetails from '@mui/material/AccordionDetails';
 import Typography from "@mui/material/Typography";
 import {useEffect} from "react";
-import {Alert, List, Snackbar} from "@mui/material";
+import {Alert, Backdrop, CircularProgress, List, Snackbar} from "@mui/material";
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/Inbox';
 import DraftsIcon from '@mui/icons-material/Drafts';
+import Button from "@mui/material/Button";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ReactFlow, {
+    MiniMap,
+    Controls,
+    Background,
+    applyEdgeChanges,
+    applyNodeChanges,
+    addEdge,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+
+import TextUpdaterNode from '../components/customNode/TextUpdaterNode';
+import '../styles/custom_node.css';
+
+const initialNodes = [
+    { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
+    { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
+    {
+        id: 'djasihdau',
+        type: 'textUpdater',
+        position: { x: 100, y: 100 },
+        data: {params: [], label: 'My Custom Node', background: "lightgreen"},
+    },
+];
+const initialEdges = [{ id: 'e1-2', source: '1', target: '2', style: { stroke: 'black' }, }];
 
 const drawerWidth = 240;
+
+const nodeTypes = { textUpdater: TextUpdaterNode };
 
 const Accordion = styled((props) => (
     <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -58,13 +86,24 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 const DataOrchestrator = () => {
     const [expanded, setExpanded] = React.useState('panel1');
     const [appBarHeight, setAppBarHeight] = React.useState(null);
-    const [transformers, setTransformers] = React.useState(null);
+    const [normalization, setNormalization] = React.useState([]);
+    const [loading, setLoading] = React.useState(false);
     const isSet = React.useRef(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [open, setOpen] = React.useState(false);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
+    const [nodes, setNodes] = React.useState(initialNodes);
+    const [edges, setEdges] = React.useState(initialEdges);
+    const [hoverStates, setHoverStates] = React.useState(Array(3).fill(false));
 
+    const handleHover = (index, isHovered) => {
+        const updatedHoverStates = [...hoverStates];
+        updatedHoverStates[index] = isHovered;
+        setHoverStates(updatedHoverStates);
+    };
+
+    const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, style: {stroke: "black"}}, eds)), [setEdges]);
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -72,6 +111,9 @@ const DataOrchestrator = () => {
 
         setOpen(false);
     };
+    const Caps = (str) => {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
 
     const handleToast = (message, severity)  => {
         setToastMessage(message);
@@ -83,38 +125,96 @@ const DataOrchestrator = () => {
         setExpanded(newExpanded ? panel : false);
     };
 
-    const getTransformers = async () => {
-        axios.get(`http://localhost:8000/get_transformers_params`)
+    const handleListClick = (blocks) => {
+        let x = 0;
+        let index = 0;
+        let nodes = [];
+        let edges = [];
+        setEdges(edges);
+        setNodes(nodes);
+        for (let block of blocks) {
+            const block_name = block.name.includes("_") ? block.name.split("_").map((data) => {
+                return Caps(data);
+            }).join(" ") : Caps(block.name);
+            nodes.push({
+                id: `${index}`,
+                type: 'textUpdater',
+                position: { x: x, y: 0 },
+                data: { params: block.variables, label: block_name, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
+            })
+            index += 1;
+            x += 300;
+        }
+
+        for (let ind = 0; ind < nodes.length - 1; ind++) {
+            edges.push({
+                id: `e${nodes[ind].id}-${nodes[ind+1].id}`,
+                source: nodes[ind].id,
+                target: nodes[ind+1].id,
+                style: { stroke: 'black' },
+            })
+        }
+        setNodes(nodes);
+        setEdges(edges);
+    }
+
+    const handleBackdropClose = () => {
+        setLoading(false);
+    }
+
+    const onNodesChange = React.useCallback(
+        (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+        [setNodes]
+    );
+    const onEdgesChange = React.useCallback(
+        (changes) => setEdges((eds) => applyEdgeChanges(changes, {...eds, style: {stroke: "black"}})),
+        [setEdges]
+    );
+
+    const getNormalization = async () => {
+        setLoading(true);
+        axios.get(`http://localhost:7000/pipelines`,{ params: { pipeline_type: "normalization" } })
             .then(response => {
-                console.log(response.data)
-                setTransformers(response.data);
+                setNormalization(response.data);
+                setLoading(false);
             })
             .catch(error => {
                 console.log(error);
             });
     }
 
+    const clearBoard = () => {
+        setNodes([]);
+        setEdges([]);
+    }
+
     useEffect(() => {
         if (isSet.current) return;
 
         isSet.current = true;
-        getTransformers();
+        getNormalization();
 
        setAppBarHeight(JSON.parse(window.sessionStorage.getItem("appBarHeight")));
     }, [appBarHeight]);
 
     return (
-        <Box sx={{ display: 'flex'}}>
+        <div style={{width: '100vw', height: '100vh', display: "flex", flexDirection: "row" }}>
+        <Box sx={{ display: 'flex', background: "#000", color: "#fff" }}>
             <Snackbar
                 open={open}
                 autoHideDuration={2000}
+                anchorOrigin={{ vertical, horizontal }}
                 onClose={handleClose}
-                anchorOrigin={{vertical, horizontal}}
             >
-                <Alert onClose={handleClose} severity={toastSeverity}>
-                    {toastMessage}
-                </Alert>
+                <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
+            <Backdrop
+                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={loading}
+                onClick={handleBackdropClose}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
             <Drawer
                 sx={{
                     width: drawerWidth,
@@ -122,39 +222,71 @@ const DataOrchestrator = () => {
                     '& .MuiDrawer-paper': {
                         width: drawerWidth,
                         boxSizing: 'border-box',
+                        background: '#000080',
+                        marginTop: appBarHeight / 8
                     },
                 }}
                 variant="permanent"
                 anchor="left"
             >
-                <Accordion sx={{ paddingTop: appBarHeight / 8 }} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+                <Button
+                    style={{
+                        fontFamily: 'Roboto',
+                        fontWeight: 'bolder',
+                        fontSize: hoverStates[0] ? 25 : 20,
+                        textAlign: 'center',
+                        color: "#fff",
+                        background: "#000080",
+                        transition: 'background-color 0.3s ease',
+                        border: '2px solid black'
+                    }}
+                    onClick={clearBoard}
+                    onMouseEnter={() => handleHover(0, true)}
+                    onMouseLeave={() => handleHover(0, false)}>
+                    Clear Board
+                </Button>
+                <Accordion sx={{background: "#C0C0C0", color: "#000"}} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
                     <AccordionSummary aria-controls="panel1d-content" id="panel1d-header">
-                        <Typography>Transformers</Typography>
+                        <Typography style={{fontWeight: "bold", fontFamily: "Roboto"}}>Data Normalization</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <List>
-                            <ListItem disablePadding>
-                                <ListItemButton>
-                                    <ListItemIcon>
-                                        <InboxIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary="Inbox" />
-                                </ListItemButton>
-                            </ListItem>
-                            <ListItem disablePadding>
-                                <ListItemButton>
-                                    <ListItemIcon>
-                                        <DraftsIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary="Drafts" />
-                                </ListItemButton>
-                            </ListItem>
+                            {normalization.map((data, index) => (
+                                <ListItem key={index} disablePadding>
+                                    <Accordion>
+                                        <AccordionSummary
+                                            expandIcon={<ExpandMoreIcon />}
+                                            aria-controls="panel1a-content"
+                                            id="panel1a-header"
+                                        >
+                                            <Typography>{Caps(data.name.split("_")[0]) + " " + Caps(data.name.split("_")[1])}</Typography>
+                                        </AccordionSummary>
+                                        <AccordionDetails sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                                            {data.description}
+                                            <Button
+                                                key={index}
+                                                style={{
+                                                    backgroundColor: hoverStates[index+1] ? 'black' : 'white',
+                                                    color: hoverStates[index+1] ? 'white' : 'black',
+                                                    transition: 'background-color 0.3s ease',
+                                                    border: '2px solid black'
+                                                }}
+                                                onClick={() => handleListClick(data.blocks)}
+                                                onMouseEnter={() => handleHover(index+1, true)}
+                                                onMouseLeave={() => handleHover(index+1, false)}
+                                            >
+                                                Add
+                                            </Button>
+                                        </AccordionDetails>
+                                    </Accordion>
+                                </ListItem>
+                            ))}
                         </List>
                     </AccordionDetails>
                 </Accordion>
-                <Accordion expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+                <Accordion sx={{background: "#C0C0C0", color: "#000"}}  expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
                     <AccordionSummary aria-controls="panel2d-content" id="panel2d-header">
-                        <Typography>Exporters</Typography>
+                        <Typography style={{fontWeight: "bold", fontFamily: "Roboto"}}>Data Enrichment</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <List>
@@ -179,6 +311,18 @@ const DataOrchestrator = () => {
                 </Accordion>
             </Drawer>
         </Box>
+            <ReactFlow style={{paddingRight: drawerWidth + 10}}
+                       nodes={nodes}
+                       edges={edges}
+                       onNodesChange={onNodesChange}
+                       onEdgesChange={onEdgesChange}
+                       onConnect={onConnect}
+                       nodeTypes={nodeTypes}
+                       fitView>
+                <Controls />
+                <MiniMap style={{height: 120}} zoomable pannable/>
+                <Background style={{background: "#87CEEB"}} color="#000" variant="dots" gap={12} size={1} /></ReactFlow>
+        </div>
     );
 }
 
