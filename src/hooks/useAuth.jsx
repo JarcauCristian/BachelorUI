@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import Keycloak from "keycloak-js";
 
-const roles = ['clinician', 'data_scientist', 'data_orchestrator']
+const roles = ['data-scientist', 'data-producer']
 
 const useAuth = () => {
     const isRun = useRef(false);
@@ -26,7 +26,7 @@ const useAuth = () => {
         client.init({onLoad: "login-required"}).then((res) => {
             setLogin(res);
             setToken(client.token);
-            for (var i = 0; i < roles.length; i++) {
+            for (let i = 0; i < roles.length; i++) {
                 if (client.hasRealmRole(roles[i])) {
                     setUserRole(roles[i]);
                     break;

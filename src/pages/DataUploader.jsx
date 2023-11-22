@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import {Autocomplete, TextField} from "@mui/material";
 import {useEffect} from "react";
 import CsvUploader from "../components/connectors/CsvUploader";
+import ParticlesBg from "particles-bg";
 
 function getWindowDimensions() {
     const { innerWidth: width } = window;
@@ -23,14 +24,16 @@ const DataUploader = ({token}) => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
     return (
+        <>
         <Box className="mydiv"
             sx={{
                 backgroundColor: '#001F3F',
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: "center"
             }}
         >
-            <Autocomplete sx={{ color: 'white', backgroundColor: "white" }} renderInput={(params) => <TextField {...params} sx={{color: "white"}} label="Data Source" />}
+            <Autocomplete sx={{ color: 'white', backgroundColor: "white", width: "90vw", borderRadius: 2 }} renderInput={(params) => <TextField {...params} sx={{color: "white"}} label="Data Source" />}
                           options={uploadOptions}
                           value={value}
                           onChange={(event, newValue) => {
@@ -39,6 +42,7 @@ const DataUploader = ({token}) => {
             />
             <CsvUploader token={token} display={value} windowWidth={windowWidth}/>
         </Box>
+            </>
     );
 }
 

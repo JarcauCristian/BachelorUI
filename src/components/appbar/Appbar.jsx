@@ -7,6 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import AccountBoxIcon from "@mui/icons-material/AccountBox";
+import AdjustIcon from '@mui/icons-material/Adjust';
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
@@ -16,7 +17,6 @@ import {Divider} from "@mui/material";
 import useAppBarHeight from "../utils/appBarHeight";
 import {useNavigate} from "react-router-dom";
 
-const pages = ["Landing Page", "Data Upload", "Data Orchestration"];
 const settings = ["Account", "Logout"];
 
 function getWindowDimensions() {
@@ -27,12 +27,13 @@ function getWindowDimensions() {
 function ResponsiveAppBar({logout, role}) {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [hoverEffet, setHoverEffet] = React.useState([false, false, false]);
+  const [hoverEffect, setHoverEffect] = React.useState([]);
   const [logoHover, setLogoHover] = React.useState(false);
   const [windowDimensions, setWindowDimensions] = React.useState(getWindowDimensions());
   const isRun = React.useRef(false);
   const navigate = useNavigate();
   const [appBarRef] = useAppBarHeight();
+  const [pages, setPages] = React.useState([]);
 
 
   useEffect(() => {
@@ -41,12 +42,16 @@ function ResponsiveAppBar({logout, role}) {
     isRun.current = true;
     window.sessionStorage.setItem("appBarHeight", JSON.stringify(appBarRef.current.clientHeight));
 
-    let newArr = [];
-
-    for (let i = 0; i < pages.length; i++) {
-      newArr.push(false);
+    if (role === "") {
+      setPages(["Home", "About"]);
+      setHoverEffect([false, false]);
+    } else if (role === "data-producer") {
+      setPages(["Home", "Data Upload", "Data Orchestration", "Datasets", "Models"]);
+      setHoverEffect([false, false, false, false, false]);
+    } else if (role === "data-scientist") {
+      setPages(["Home", "Datasets", "Notebooks", "Models"]);
+      setHoverEffect([false, false, false, false]);
     }
-    setHoverEffet(newArr);
   }, [appBarRef]);
 
   const handleLogout = () => {
@@ -91,30 +96,34 @@ function ResponsiveAppBar({logout, role}) {
 
   const handleMouseEnter = (index) => {
     let newArray = [];
-    for (var i = 0; i < hoverEffet.length; i++) {
+    for (var i = 0; i < hoverEffect.length; i++) {
       if (index === i) {
         newArray.push(true);
       } else {
         newArray.push(false);
       }
     }
-    setHoverEffet(newArray);
+    setHoverEffect(newArray);
   };
 
   const handleMouseLeave = (index) => {
     let newArray = [];
-    for (var i = 0; i < hoverEffet.length; i++) {
+    for (var i = 0; i < hoverEffect.length; i++) {
       if (index === i) {
         newArray.push(false);
       } else {
         newArray.push(false);
       }
     }
-    setHoverEffet(newArray);
+    setHoverEffect(newArray);
   };
 
   const handleRedirect = (whereTo) => {
-    navigate(`/${whereTo.toLowerCase().replaceAll(" ", "_")}`)
+    if (whereTo.toLowerCase() === "home") {
+      navigate(`/`);
+    } else {
+      navigate(`/${whereTo.toLowerCase().replaceAll(" ", "_")}`);
+    }
   }
 
   useEffect(() => {
@@ -127,13 +136,18 @@ function ResponsiveAppBar({logout, role}) {
   }, []);
 
   return (
-    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar ref={appBarRef} position="static" style={{ backgroundColor: "#000"}} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
+          <Button sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
                    onMouseLeave={handleLogoLeave}
                    onMouseEnter={handleLogoEnter}
-                   onClick={windowDimensions > 1000 ? goToHome : handleOpenMenu} />
+                   onClick={windowDimensions > 1000 ? goToHome : handleOpenMenu} >
+            <AdjustIcon sx={{fontSize: 40, color: "white", marginRight: 1}} />
+            <Typography variant="p" sx={{color: "white", marginRight: 2}}>
+              AI1
+            </Typography>
+          </Button>
           {windowDimensions > 1000 ?
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page, index) => (
@@ -144,9 +158,10 @@ function ResponsiveAppBar({logout, role}) {
                 onClick={() => handleRedirect(page)}
                 sx={{
                   my: 2,
-                  border: hoverEffet[index] ? "2px solid white" : "0px",
+                  border: hoverEffect[index] ? "2px solid white" : "0px",
                   color: "white",
                   display: "block",
+                  fontSize: 20,
                   fontFamily: "monospace",
                   fontWeight: "bold"
                 }}

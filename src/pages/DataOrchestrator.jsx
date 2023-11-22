@@ -173,12 +173,13 @@ const DataOrchestrator = () => {
 
     const getNormalization = async () => {
         setLoading(true);
-        axios.get(`http://localhost:7000/pipelines`,{ params: { pipeline_type: "normalization" } })
+        axios.get(`http://localhost:7000/pipelines`,{ params: { pipeline_type: "normalization" }, timeout: 3000 })
             .then(response => {
                 setNormalization(response.data);
                 setLoading(false);
             })
             .catch(error => {
+                setLoading(false);
                 console.log(error);
             });
     }
