@@ -8,11 +8,11 @@ const useAuth = () => {
     const [isLogin, setLogin] = useState(false);
     const [token, setToken] = useState(null);
     const [userRole, setUserRole] = useState(null);
+    const [userID, setUserID] = useState(null);
     const [keycloakInstance, setKeycloakInstance] = useState(null);
     const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
 
     useEffect(() => {
-
         if (isRun.current) return;
 
         isRun.current = true;
@@ -32,6 +32,11 @@ const useAuth = () => {
                     break;
                 }
             }
+            client.loadUserInfo().then((profile) => {
+                setUserID(profile.sub);
+            }).catch((error) => {
+                console.error("Error:", error);
+            })
             setKeycloakInstance(client);
             setInterval(() => {
                 client.updateToken(1).then((refreshed) => {
@@ -53,6 +58,6 @@ const useAuth = () => {
         });
     });
 
-    return { isLogin, token, userRole, keycloakInstance };
+    return { isLogin, token, userRole, userID, keycloakInstance };
 }
 export default useAuth;

@@ -7,21 +7,22 @@ import DataUploader from "./pages/DataUploader";
 import DataOrchestrator from "./pages/DataOrchestrator";
 import LandingPage from "./pages/LandingPage";
 import About from "./pages/About";
+import Notebook from "./pages/Notebook";
 
 function App() {
 
-    const { isLogin, token, userRole, keycloakInstance } = useAuth();
+    const { isLogin, token, userRole, userID, keycloakInstance } = useAuth();
   return (
       <BrowserRouter>
           <Routes>
             {isLogin && userRole === null ?
                     <Route path="/" element={<Layout logout={keycloakInstance} role={userRole}/>}>
-                        <Route index element={<LandingPage />}/>
+                        <Route index element={<LandingPage role={userRole} userID={userID} />}/>
                         <Route path="about" element={<About />}/>
                     </Route>
               : isLogin && userRole === "data-producer" ?
                     <Route path="/" element={<Layout logout={keycloakInstance} role={userRole}/>}>
-                        <Route index element={<LandingPage />}/>
+                        <Route index element={<LandingPage role={userRole} />}/>
                         <Route path="data_uploader" element={<DataUploader token={token}/>}/>
                         <Route path="data_orchestration" element={<DataOrchestrator token={token}/>}/>
                         <Route path="datasets" element={<DataOrchestrator token={token}/>}/>
@@ -29,9 +30,9 @@ function App() {
                     </Route>
                     : isLogin && userRole === "data-scientist" ?
                         <Route path="/" element={<Layout logout={keycloakInstance} role={userRole}/>}>
-                            <Route index element={<LandingPage />}/>
+                            <Route index element={<LandingPage role={userRole} />}/>
                             <Route path="datasets" element={<DataUploader token={token}/>}/>
-                            <Route path="notebooks" element={<DataOrchestrator token={token}/>}/>
+                            <Route path="notebooks" element={<Notebook user_id={userID}/>}/>
                             <Route path="models" element={<DataOrchestrator token={token}/>}/>
                         </Route> :
                 ""}

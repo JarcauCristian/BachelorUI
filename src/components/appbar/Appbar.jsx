@@ -3,21 +3,15 @@ import { useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import AdjustIcon from '@mui/icons-material/Adjust';
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
 import {Divider} from "@mui/material";
 import useAppBarHeight from "../utils/appBarHeight";
 import {useNavigate} from "react-router-dom";
-
-const settings = ["Account", "Logout"];
 
 function getWindowDimensions() {
   const { innerWidth: width } = window;
@@ -25,9 +19,9 @@ function getWindowDimensions() {
 }
 
 function ResponsiveAppBar({logout, role}) {
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [hoverEffect, setHoverEffect] = React.useState([]);
+  const [logoutHover, setLogoutHover] = React.useState(false);
   const [logoHover, setLogoHover] = React.useState(false);
   const [windowDimensions, setWindowDimensions] = React.useState(getWindowDimensions());
   const isRun = React.useRef(false);
@@ -58,25 +52,9 @@ function ResponsiveAppBar({logout, role}) {
     logout.logout();
   };
 
-  const getWhatToHandle = (text) => {
-    if (text === "Logout") {
-      return handleLogout;
-    } else {
-      return () => {};
-    }
-  };
-
   const goToHome = () => {
     navigate("");
   }
-
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
 
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -117,6 +95,14 @@ function ResponsiveAppBar({logout, role}) {
     }
     setHoverEffect(newArray);
   };
+
+  const handleLogoutEnter = () => {
+    setLogoutHover(true);
+  }
+  const handleLogoutLeave = () => {
+    setLogoutHover (false);
+  }
+
 
   const handleRedirect = (whereTo) => {
     if (whereTo.toLowerCase() === "home") {
@@ -200,35 +186,19 @@ function ResponsiveAppBar({logout, role}) {
             }
 
           <Box sx={{ flexGrow: 0, marginLeft: windowDimensions > 1000 ? 0 : windowDimensions/10 - 3}}>
-            <Tooltip title="Open settings">
-              <IconButton sx={{ p: 0 }} onClick={handleOpenUserMenu}>
-                <AccountBoxIcon
-                  style={{ color: "white", width: "50px", height: "50px" }}
-                />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              sx={{ mt: "45px" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem key={setting}>
-                  <Typography textAlign="center" onClick={getWhatToHandle(setting)}>{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+            <Button
+                sx={{
+                  color: "white",
+                  display: "block",
+                  fontSize: 20,
+                  border: logoutHover ? "2px solid white" : "0px",
+                  fontFamily: "monospace",
+                  fontWeight: "bold"
+                }}
+                onMouseEnter={handleLogoutEnter}
+                onMouseLeave={handleLogoutLeave}
+                onClick={handleLogout}
+            >Logout</Button>
           </Box>
         </Toolbar>
       </Container>

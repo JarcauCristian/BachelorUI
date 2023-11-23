@@ -20,6 +20,7 @@
     "papaparse": "^5.4.1",
     "particles-bg": "^2.5.5",
     "particles.js": "^2.0.0",
+    "qs": "^6.11.2",
     "react": "^18.2.0",
     "react-background-animation": "^1.0.1",
     "react-dom": "^18.2.0",
