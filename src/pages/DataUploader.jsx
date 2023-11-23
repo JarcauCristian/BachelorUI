@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import {Autocomplete, TextField} from "@mui/material";
 import {useEffect} from "react";
 import CsvUploader from "../components/connectors/CsvUploader";
-import ParticlesBg from "particles-bg";
 
 function getWindowDimensions() {
     const { innerWidth: width } = window;

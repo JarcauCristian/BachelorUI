@@ -12,6 +12,7 @@ import Notebook from "./pages/Notebook";
 function App() {
 
     const { isLogin, token, userRole, userID, keycloakInstance } = useAuth();
+    console.log(token);
   return (
       <BrowserRouter>
           <Routes>

@@ -1,8 +1,21 @@
 import * as React from 'react';
 import axios from 'axios';
-import {Alert, Backdrop, CircularProgress, List, responsiveFontSizes, Snackbar} from "@mui/material";
+import {
+    Alert,
+    Backdrop,
+    CardActions,
+    CircularProgress,
+    List,
+    responsiveFontSizes,
+    Snackbar,
+    Stack
+} from "@mui/material";
 import ListItem from "@mui/material/ListItem";
 import Card from "@mui/material/Card";
+import Paper from "@mui/material/Paper";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
 
 const Notebook = ({user_id}) => {
     const isRun = React.useRef(false);
@@ -70,28 +83,38 @@ const Notebook = ({user_id}) => {
           >
               <CircularProgress color="inherit" />
           </Backdrop>
-          <List sx={{height: "100vh", width: "100%"}}>
-              <ListItem sx={{height: "100%"}} key="1">
-                  <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+          <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
+            <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", width: "100vw", height: "100vh"}}>
+                <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
+                    <CardContent>
+                        <Stack spacing={4} direction="row">
+                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Notebook ID</Typography>
+                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
+                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
+                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Expiration Time</Typography>
+                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Last Accessed</Typography>
+                        </Stack>
+                    </CardContent>
+                    <CardActions>
+                        <Button>
+                            Enter
+                        </Button>
+                    </CardActions>
+                </Card>
+                <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
 
-                  </Card>
-              </ListItem>
-              <ListItem sx={{height: "100%"}} key="2">
-                  <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+                </Card>
+                <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
 
-                  </Card>
-              </ListItem>
-              <ListItem sx={{height: "100%"}} key="3">
-                  <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+                </Card>
+                <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
 
-                  </Card>
-              </ListItem>
-              <ListItem sx={{height: "100%"}} key="4">
-                  <Card variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
-
-                  </Card>
-              </ListItem>
-          </List>
+                </Card>
+            </div>
+              <div>
+                  Here
+              </div>
+          </div>
       </div>
     );
 }

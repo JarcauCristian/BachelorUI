@@ -14,6 +14,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from '@mui/icons-material/Person';
+import {useNavigate} from "react-router-dom";
 
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
@@ -25,6 +26,7 @@ const LandingPage = ({role, userID}) => {
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [open, setOpen] = React.useState(false);
     const {REACT_APP_ADMIN_USERNAME, REACT_APP_ADMIN_PASSWORD, REACT_APP_TOKEN_URL, REACT_APP_CLIENT_ID} = process.env
+    const navigate = useNavigate();
     const handleMouseEnter = () => {
         setIsHovered(true);
     }
@@ -46,6 +48,14 @@ const LandingPage = ({role, userID}) => {
 
         setOpen(false);
     };
+
+    const handleStartedClick = () => {
+        if (role === "data-scientist") {
+            navigate("/notebooks");
+        } else if (role === "data-producer") {
+            navigate("/data_uploader");
+        }
+    }
 
     const handleListItemClick = (role_name) => {
         let find_index = 0;
@@ -208,6 +218,7 @@ const LandingPage = ({role, userID}) => {
                             }}
                             onMouseEnter={() => handleMouseEnter()}
                             onMouseLeave={() => handleMouseLeave()}
+                            onClick={handleStartedClick}
                         >Lets Get Started!</Button>
                     </CardActions>
                 </Card>
