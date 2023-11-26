@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import {Divider} from "@mui/material";
 import useAppBarHeight from "../utils/appBarHeight";
+import Chip from '@mui/material/Chip';
 import {useNavigate} from "react-router-dom";
 
 function getWindowDimensions() {
@@ -18,7 +19,7 @@ function getWindowDimensions() {
   return width;
 }
 
-function ResponsiveAppBar({logout, role}) {
+function ResponsiveAppBar({logout, role, username}) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [hoverEffect, setHoverEffect] = React.useState([]);
   const [logoutHover, setLogoutHover] = React.useState(false);
@@ -185,7 +186,8 @@ function ResponsiveAppBar({logout, role}) {
           </Box>
             }
 
-          <Box sx={{ flexGrow: 0, marginLeft: windowDimensions > 1000 ? 0 : windowDimensions/10 - 3}}>
+          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", flexGrow: 0, marginLeft: windowDimensions > 1000 ? 0 : windowDimensions/10 - 3}}>
+            <Chip label={username} sx={{backgroundColor: "white", color: "black", fontWeight: "bold", marginRight: 2}}/>
             <Button
                 sx={{
                   color: "white",

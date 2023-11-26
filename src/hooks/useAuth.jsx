@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import Keycloak from "keycloak-js";
+import {useStepperContext} from "@mui/material";
 
 const roles = ['data-scientist', 'data-producer']
 
 const useAuth = () => {
     const isRun = useRef(false);
+    const isPut = useRef(false);
     const [isLogin, setLogin] = useState(false);
     const [token, setToken] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [userID, setUserID] = useState(null);
+    const [username, setUsername] = useState(null);
     const [keycloakInstance, setKeycloakInstance] = useState(null);
     const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
 
@@ -33,7 +36,12 @@ const useAuth = () => {
                 }
             }
             client.loadUserInfo().then((profile) => {
+                if (!isPut.current) {
+                    window.sessionStorage.setItem("user_id", profile.sub);
+                    isPut.current = true;
+                }
                 setUserID(profile.sub);
+                setUsername(profile.email);
             }).catch((error) => {
                 console.error("Error:", error);
             })
@@ -58,6 +66,6 @@ const useAuth = () => {
         });
     });
 
-    return { isLogin, token, userRole, userID, keycloakInstance };
+    return { isLogin, token, userRole, userID, username, keycloakInstance };
 }
 export default useAuth;
