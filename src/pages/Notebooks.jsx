@@ -74,7 +74,7 @@ const Notebooks = ({token}) => {
     const handleEnter = (notebook_id) => {
         axios({
             method: 'post',
-            url: 'https://controller.sedimark.work/main_api/update_access?uid=' + notebook_id,
+            url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/update_access?uid=' + notebook_id,
             headers: {
                 'Content-Type': "application/json",
                 'Authorization': "Bearer " + token
@@ -89,7 +89,7 @@ const Notebooks = ({token}) => {
     const handleDelete = (notebook_id) => {
         axios({
             method: 'delete',
-            url: 'https://controller.sedimark.work/main_api/delete_notebook?uid=' + notebook_id,
+            url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/delete_notebook?uid=' + notebook_id,
             headers: {
                 'Content-Type': "application/json",
                 'Authorization': 'Bearer ' + token
@@ -115,7 +115,7 @@ const Notebooks = ({token}) => {
         setLoading(true);
         axios({
             method: 'get',
-            url: 'https://controller.sedimark.work/main_api/get_notebook_details?user_id=' + user_id,
+            url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/get_notebook_details?user_id=' + user_id,
             timeout: 1000*10,
             headers: {
                 'Content-Type': "application/json",

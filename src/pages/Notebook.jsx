@@ -6,7 +6,7 @@ const Notebook = () => {
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
             <iframe
-                src={`https://controller.sedimark.work/${notebookID}`}
+                src={`https://equipped-woodcock-needlessly.ngrok-free.app/${notebookID}`}
                 title="Notebook Frame"
                 width="100%"
                 height="100%"
