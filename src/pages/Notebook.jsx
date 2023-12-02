@@ -7,7 +7,7 @@ const Notebook = () => {
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
             <iframe
-                src={`https://equipped-woodcock-needlessly.ngrok-free.app/${notebookID}`}
+                src={`https://equipped-woodcock-needlessly.ngrok-free.app/${notebookID}/notebooks/ModelCreation.ipynb`}
                 title="Notebook Frame"
                 width="100%"
                 height="100%"

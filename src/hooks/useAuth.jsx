@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Keycloak from "keycloak-js";
-import {useStepperContext} from "@mui/material";
+import Cookies from 'js-cookie';
 
 const roles = ['data-scientist', 'data-producer']
 
@@ -29,6 +29,7 @@ const useAuth = () => {
         client.init({onLoad: "login-required"}).then((res) => {
             setLogin(res);
             setToken(client.token);
+            Cookies.set('token', client.token, { expires: 1 });
             for (let i = 0; i < roles.length; i++) {
                 if (client.hasRealmRole(roles[i])) {
                     setUserRole(roles[i]);
@@ -50,6 +51,7 @@ const useAuth = () => {
                 client.updateToken(1).then((refreshed) => {
                     if (refreshed) {
                         console.log('Token was refreshed!');
+                        Cookies.set('token', client.token, { expires: 1 });
                     } else {
                         console.log('Token is still valid!');
                     }}).catch(() => {

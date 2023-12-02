@@ -17,6 +17,7 @@
     "axios": "^1.5.1",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
+    "js-cookie": "^3.0.5",
     "keycloak-js": "^22.0.1",
     "pandas-js": "^0.2.4",
     "papaparse": "^5.4.1",

@@ -18,6 +18,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {useNavigate} from "react-router-dom";
+import Cookies from "js-cookie";
 
 
 const Notebooks = ({token}) => {
@@ -77,7 +78,7 @@ const Notebooks = ({token}) => {
             url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/update_access?uid=' + notebook_id,
             headers: {
                 'Content-Type': "application/json",
-                'Authorization': "Bearer " + token
+                'Authorization': "Bearer " + Cookies.get("token")
             }
         }).then(() => {
             navigate(`/notebooks/${notebook_id}`);
@@ -92,7 +93,7 @@ const Notebooks = ({token}) => {
             url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/delete_notebook?uid=' + notebook_id,
             headers: {
                 'Content-Type': "application/json",
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + Cookies.get("token")
             }
         }).then(() => {
             handleToast("Notebook Deleted Successfully", "success");
@@ -108,7 +109,6 @@ const Notebooks = ({token}) => {
 
     React.useEffect(() => {
         if (isRun.current) return;
-        console.log(token)
 
         isRun.current = true;
         const user_id = window.sessionStorage.getItem("user_id")
@@ -119,10 +119,9 @@ const Notebooks = ({token}) => {
             timeout: 1000*10,
             headers: {
                 'Content-Type': "application/json",
-                'Authorization': "Bearer " + token
+                'Authorization': "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
-            console.log(response.data);
             setNotebooks(response.data);
             setFilterNotebooks(response.data);
             setLoading(false);
