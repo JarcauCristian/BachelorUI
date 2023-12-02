@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {useParams} from "react-router-dom";
 
+
 const Notebook = () => {
     const { notebookID } = useParams();
     return (
@@ -10,6 +11,7 @@ const Notebook = () => {
                 title="Notebook Frame"
                 width="100%"
                 height="100%"
+                sandbox="allow-scripts allow-same-origin allow-forms"
                 allowFullScreen>
             </iframe>
         </div>
