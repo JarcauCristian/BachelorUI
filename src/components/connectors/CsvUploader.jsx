@@ -15,18 +15,21 @@ import {
 import Button from "@mui/material/Button";
 import DataTable from "../DataTable";
 import Papa from "papaparse";
+import Cookies from "js-cookie";
+import {useNavigate} from "react-router-dom";
 const CsvUploader = ({token, display, windowWidth}) => {
     const [fileToUpload, setFileToUpload] = React.useState(null);
     const [severity, setSeverity] = React.useState(null);
     const [datasetName, setDatasetName] = React.useState(null);
     const [datasetDescription, setDatasetDescription] = React.useState(null);
+    const [datasetDomain, setDatasetDomain] = React.useState(null);
     const [message, setMessage] = React.useState(null);
     const [statistics, setStatistics] = React.useState(null);
     const [open, setOpen] = React.useState(false);
     const [data, setData] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(false);
-    const [id, setId] = React.useState(0);
-    const {vertical, horizontal} = {vertical: "top", horizontal: "right"}
+    const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
+    const navigate = useNavigate();
 
     const handleFilesChange = (files) => {
         if (files.target.files[0].type !== "text/csv")
@@ -55,6 +58,14 @@ const CsvUploader = ({token, display, windowWidth}) => {
         setDatasetDescription(event.target.value)
     };
 
+    const handleDatasetDomainChange = (event) => {
+        setDatasetDomain(event.target.value)
+    };
+
+    const handleRedirect = () => {
+        navigate("/data_orchestration");
+    }
+
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
             return;
@@ -67,7 +78,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
         const location = window.sessionStorage.getItem("location");
 
         const customHeaders = {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${Cookies.get("token")}`,
         };
 
         const axiosInstance = axios.create({
@@ -100,13 +111,14 @@ const CsvUploader = ({token, display, windowWidth}) => {
                 formData.append("file", fileToUpload)
                 formData.append("name", datasetName)
                 formData.append("tags", JSON.stringify({
-                    "Description": datasetDescription
+                    "Description": datasetDescription,
+                    "Domain": datasetDomain
                 }))
                 const options = {
                     method: "PUT",
                     body: formData,
                     headers: {
-                        "Authorization": `Bearer ${token}`
+                        "Authorization": `Bearer ${Cookies.get("token")}`
                     }
                 }
                 setIsLoading(true);
@@ -138,7 +150,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
     return (
         <div>
             <Paper elevation={24} sx={{
-                backgroundColor: "#F5F5F5",
+                backgroundColor: "#000000",
                 margin: 10,
                 padding: 10,
                 display: display === null ? "none" : "flex",
@@ -163,24 +175,28 @@ const CsvUploader = ({token, display, windowWidth}) => {
                             {message}
                         </Alert>
                     </Snackbar>
-                    <FormLabel sx={{fontWeight: "bold", color: "black"}}>Upload a CSV File</FormLabel>
-                    <Divider sx={{fontSize: 2, backgroundColor: "black"}}/>
+                    <FormLabel sx={{fontWeight: "bold", color: "white"}}>Upload a CSV File</FormLabel>
+                    <Divider sx={{fontSize: 2, backgroundColor: "white"}}/>
                     <FormControl sx={{marginTop: 5}}>
-                        <FormLabel sx={{fontWeight: "bold", color: "black"}}>Dataset Name</FormLabel>
-                        <TextField id="outlined-basic" variant="outlined" onChange={handleDatasetNameChange}/>
+                        <FormLabel sx={{fontWeight: "bold", color: "white"}}>Dataset Name</FormLabel>
+                        <TextField id="outlined-basic" variant="outlined" placeholder="Enter Dataset Name" onChange={handleDatasetNameChange} sx={{ color: "white", backgroundColor: "white", borderRadius: 2 }}/>
                     </FormControl>
                     <FormControl sx={{marginTop: 5}}>
-                        <FormLabel sx={{fontWeight: "bold", color: "black"}}>Dataset Description</FormLabel>
-                        <TextField id="outlined-basic" variant="outlined" onChange={handleDatasetDescriptionChange}/>
+                        <FormLabel sx={{fontWeight: "bold", color: "white"}}>Dataset Description</FormLabel>
+                        <TextField id="outlined-basic" variant="outlined" placeholder="Enter Dataset Description" onChange={handleDatasetDescriptionChange} sx={{ color: "white", backgroundColor: "white", borderRadius: 2}}/>
+                    </FormControl>
+                    <FormControl sx={{marginTop: 5}}>
+                        <FormLabel sx={{fontWeight: "bold", color: "white"}}>Dataset Domain</FormLabel>
+                        <TextField id="outlined-basic" variant="outlined" placeholder="Enter Dataset Domain" onChange={handleDatasetDomainChange} sx={{ color: "white", backgroundColor: "white", borderRadius: 2}}/>
                     </FormControl>
                     <FormControl>
-                        <Input sx={{marginTop: 5}} type="file" onChange={handleFilesChange}/>
+                        <Input sx={{marginTop: 5, backgroundColor: 'white', borderRadius: 2}} type="file" onChange={handleFilesChange}/>
                     </FormControl>
-                    <Button variant="contained" sx={{backgroundColor: "#001f3f", marginTop: 10}} onClick={uploadFiles}>Upload</Button>
+                    <Button variant="contained" sx={{backgroundColor: "white", color: "black", marginTop: 10, '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={uploadFiles}>Upload</Button>
                 </FormGroup>
             </Paper>
             <Paper elevation={24} sx={{
-                backgroundColor: "#F5F5F5",
+                backgroundColor: "#000000",
                 margin: 10,
                 padding: 10,
                 display: data === null ? "none" : "block",
@@ -194,7 +210,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
             </Paper>
             { statistics !== null ?
             <Paper elevation={24} sx={{
-                backgroundColor: "#F5F5F5",
+                backgroundColor: "#000000",
                 margin: 10,
                 padding: 10,
                 display: data === null ? "none" : "block",
@@ -206,6 +222,7 @@ const CsvUploader = ({token, display, windowWidth}) => {
             }}>
                 <div style={{ flex: 2 }}>
                     {statistics !== null ? <DataTable data={statistics.df} name={"Statistics"} ids={statistics.columns_dataset} /> : ""}
+                    <Button variant="contained" sx={{backgroundColor: "white", color: "black", marginTop: 10, '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={handleRedirect}>Go To Pipelines!</Button>
                 </div>
             </Paper>
                 : ""

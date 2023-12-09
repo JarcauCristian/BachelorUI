@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 const DataTable = ({data, name, ids}) => {
     return (
         <div>
-            <Typography variant="h4">{name.toUpperCase()}</Typography>
+            <Typography variant="h4" sx={{ color: "white" }}>{name.toUpperCase()}</Typography>
             <DataGrid
                 rows={data.map((row, index) => {
                     if (ids !== null){
@@ -27,6 +27,7 @@ const DataTable = ({data, name, ids}) => {
                 getRowId={(row) => row.ID}
                 component={Paper}
                 pageSizeOptions={[5, 10]}
+                sx={{ backgroundColor: "white", color: "black"}}
             />
         </div>
     );

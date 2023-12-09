@@ -9,6 +9,8 @@ import LandingPage from "./pages/LandingPage";
 import About from "./pages/About";
 import Notebooks from "./pages/Notebooks";
 import Notebook from "./pages/Notebook";
+import Models from "./pages/Models";
+import Model from "./pages/Model";
 
 function App() {
 
@@ -35,7 +37,8 @@ function App() {
                             <Route path="datasets" element={<DataUploader token={token}/>}/>
                             <Route path="notebooks" element={<Notebooks token={token}/>}/>
                             <Route path="/notebooks/:notebookID" element={<Notebook />} />
-                            <Route path="models" element={<DataOrchestrator token={token}/>}/>
+                            <Route path="models" element={<Models token={token}/>}/>
+                            <Route path="/models/:modelID" element={<Model />} />
                         </Route> :
                 ""}
           </Routes>

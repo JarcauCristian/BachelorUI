@@ -4,12 +4,13 @@ import Box from "@mui/material/Box";
 import {Autocomplete, TextField} from "@mui/material";
 import {useEffect} from "react";
 import CsvUploader from "../components/connectors/CsvUploader";
+import Typography from "@mui/material/Typography";
 
 function getWindowDimensions() {
     const { innerWidth: width } = window;
     return width;
 }
-const uploadOptions = ["JSON File", "CSV File"]
+const uploadOptions = ["Rabbit MQ", "CSV File"]
 const DataUploader = ({token}) => {
     const [windowWidth, setWindowWidth] = React.useState(getWindowDimensions());
     const [value, setValue] = React.useState(null);
@@ -26,13 +27,14 @@ const DataUploader = ({token}) => {
         <>
         <Box className="mydiv"
             sx={{
-                backgroundColor: '#001F3F',
+                backgroundColor: '#FFFFFF',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: "center"
             }}
         >
-            <Autocomplete sx={{ color: 'white', backgroundColor: "white", width: "90vw", borderRadius: 2 }} renderInput={(params) => <TextField {...params} sx={{color: "white"}} label="Data Source" />}
+            <Typography variant="h3">SELECT DATASOURCE (CSV OR RABBIT MQ)</Typography>
+            <Autocomplete sx={{ color: 'white', backgroundColor: "black", width: "90vw", borderRadius: 2 }} renderInput={(params) => <TextField {...params} sx={{color: "white", backgroundColor: "white"}} label="Data Source" />}
                           options={uploadOptions}
                           value={value}
                           onChange={(event, newValue) => {
