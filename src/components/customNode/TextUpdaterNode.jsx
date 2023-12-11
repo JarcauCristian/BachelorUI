@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Handle, Position } from 'reactflow';
 
 
-function TextUpdaterNode({ data, isConnectable }) {
+function TextUpdaterNode({ data, dataType, isConnectable }) {
     const [selects, setSelects] = React.useState(Array(data.params.length > 0 ? data.params.length : 1).fill({name: "", value: ""}));
     const isRun = React.useRef(false);
 

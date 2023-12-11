@@ -31,17 +31,17 @@ import 'reactflow/dist/style.css';
 import TextUpdaterNode from '../components/customNode/TextUpdaterNode';
 import '../styles/custom_node.css';
 
-const initialNodes = [
-    { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-    { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-    {
-        id: 'djasihdau',
-        type: 'textUpdater',
-        position: { x: 100, y: 100 },
-        data: {params: [], label: 'My Custom Node', background: "lightgreen"},
-    },
-];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2', style: { stroke: 'black' }, }];
+// const initialNodes = [
+//     { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
+//     { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
+//     {
+//         id: 'djasihdau',
+//         type: 'textUpdater',
+//         position: { x: 100, y: 100 },
+//         data: {params: [], label: 'My Custom Node', background: "lightgreen"},
+//     },
+// ];
+// const initialEdges = [{ id: 'e1-2', source: '1', target: '2', style: { stroke: 'black' }, }];
 
 const drawerWidth = 240;
 
@@ -93,8 +93,8 @@ const DataOrchestrator = () => {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [open, setOpen] = React.useState(false);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
-    const [nodes, setNodes] = React.useState(initialNodes);
-    const [edges, setEdges] = React.useState(initialEdges);
+    const [nodes, setNodes] = React.useState([]);
+    const [edges, setEdges] = React.useState([]);
     const [hoverStates, setHoverStates] = React.useState(Array(3).fill(false));
 
     const handleHover = (index, isHovered) => {
@@ -254,7 +254,7 @@ const DataOrchestrator = () => {
                         <List>
                             {normalization.map((data, index) => (
                                 <ListItem key={index} disablePadding>
-                                    <Accordion>
+                                    <Accordion sx={{ width: "100%" }}>
                                         <AccordionSummary
                                             expandIcon={<ExpandMoreIcon />}
                                             aria-controls="panel1a-content"
