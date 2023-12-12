@@ -126,34 +126,73 @@ const DataOrchestrator = () => {
     };
 
     const handleListClick = (blocks) => {
-        let x = 0;
-        let index = 0;
         let nodes = [];
         let edges = [];
+        let positions = [];
         setEdges(edges);
         setNodes(nodes);
+        const setPosition = (nodes, currentNode, x, y) => {
+            if (currentNode.upstream_blocks.length === 0) {
+                positions[currentNode.name] = [0, 0];
+            } else {
+                positions[currentNode.name] = [x, y];
+            }
+
+            currentNode.downstream_blocks.forEach((downStreamNode, index) => {
+                if (index % 2 === 0) {
+                    if (index > 1) {
+                        setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y + (index - 1) * 500);
+                    } else {
+                        setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y + index * 500);
+                    }
+                } else {
+                    if (index > 1) {
+                        setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 300, y - (index - 1) * 500);
+                    } else {
+                        setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 300, y - index * 500);
+                    }
+                }
+            })
+        }
+
+        let firstBlock = 0;
+        for (let i = 0; i < blocks.length; i++) {
+            if (blocks[i].upstream_blocks.length === 0) {
+                firstBlock = i;
+                break;
+            }
+        }
+
+        setPosition(blocks, blocks[firstBlock], 0, 0);
+
         for (let block of blocks) {
             const block_name = block.name.includes("_") ? block.name.split("_").map((data) => {
                 return Caps(data);
             }).join(" ") : Caps(block.name);
+
             nodes.push({
-                id: `${index}`,
+                id: `${block.name}`,
                 type: 'textUpdater',
-                position: { x: x, y: 0 },
-                data: { params: block.variables, label: block_name, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
+                position: { x: positions[block.name][0], y: positions[block.name][1] },
+                data: { params: block.variables, label: block_name, language: block.language, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
             })
-            index += 1;
-            x += 300;
         }
 
-        for (let ind = 0; ind < nodes.length - 1; ind++) {
-            edges.push({
-                id: `e${nodes[ind].id}-${nodes[ind+1].id}`,
-                source: nodes[ind].id,
-                target: nodes[ind+1].id,
-                style: { stroke: 'black' },
+        const Edges = (nodes, currentNode) => {
+            currentNode.downstream_blocks.forEach((downStreamBlock, index) => {
+                edges.push({
+                    id: `e${currentNode.name}-${downStreamBlock}`,
+                    source: currentNode.name,
+                    target: downStreamBlock,
+                    style: { stroke: 'black' },
+                })
+
+                Edges(nodes, nodes.find(node => node.name === downStreamBlock))
             })
         }
+
+        Edges(blocks, blocks[firstBlock])
+
         setNodes(nodes);
         setEdges(edges);
     }
