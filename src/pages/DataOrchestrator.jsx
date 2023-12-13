@@ -125,7 +125,7 @@ const DataOrchestrator = () => {
         setExpanded(newExpanded ? panel : false);
     };
 
-    const handleListClick = (blocks) => {
+    const handleListClick = (blocks, pipeline_name) => {
         let nodes = [];
         let edges = [];
         let positions = [];
@@ -147,9 +147,9 @@ const DataOrchestrator = () => {
                     }
                 } else {
                     if (index > 1) {
-                        setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 300, y - (index - 1) * 500);
+                        setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y - (index - 1) * 500);
                     } else {
-                        setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 300, y - index * 500);
+                        setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y - index * 500);
                     }
                 }
             })
@@ -174,7 +174,7 @@ const DataOrchestrator = () => {
                 id: `${block.name}`,
                 type: 'textUpdater',
                 position: { x: positions[block.name][0], y: positions[block.name][1] },
-                data: { params: block.variables, label: block_name, language: block.language, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
+                data: { params: block.variables, name: block.name, pipeline_name: pipeline_name, label: block_name, language: block.language, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
             })
         }
 
@@ -212,7 +212,7 @@ const DataOrchestrator = () => {
 
     const getNormalization = async () => {
         setLoading(true);
-        axios.get(`http://localhost:7000/pipelines`,{ params: { pipeline_type: "normalization" }, timeout: 3000 })
+        axios.get(`http://localhost:7000/pipelines`,{ params: { pipeline_type: "normalization" }, timeout: 20000 })
             .then(response => {
                 setNormalization(response.data);
                 setLoading(false);
@@ -311,7 +311,7 @@ const DataOrchestrator = () => {
                                                     transition: 'background-color 0.3s ease',
                                                     border: '2px solid black'
                                                 }}
-                                                onClick={() => handleListClick(data.blocks)}
+                                                onClick={() => handleListClick(data.blocks, data.name)}
                                                 onMouseEnter={() => handleHover(index+1, true)}
                                                 onMouseLeave={() => handleHover(index+1, false)}
                                             >
