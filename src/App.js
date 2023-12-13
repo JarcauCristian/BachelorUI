@@ -11,6 +11,7 @@ import Notebooks from "./pages/Notebooks";
 import Notebook from "./pages/Notebook";
 import Models from "./pages/Models";
 import Model from "./pages/Model";
+import PythonEditor from "./pages/PythonEditor";
 
 function App() {
 
@@ -34,7 +35,7 @@ function App() {
                     : isLogin && userRole === "data-scientist" ?
                         <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
                             <Route index element={<LandingPage role={userRole} />}/>
-                            <Route path="datasets" element={<DataOrchestrator token={token}/>}/>
+                            <Route path="datasets" element={<PythonEditor token={token}/>}/>
                             <Route path="notebooks" element={<Notebooks token={token}/>}/>
                             <Route path="/notebooks/:notebookID" element={<Notebook />} />
                             <Route path="models" element={<Models token={token}/>}/>
