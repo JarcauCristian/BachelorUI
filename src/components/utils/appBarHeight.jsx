@@ -11,6 +11,7 @@ function useAppBarHeight() {
         }
     }, [appBarRef]);
 
+
     return [appBarRef, appBarHeight];
 }
 

@@ -136,7 +136,7 @@ const Notebooks = ({token}) => {
     },[])
 
     return (
-      <div style={{backgroundColor: "#FFFFFF", height: "100vh", width: "100vw"}}>
+      <div style={{backgroundColor: "#FFFFFF", height: "100vh", width: "100vw", marginTop: 82 }}>
           <Snackbar
               open={open}
               autoHideDuration={2000}

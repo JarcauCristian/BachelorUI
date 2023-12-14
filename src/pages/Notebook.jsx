@@ -1,11 +1,13 @@
 import * as React from 'react';
 import {useParams} from "react-router-dom";
+import appBarHeight from "../components/utils/appBarHeight";
+import useAppBarHeight from "../components/utils/appBarHeight";
 
 
 const Notebook = () => {
     const { notebookID } = useParams();
     return (
-        <div style={{ width: "100vw", height: "100vh" }}>
+        <div style={{ width: "100vw", height: "100vh", marginTop: 82 }}>
             <iframe
                 src={`https://equipped-woodcock-needlessly.ngrok-free.app/${notebookID}/notebooks/ModelCreation.ipynb`}
                 title="Notebook Frame"

@@ -15,6 +15,8 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from '@mui/icons-material/Person';
 import {useNavigate} from "react-router-dom";
+import appBarHeight from "../components/utils/appBarHeight";
+import useAppBarHeight from "../components/utils/appBarHeight";
 
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
@@ -167,7 +169,7 @@ const LandingPage = ({role, userID}) => {
     }, [role])
 
     return (
-        <div style={{backgroundColor: "#D9D9D9", height: "100vh"}}>
+        <div style={{backgroundColor: "#D9D9D9", height: "100vh", marginTop: 82 }}>
             <Snackbar
                 open={open}
                 autoHideDuration={2000}
