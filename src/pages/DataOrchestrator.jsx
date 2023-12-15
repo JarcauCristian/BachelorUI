@@ -31,17 +31,15 @@ import 'reactflow/dist/style.css';
 import TextUpdaterNode from '../components/customNode/TextUpdaterNode';
 import '../styles/custom_node.css';
 
-// const initialNodes = [
-//     { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-//     { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-//     {
-//         id: 'djasihdau',
-//         type: 'textUpdater',
-//         position: { x: 100, y: 100 },
-//         data: {params: [], label: 'My Custom Node', background: "lightgreen"},
-//     },
-// ];
-// const initialEdges = [{ id: 'e1-2', source: '1', target: '2', style: { stroke: 'black' }, }];
+const initialNodes = [
+    {
+        id: 'djasihdau',
+        type: 'textUpdater',
+        position: { x: 100, y: 100 },
+        data: {params: [], label: 'My Custom Node',  name: "My Custom Node", pipeline_name: "pipeline_name", language: "python", background: "lightgreen", type: "transformer"},
+    },
+];
+const initialEdges = [{ id: 'e1-2', source: '1', target: '2', style: { stroke: 'black' }, }];
 
 const drawerWidth = 240;
 
@@ -93,7 +91,7 @@ const DataOrchestrator = () => {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [open, setOpen] = React.useState(false);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
-    const [nodes, setNodes] = React.useState([]);
+    const [nodes, setNodes] = React.useState(initialNodes);
     const [edges, setEdges] = React.useState([]);
     const [hoverStates, setHoverStates] = React.useState(Array(3).fill(false));
 
@@ -174,7 +172,7 @@ const DataOrchestrator = () => {
                 id: `${block.name}`,
                 type: 'textUpdater',
                 position: { x: positions[block.name][0], y: positions[block.name][1] },
-                data: { params: block.variables, name: block.name, pipeline_name: pipeline_name, label: block_name, language: block.language, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
+                data: { params: block.variables, type: block.type, name: block.name, pipeline_name: pipeline_name, label: block_name, language: block.language, background: block.type === 'data_loader' ? "#4877ff": block.type === 'transformer' ? "#7d55ec" : "#ffcc19"},
             })
         }
 
@@ -299,7 +297,7 @@ const DataOrchestrator = () => {
                                             aria-controls="panel1a-content"
                                             id="panel1a-header"
                                         >
-                                            <Typography>{Caps(data.name.split("_")[0]) + " " + Caps(data.name.split("_")[1])}</Typography>
+                                            {data.name.length > 0 && (<Typography>Here</Typography>)}
                                         </AccordionSummary>
                                         <AccordionDetails sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
                                             {data.description}

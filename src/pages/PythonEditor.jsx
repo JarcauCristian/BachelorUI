@@ -3,12 +3,27 @@ import Editor from "@monaco-editor/react"
 import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
-import {Accordion, AccordionDetails, AccordionSummary, Dialog, DialogTitle, Tab, Tabs, TextField} from "@mui/material";
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary, Alert,
+    Dialog,
+    DialogTitle,
+    Snackbar,
+    Tab,
+    Tabs,
+    TextField
+} from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
+import ReactFlow, {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, MiniMap} from "reactflow";
+import TextUpdaterNode from "../components/customNode/TextUpdaterNode";
+import ReactFlowPanel from "../components/ReactFlowPanel";
+import axios from "axios";
+import {BLOCK_MODEL} from "../components/utils/apiEndpoints";
 
 const drawerWidth = 240;
 function a11yProps(index: number) {
@@ -17,17 +32,6 @@ function a11yProps(index: number) {
         'aria-controls': `simple-tabpanel-${index}`,
     };
 }
-
-const CustomTab = ({ tabName, index, onClose, isSelected, onSelect }) => {
-    return (
-        <div style={{ display: 'flex', alignItems: 'center' }} >
-            <Tab label={tabName} {...a11yProps(index)} aria-selected={isSelected}/>
-            <Button variant="contained" sx={{ backgroundColor: 'black', color: 'white', marginLeft: 2 }} onClick={onClose}>
-                <ClearIcon />
-            </Button>
-        </div>
-    );
-};
 
 const PythonEditor = () => {
     const [expanded, setExpanded] = React.useState(false);
@@ -38,12 +42,37 @@ const PythonEditor = () => {
     const [open, setOpen] = React.useState(false);
     const [tabName, setTabName] = React.useState("");
     const [counter, setCounter] = React.useState(0);
+    const [pipelines, setPipelines] = React.useState({});
+    const [toastMessage, setToastMessage] = React.useState("");
+    const [toastSeverity, setToastSeverity] = React.useState("error");
+    const [toastOpen, setToastOpen] = React.useState(false);
+
+    const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
+
+    const handleToast = (message, severity)  => {
+        setToastMessage(message);
+        setToastSeverity(severity);
+        setToastOpen(true);
+    }
+
+    const handleToastClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setToastOpen(false);
+    };
+
 
     const handleTabAdd = () => {
-        console.log(tabName)
+
+        if (counter > 9) {
+            handleToast("A maximum of 10 tabs can be opened at a time!", "warning");
+            return;
+        }
         const checking = /^[a-z_]+$/.test(tabName);
         if (checking) {
-            setTabs(prevComponents => [...prevComponents, <Tab label={tabName} {...a11yProps(counter)}/>]);
+            setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter)} />} iconPosition="end" {...a11yProps(counter)}/>]);
             setCounter(counter + 1);
         }
         setOpen(false);
@@ -52,9 +81,8 @@ const PythonEditor = () => {
         setValue(newValue);
     };
 
-
-
     const handleTabClose = (index) => {
+        setCounter(counter - 1);
         setTabs(prevComponents => {
             const updatedComponents = [...prevComponents];
             updatedComponents.splice(index, 1);
@@ -81,14 +109,43 @@ const PythonEditor = () => {
         setTabName(event.target.value);
     }
 
+    const handleStreamingLoader = (currentTab) => {
+        axios({
+            method: "GET",
+            url: BLOCK_MODEL("stream", "loader")
+        }).then((response) => {
+            if (currentTab in pipelines) {
+                pipelines[currentTab].blocks()
+            }
+        }).catch((error) => {
+            handleToast("Error loading block model!", "error");
+        })
+    }
+
+    const handleStreamingTransformer = (currentTab) => {
+
+    }
+
+    const handleStreamingExporter = (currentTab) => {
+
+    }
+
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
+            <Snackbar
+                open={toastOpen}
+                autoHideDuration={2000}
+                anchorOrigin={{ vertical, horizontal }}
+                onClose={handleToastClose}
+            >
+                <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
+            </Snackbar>
             <Dialog open={open} onClose={handleClose}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                 <DialogTitle sx={{ fontWeight: "bold" }}>
-                    SET TAB NAME
+                    PIPELINE NAME
                 </DialogTitle>
-                <TextField variant="outlined" onChange={handleTextFieldChange} label="Tab Name"/>
+                <TextField variant="outlined" onChange={handleTextFieldChange} label="Pipeline Name"/>
                 <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleTabAdd}>
                     Add Tab
                 </Button>
@@ -183,7 +240,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => handleStreamingLoader(value)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -197,7 +254,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => handleStreamingTransformer(value)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -211,7 +268,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => handleStreamingExporter(value)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -221,22 +278,21 @@ const PythonEditor = () => {
                     </Accordion>
                 </Box>
             </Drawer>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', marginLeft: 30, marginTop: -82.5 }}>
-                <Tabs value={value} onChange={handleChange}>
-                    {tabs.map((entry, index) => (
-                        <div style={{ display: 'flex', alignItems: 'center' }} >
+            <Box sx={{ marginLeft: 30 }}>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', marginTop: -82.2 }}>
+                    <Tabs value={value} onChange={handleChange}>
+                        {tabs.map((entry) => (
                             entry
-                            <Button variant="contained" sx={{ backgroundColor: 'black', color: 'white', marginLeft: 2 }} onClick={() => handleTabClose(index)}>
-                                <ClearIcon />
-                            </Button>
-                        </div>
-                    ))}
-                    <Button variant="filled" sx={{ backgroundColor: "white", color: "black" }} onClick={() => setOpen(true)}>
-                        <AddBoxIcon />
-                    </Button>
-                </Tabs>
+                        ))}
+                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black" }} onClick={() => setOpen(true)}>
+                            <AddBoxIcon />
+                        </Button>
+                    </Tabs>
+                </Box>
+                {tabs.map((entry, index) => (
+                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: [], componentEdges: [], drawerWidth: drawerWidth}} />
+                ))}
             </Box>
-            {/*<Editor height="100vh" width="100vw" defaultLanguage="python" defaultValue="// some comment" />*/}
         </div>
     );
 }

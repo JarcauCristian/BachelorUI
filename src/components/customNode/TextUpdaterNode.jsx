@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import ListItem from "@mui/material/ListItem";
 import Button from "@mui/material/Button";
 import {stringify} from "qs";
+import Editor from "@monaco-editor/react";
 
 
 function TextUpdaterNode({ data, isConnectable }) {
@@ -119,7 +120,10 @@ function TextUpdaterNode({ data, isConnectable }) {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-            <Handle type="target" position={Position.Left} isConnectable={isConnectable} />
+            <Dialog open={dialogOpen} onClose={handleDialogClose}>
+                <Editor height="100vh" width="100vw" defaultLanguage="python" defaultValue={data.content} />
+            </Dialog>
+            {data.type !== "loader" && (<Handle type="target" position={Position.Left} isConnectable={isConnectable} />)}
             <div>
                 <div className="custom-node__header">
                     <strong>{data.label}</strong>
@@ -167,7 +171,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                     </div>
                 )}
             </div>
-            <Handle type="source" position={Position.Right} isConnectable={isConnectable} />
+            {data.type !== "exporter" && (<Handle type="source" position={Position.Right} isConnectable={isConnectable}  />)}
         </div>
     );
 }
