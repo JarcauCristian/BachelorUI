@@ -1,14 +1,14 @@
 import * as React from 'react';
 import PropTypes from "prop-types";
 import ReactFlow, {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, MiniMap} from "reactflow";
-import {useMemo} from "react";
+import {useEffect, useMemo} from "react";
 import TextUpdaterNode from "./customNode/TextUpdaterNode";
 import {nodeTypes} from "./utils/nodeTypes";
 
 const ReactFlowPanel = (props) => {
     const { children, value, index, ...other } = props;
 
-    const [nodes, setNodes] = React.useState(other.componentNodes);
+    const [nodes, setNodes] = React.useState([]);
     const [edges, setEdges] = React.useState(other.componentEdges);
 
     const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, style: {stroke: "black"}}, eds)), [setEdges]);
@@ -21,6 +21,23 @@ const ReactFlowPanel = (props) => {
         (changes) => setEdges((eds) => applyEdgeChanges(changes, {...eds, style: {stroke: "black"}})),
         [setEdges]
     );
+
+    useEffect(() => {
+        const new_nodes = [];
+        Object.entries(other.componentNodes).forEach(([key, value]) => {
+            if (key === "transformers") {
+                for (let i of value) {
+                    new_nodes.push(i);
+                }
+            } else {
+                if (value !== "") {
+                    new_nodes.push(value);
+                }
+            }
+        })
+
+        setNodes(new_nodes);
+    }, [other.componentNodes]);
 
     return (
         <div

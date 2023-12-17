@@ -24,6 +24,8 @@ import TextUpdaterNode from "../components/customNode/TextUpdaterNode";
 import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
 import {BLOCK_MODEL} from "../components/utils/apiEndpoints";
+import {nodeTypes} from "../components/utils/nodeTypes";
+import {useEffect} from "react";
 
 const drawerWidth = 240;
 function a11yProps(index: number) {
@@ -46,7 +48,7 @@ const PythonEditor = () => {
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [toastOpen, setToastOpen] = React.useState(false);
-
+    const [tabsName, setTabsName] = React.useState([]);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
 
     const handleToast = (message, severity)  => {
@@ -65,13 +67,23 @@ const PythonEditor = () => {
 
 
     const handleTabAdd = () => {
-
         if (counter > 9) {
             handleToast("A maximum of 10 tabs can be opened at a time!", "warning");
             return;
         }
         const checking = /^[a-z_]+$/.test(tabName);
         if (checking) {
+            setPipelines((prevState) => ({
+                ...prevState,
+                [tabName]: {
+                    blocks: {
+                        loader: "",
+                        transformers: [],
+                        exporter: ""
+                    }
+                }
+            }))
+            setTabsName(prevState => [...prevState, tabName]);
             setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter)} />} iconPosition="end" {...a11yProps(counter)}/>]);
             setCounter(counter + 1);
         }
@@ -85,6 +97,11 @@ const PythonEditor = () => {
         setCounter(counter - 1);
         setTabs(prevComponents => {
             const updatedComponents = [...prevComponents];
+            updatedComponents.splice(index, 1);
+            return updatedComponents;
+        })
+        setTabsName(prevState => {
+            const updatedComponents = [...prevState];
             updatedComponents.splice(index, 1);
             return updatedComponents;
         })
@@ -109,26 +126,56 @@ const PythonEditor = () => {
         setTabName(event.target.value);
     }
 
-    const handleStreamingLoader = (currentTab) => {
+    const handleStreamingLoader = () => {
         axios({
             method: "GET",
             url: BLOCK_MODEL("stream", "loader")
         }).then((response) => {
-            if (currentTab in pipelines) {
-                pipelines[currentTab].blocks()
+            if (tabsName[value] in pipelines) {
+                const newNode = {
+                    id: "dsadad",
+                    type: 'textUpdater',
+                    position: { x: 0, y: 0 },
+                    data: {
+                        params: {},
+                        type: "loader",
+                        name: "dsadad",
+                        pipeline_name: counter,
+                        label: "dsadad",
+                        language: "yaml",
+                        background: "#4877ff",
+                        content: response.data,
+                    },
+                };
+                setPipelines((prevPipelines) => ({
+                    ...prevPipelines,
+                    [tabName]: {
+                        ...prevPipelines[tabName],
+                        blocks: {
+                            ...prevPipelines[tabName].blocks,
+                            loader: newNode,
+                        },
+                    },
+                }));
+            } else {
+                handleToast("There is non pipeline with that name!", "error");
             }
         }).catch((error) => {
             handleToast("Error loading block model!", "error");
         })
     }
 
-    const handleStreamingTransformer = (currentTab) => {
+    const handleStreamingTransformer = () => {
 
     }
 
-    const handleStreamingExporter = (currentTab) => {
+    const handleStreamingExporter = () => {
 
     }
+
+    useEffect(() => {
+        console.log(pipelines);
+    }, [pipelines]);
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -240,7 +287,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => handleStreamingLoader(value)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={handleStreamingLoader}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -290,7 +337,7 @@ const PythonEditor = () => {
                     </Tabs>
                 </Box>
                 {tabs.map((entry, index) => (
-                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: [], componentEdges: [], drawerWidth: drawerWidth}} />
+                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: pipelines[tabsName[value]]["blocks"], componentEdges: [], drawerWidth: drawerWidth}} />
                 ))}
             </Box>
         </div>
