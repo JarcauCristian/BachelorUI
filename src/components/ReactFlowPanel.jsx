@@ -1,26 +1,60 @@
 import * as React from 'react';
 import PropTypes from "prop-types";
-import ReactFlow, {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, MiniMap} from "reactflow";
+import ReactFlow, {
+    addEdge,
+    applyEdgeChanges,
+    applyNodeChanges,
+    Background,
+    Controls,
+    MiniMap,
+    updateEdge, useEdgesState, useNodesState
+} from "reactflow";
 import {useEffect, useMemo} from "react";
-import TextUpdaterNode from "./customNode/TextUpdaterNode";
 import {nodeTypes} from "./utils/nodeTypes";
 
 const ReactFlowPanel = (props) => {
+    const edgeUpdateSuccessful = React.useRef(true);
     const { children, value, index, ...other } = props;
 
-    const [nodes, setNodes] = React.useState([]);
-    const [edges, setEdges] = React.useState(other.componentEdges);
+    const [nodes, setNodes] = useNodesState([]);
+    const [edges, setEdges] = useEdgesState([]);
 
-    const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, style: {stroke: "black"}}, eds)), [setEdges]);
+    const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, selectable: false, deletable: true, style: {stroke: "black"}}, eds)), []);
 
     const onNodesChange = React.useCallback(
         (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
         [setNodes]
     );
     const onEdgesChange = React.useCallback(
-        (changes) => setEdges((eds) => applyEdgeChanges(changes, {...eds, style: {stroke: "black"}})),
+        (changes) => setEdges((eds) => applyEdgeChanges(changes, {...eds, deletable: true, selectable: false, style: {stroke: "black"}})),
         [setEdges]
     );
+
+    const onEdgeUpdateStart = React.useCallback(() => {
+        edgeUpdateSuccessful.current = false;
+    }, []);
+
+    const onEdgeUpdate = React.useCallback((oldEdge, newConnection) => {
+        edgeUpdateSuccessful.current = true;
+        setEdges((els) => updateEdge(oldEdge, newConnection, els));
+    }, []);
+
+    const onEdgeUpdateEnd = React.useCallback((_, edge) => {
+        if (!edgeUpdateSuccessful.current) {
+            setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+        }
+
+        edgeUpdateSuccessful.current = true;
+    }, []);
+    const isValidConnection = (connection) => {
+        const { source, target } = connection;
+
+        if (source === target) {
+            return false;
+        }
+
+        return true;
+    };
 
     useEffect(() => {
         const new_nodes = [];
@@ -52,8 +86,13 @@ const ReactFlowPanel = (props) => {
                            edges={edges}
                            onNodesChange={onNodesChange}
                            onEdgesChange={onEdgesChange}
+                           snapToGrid
+                           onEdgeUpdate={onEdgeUpdate}
+                           onEdgeUpdateStart={onEdgeUpdateStart}
+                           onEdgeUpdateEnd={onEdgeUpdateEnd}
                            onConnect={onConnect}
                            nodeTypes={nodeTypes}
+                           isValidConnection={isValidConnection}
                            fitView>
                     <Controls />
                     <MiniMap style={{height: 120}} zoomable pannable/>
