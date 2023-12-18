@@ -553,7 +553,7 @@ const PythonEditor = () => {
                 </Box>
             </Drawer>
             <Box sx={{ marginLeft: 30 }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', marginTop: -82.2 }}>
+                <Box sx={{ borderBottom: 2, borderColor: 'black', marginTop: -82.2 }}>
                     <Tabs value={value} onChange={handleChange}>
                         {tabs.map((entry) => (
                             entry

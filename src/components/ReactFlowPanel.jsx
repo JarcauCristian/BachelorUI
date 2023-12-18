@@ -11,6 +11,7 @@ import ReactFlow, {
 } from "reactflow";
 import {useEffect, useMemo} from "react";
 import {nodeTypes} from "./utils/nodeTypes";
+import Typography from "@mui/material/Typography";
 
 const ReactFlowPanel = (props) => {
     const edgeUpdateSuccessful = React.useRef(true);
@@ -96,7 +97,7 @@ const ReactFlowPanel = (props) => {
                            fitView>
                     <Controls />
                     <MiniMap style={{height: 120}} zoomable pannable/>
-                    <Background style={{background: "#87CEEB"}} color="#000" variant="dots" gap={12} size={1} /></ReactFlow>
+                    <Background style={{background: "#FFFFFF"}} color="#000000" variant="dots" gap={12} size={1} /></ReactFlow>
             )}
         </div>
     );
