@@ -60,6 +60,7 @@ const PythonEditor = () => {
     const [streamingTransformerOpen, setStreamingTransformerOpen] = React.useState(false);
     const [streamingExporterOpen, setStreamingExporterOpen] = React.useState(false);
     const [blocksPosition, setBlocksPosition] = React.useState([]);
+    const [pipelineCreated, setPipelineCreated] = React.useState([]);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
 
@@ -108,6 +109,7 @@ const PythonEditor = () => {
                         }
                     }))
 
+                    setPipelineCreated(prevState => [...prevState, false]);
                     setBlocksPosition(prevState => [...prevState, 0]);
                     setTabsName(prevState => [...prevState, tabName]);
                     setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
@@ -135,6 +137,7 @@ const PythonEditor = () => {
                         }
                     }))
 
+                    setPipelineCreated(prevState => [...prevState, false]);
                     setBlocksPosition(prevState => [...prevState, 0]);
                     setTabsName(prevState => [...prevState, tabName]);
                     setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
@@ -166,6 +169,16 @@ const PythonEditor = () => {
                 return updatedComponents;
             })
             setTabsName(prevState => {
+                const updatedComponents = [...prevState];
+                updatedComponents.splice(index, 1);
+                return updatedComponents;
+            })
+            setPipelineCreated(prevState => {
+                const updatedComponents = [...prevState];
+                updatedComponents.splice(index, 1);
+                return updatedComponents;
+            })
+            setBlocksPosition(prevState => {
                 const updatedComponents = [...prevState];
                 updatedComponents.splice(index, 1);
                 return updatedComponents;
@@ -442,23 +455,153 @@ const PythonEditor = () => {
             for (let i of response.data) {
                 const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
                 const type = i.type === "streaming" ? "stream" : "batch";
+                if (i.blocks.length > 0) {
 
-                // if (i.blocks.length > 0) {
-                //
-                // }
+                    setPipelineCreated(prevState => [...prevState, true]);
+                    const loaders = [];
+                    const transformers = [];
+                    const exporters = [];
+                    const orderedBlocks = [];
+                    const positions = [];
+                    let firstNode;
 
-                setPipelines((prevState) => ({
-                    ...prevState,
-                    [name]: {
-                        [type] : {
-                            loader: "",
-                            transformers: [],
-                            exporter: ""
+                    const setPosition = (nodes, currentNode, x, y) => {
+                        orderedBlocks.push(currentNode);
+                        if (currentNode.upstream_blocks.length === 0) {
+                            positions[currentNode.name] = [0, 0];
+                        } else {
+                            positions[currentNode.name] = [x, y];
+                        }
+
+                        currentNode.downstream_blocks.forEach((downStreamNode, index) => {
+                            if (index % 2 === 0) {
+                                if (index > 1) {
+                                    setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y + (index - 1) * 500);
+                                } else {
+                                    setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y + index * 500);
+                                }
+                            } else {
+                                if (index > 1) {
+                                    setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y - (index - 1) * 500);
+                                } else {
+                                    setPosition(nodes, nodes.find(node => node.name === downStreamNode), x + 300, y - index * 500);
+                                }
+                            }
+                        })
+                    }
+
+                    for (let block of i.blocks) {
+                        if (block.upstream_blocks.length === 0) {
+                            firstNode = block;
+                            break;
                         }
                     }
-                }))
 
-                setBlocksPosition(prevState => [...prevState, 0]);
+                    setPosition(i.blocks, firstNode, 0, 0);
+
+                    for (let block of orderedBlocks) {
+                        if (block.type === "data_loader") {
+                            loaders.push({
+                                id: block.name,
+                                type: 'textUpdater',
+                                position: { x: positions[block.name][0], y: positions[block.name][1] },
+                                data: {
+                                    params: {},
+                                    type: "loader",
+                                    name: block.name,
+                                    pipeline_name: name,
+                                    label: CAPS(block.name),
+                                    language: block.language,
+                                    background: "#4877ff",
+                                    content: block.content,
+                                },
+                            })
+                        } else if (block.type === "transformer") {
+                            transformers.push({
+                                id: block.name,
+                                type: 'textUpdater',
+                                position: { x: positions[block.name][0], y: positions[block.name][1] },
+                                data: {
+                                    params: {},
+                                    type: "transformer",
+                                    name: block.name,
+                                    pipeline_name: name,
+                                    label: CAPS(block.name),
+                                    language: block.language,
+                                    background: "#7d55ec",
+                                    content: block.content,
+                                },
+                            })
+                        } else {
+                            exporters.push({
+                                id: block.name,
+                                type: 'textUpdater',
+                                position: { x: positions[block.name][0], y: positions[block.name][1] },
+                                draggable: false,
+                                data: {
+                                    params: {},
+                                    type: "exporter",
+                                    name: block.name,
+                                    pipeline_name: name,
+                                    label: CAPS(block.name),
+                                    language: block.language,
+                                    background: "#ffcc19",
+                                    content: block.content,
+                                },
+                            })
+                        }
+                    }
+
+                    const edges = [];
+
+                    const Edges = (nodes, currentNode) => {
+                        currentNode.downstream_blocks.forEach((downStreamBlock, index) => {
+                            edges.push({
+                                id: `e${currentNode.name}-${downStreamBlock}`,
+                                source: currentNode.name,
+                                target: downStreamBlock,
+                                style: { stroke: 'black' },
+                                deletable: false,
+                                focusable: false,
+                                updatable: false,
+                                selected: false,
+                            })
+
+                            Edges(nodes, nodes.find(node => node.name === downStreamBlock))
+                        })
+                    }
+
+                    Edges(i.blocks, firstNode);
+
+
+                    setPipelines((prevState) => ({
+                        ...prevState,
+                        [name]: {
+                            [type] : {
+                                loader: loaders.length > 0 ? loaders[0] : "",
+                                transformers: transformers,
+                                exporter: exporters.length > 0 ? exporters[0] : "",
+                                edges: edges
+                            }
+                        }
+                    }))
+                    setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
+                } else {
+                    setPipelineCreated(prevState => [...prevState, false]);
+                    setBlocksPosition(prevState => [...prevState, 0]);
+                    setPipelines((prevState) => ({
+                        ...prevState,
+                        [name]: {
+                            [type] : {
+                                loader: "",
+                                transformers: [],
+                                exporter: ""
+                            }
+                        }
+                    }))
+                }
+
+
                 setTabsName(prevState => [...prevState, name]);
                 setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={name} icon={<ClearIcon onClick={() => handleTabClose(counter, name)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                 setCounter(counter + 1);
@@ -684,7 +827,7 @@ const PythonEditor = () => {
                     </Tabs>
                 </Box>
                 {tabs && (tabs.map((entry, index) => (
-                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: [], drawerWidth: drawerWidth}} />
+                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: pipelineCreated[value] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"]["edges"] : pipelines[tabsName[value]]["batch"]["edges"] : [], drawerWidth: drawerWidth, created: pipelineCreated[value]}} />
                 )))}
             </Box>
         </div>

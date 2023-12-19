@@ -26,14 +26,14 @@ const ReactFlowPanel = (props) => {
     const { children, value, index, ...other } = props;
 
     const [nodes, setNodes] = useNodesState([]);
-    const [edges, setEdges] = useEdgesState([]);
+    const [edges, setEdges] = useEdgesState(other.componentEdges);
     const [open, setOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [creationFailed, setCreationFailed] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
-    const [isPipelineCreated, setIsPipelineCreated] = React.useState(false);
+    const [isPipelineCreated, setIsPipelineCreated] = React.useState(other.created);
 
     const handleToast = (message, severity) => {
         setToastMessage(message);
@@ -98,7 +98,7 @@ const ReactFlowPanel = (props) => {
                     new_nodes.push(i);
                 }
             } else {
-                if (value !== "") {
+                if (value !== "" && key !== "edges") {
                     new_nodes.push(value);
                 }
             }
