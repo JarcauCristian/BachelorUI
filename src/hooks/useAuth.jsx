@@ -42,6 +42,7 @@ const useAuth = () => {
                     isPut.current = true;
                 }
                 setUserID(profile.sub);
+                Cookies.set('userID', profile.sub, { expires: 1 });
                 setUsername(profile.email);
             }).catch((error) => {
                 console.error("Error:", error);

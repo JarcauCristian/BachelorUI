@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary, Alert,
+    AccordionSummary, Alert, Backdrop, CircularProgress,
     Dialog,
     DialogTitle, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup,
     Snackbar,
@@ -23,10 +23,11 @@ import ReactFlow, {addEdge, applyEdgeChanges, applyNodeChanges, Background, Cont
 import TextUpdaterNode from "../components/customNode/TextUpdaterNode";
 import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
-import {BLOCK_MODEL} from "../components/utils/apiEndpoints";
+import {BLOCK_MODEL, CREATE_PIPELINE, DELETE_PIPELINE, PIPELINES} from "../components/utils/apiEndpoints";
 import {nodeTypes} from "../components/utils/nodeTypes";
 import {useEffect} from "react";
 import {CAPS} from "../components/utils/utliFunctions";
+import Cookies from "js-cookie";
 
 const drawerWidth = 240;
 function a11yProps(index: number) {
@@ -54,15 +55,22 @@ const PythonEditor = () => {
     const [toastOpen, setToastOpen] = React.useState(false);
     const [tabsName, setTabsName] = React.useState([]);
     const [pipelineType, setPipelineType] = React.useState("");
+    const [loading, setLoading] = React.useState(false);
     const [streamingLoaderOpen, setStreamingLoaderOpen] = React.useState(false);
     const [streamingTransformerOpen, setStreamingTransformerOpen] = React.useState(false);
     const [streamingExporterOpen, setStreamingExporterOpen] = React.useState(false);
+    const [blocksPosition, setBlocksPosition] = React.useState([]);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
+    const isRun = React.useRef(false);
 
     const handleToast = (message, severity)  => {
         setToastMessage(message);
         setToastSeverity(severity);
         setToastOpen(true);
+    }
+
+    const handleBackdropClose = () => {
+        setLoading(false);
     }
 
     const handleToastClose = (event, reason) => {
@@ -83,33 +91,60 @@ const PythonEditor = () => {
         const checking = /^[a-z_]+$/.test(tabName);
         if (checking) {
             if (pipelineType === "stream") {
-                setPipelines((prevState) => ({
-                    ...prevState,
-                    [tabName]: {
-                        stream: {
-                            loader: "",
-                            transformers: [],
-                            exporter: ""
+                const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
+                const type = "streaming"
+                axios({
+                    method: "POST",
+                    url: CREATE_PIPELINE(name, type)
+                }).then((response) => {
+                    setPipelines((prevState) => ({
+                        ...prevState,
+                        [tabName]: {
+                            stream: {
+                                loader: "",
+                                transformers: [],
+                                exporter: ""
+                            }
                         }
-                    }
-                }))
-            } else {
-                setPipelines((prevState) => ({
-                    ...prevState,
-                    [tabName]: {
-                        batch: {
-                            loader: "",
-                            transformers: [],
-                            exporter: ""
-                        }
-                    }
-                }))
-            }
+                    }))
 
-            setTabsName(prevState => [...prevState, tabName]);
-            setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter)} />} iconPosition="end" {...a11yProps(counter)}/>]);
-            setCounter(counter + 1);
-            setOpen(false);
+                    setBlocksPosition(prevState => [...prevState, 0]);
+                    setTabsName(prevState => [...prevState, tabName]);
+                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                    setCounter(counter + 1);
+                    setOpen(false);
+                }).catch((error) => {
+                    handleToast("Error creating pipeline!", "error")
+                    setOpen(false);
+                })
+            } else {
+                const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
+                const type = "python"
+                axios({
+                    method: "POST",
+                    url: CREATE_PIPELINE(name, type)
+                }).then((response) => {
+                    setPipelines((prevState) => ({
+                        ...prevState,
+                        [tabName]: {
+                            batch: {
+                                loader: "",
+                                transformers: [],
+                                exporter: ""
+                            }
+                        }
+                    }))
+
+                    setBlocksPosition(prevState => [...prevState, 0]);
+                    setTabsName(prevState => [...prevState, tabName]);
+                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                    setCounter(counter + 1);
+                    setOpen(false);
+                }).catch((error) => {
+                    handleToast("Error creating pipeline!", "error")
+                    setOpen(false);
+                })
+            }
         } else {
             handleToast("Only lowercase letters and underscores are allowed!", "error");
         }
@@ -118,17 +153,25 @@ const PythonEditor = () => {
         setValue(newValue);
     };
 
-    const handleTabClose = (index) => {
-        setCounter(counter - 1);
-        setTabs(prevComponents => {
-            const updatedComponents = [...prevComponents];
-            updatedComponents.splice(index, 1);
-            return updatedComponents;
-        })
-        setTabsName(prevState => {
-            const updatedComponents = [...prevState];
-            updatedComponents.splice(index, 1);
-            return updatedComponents;
+    const handleTabClose = (index, tabName) => {
+        const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
+        axios({
+            method: "DELETE",
+            url: DELETE_PIPELINE(name)
+        }).then((response) => {
+            setCounter(counter - 1);
+            setTabs(prevComponents => {
+                const updatedComponents = [...prevComponents];
+                updatedComponents.splice(index, 1);
+                return updatedComponents;
+            })
+            setTabsName(prevState => {
+                const updatedComponents = [...prevState];
+                updatedComponents.splice(index, 1);
+                return updatedComponents;
+            })
+        }).catch((error) => {
+            handleToast("Error deleting pipeline!", "error");
         })
     }
     const handleMainChange = (panel) => (event, isExpanded) => {
@@ -165,7 +208,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: streamingLoaderName,
                                         type: 'textUpdater',
-                                        position: {x: 0, y: 0},
+                                        position: {x: blocksPosition[value], y: 0},
                                         data: {
                                             params: {},
                                             type: "loader",
@@ -177,6 +220,16 @@ const PythonEditor = () => {
                                             content: response.data,
                                         },
                                     };
+
+                                    setBlocksPosition((prevState) => {
+                                        return prevState.map((item, index) => {
+                                            if (index === value) {
+                                                return item + 300;
+                                            }
+                                            return item;
+                                        });
+                                    });
+
                                     setPipelines((prevPipelines) => ({
                                         ...prevPipelines,
                                         [tabsName[value]]: {
@@ -228,7 +281,7 @@ const PythonEditor = () => {
                                 const newNode = {
                                     id: streamingTransformerName,
                                     type: 'textUpdater',
-                                    position: {x: 0, y: 0},
+                                    position: {x: blocksPosition[value], y: 0},
                                     data: {
                                         params: {},
                                         type: "transformer",
@@ -240,6 +293,16 @@ const PythonEditor = () => {
                                         content: response.data,
                                     },
                                 };
+
+                                setBlocksPosition((prevState) => {
+                                    return prevState.map((item, index) => {
+                                        if (index === value) {
+                                            return item + 300;
+                                        }
+                                        return item;
+                                    });
+                                });
+
                                 setPipelines((prevPipelines) => ({
                                     ...prevPipelines,
                                     [tabsName[value]]: {
@@ -291,7 +354,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: streamingExporterName,
                                         type: 'textUpdater',
-                                        position: { x: 0, y: 0 },
+                                        position: { x: blocksPosition[value], y: 0 },
                                         data: {
                                             params: {},
                                             type: "exporter",
@@ -303,6 +366,16 @@ const PythonEditor = () => {
                                             content: response.data,
                                         },
                                     };
+
+                                    setBlocksPosition((prevState) => {
+                                        return prevState.map((item, index) => {
+                                            if (index === value) {
+                                                return item + 300;
+                                            }
+                                            return item;
+                                        });
+                                    });
+
                                     setPipelines((prevPipelines) => ({
                                         ...prevPipelines,
                                         [tabsName[value]]: {
@@ -356,6 +429,46 @@ const PythonEditor = () => {
         }
     }
 
+    React.useEffect(() => {
+        if (isRun.current) return;
+
+        isRun.current = true;
+
+        setLoading(true);
+        axios({
+            method: "GET",
+            url: PIPELINES(Cookies.get("userID").split("-").join("_"))
+        }).then((response) => {
+            for (let i of response.data) {
+                const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
+                const type = i.type === "streaming" ? "stream" : "batch";
+
+                // if (i.blocks.length > 0) {
+                //
+                // }
+
+                setPipelines((prevState) => ({
+                    ...prevState,
+                    [name]: {
+                        [type] : {
+                            loader: "",
+                            transformers: [],
+                            exporter: ""
+                        }
+                    }
+                }))
+
+                setBlocksPosition(prevState => [...prevState, 0]);
+                setTabsName(prevState => [...prevState, name]);
+                setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={name} icon={<ClearIcon onClick={() => handleTabClose(counter, name)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                setCounter(counter + 1);
+            }
+            setLoading(false);
+        }).catch((error) => {
+            handleToast("Error getting pipelines!", "error");
+            setLoading(false);
+        })
+    }, [tabs, tabsName, counter, pipelines])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -367,6 +480,13 @@ const PythonEditor = () => {
             >
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
+            <Backdrop
+                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={loading}
+                onClick={handleBackdropClose}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
             <Dialog open={open} onClose={handleClose}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                 <DialogTitle sx={{ fontWeight: "bold" }}>
@@ -563,9 +683,9 @@ const PythonEditor = () => {
                         </Button>
                     </Tabs>
                 </Box>
-                {tabs.map((entry, index) => (
-                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: pipelineType === "stream" ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: [], drawerWidth: drawerWidth}} />
-                ))}
+                {tabs && (tabs.map((entry, index) => (
+                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: [], drawerWidth: drawerWidth}} />
+                )))}
             </Box>
         </div>
     );
