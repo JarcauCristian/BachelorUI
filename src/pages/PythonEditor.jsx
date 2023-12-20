@@ -23,7 +23,13 @@ import ReactFlow, {addEdge, applyEdgeChanges, applyNodeChanges, Background, Cont
 import TextUpdaterNode from "../components/customNode/TextUpdaterNode";
 import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
-import {BLOCK_MODEL, CREATE_PIPELINE, DELETE_PIPELINE, PIPELINES} from "../components/utils/apiEndpoints";
+import {
+    BLOCK_MODEL,
+    CREATE_PIPELINE,
+    DELETE_PIPELINE, MODIFY_DESCRIPTION,
+    PIPELINE_DESCRIPTION,
+    PIPELINES
+} from "../components/utils/apiEndpoints";
 import {nodeTypes} from "../components/utils/nodeTypes";
 import {useEffect} from "react";
 import {CAPS} from "../components/utils/utliFunctions";
@@ -455,9 +461,14 @@ const PythonEditor = () => {
             for (let i of response.data) {
                 const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
                 const type = i.type === "streaming" ? "stream" : "batch";
-                if (i.blocks.length > 0) {
 
+                if (i.description === "created") {
                     setPipelineCreated(prevState => [...prevState, true]);
+                } else {
+                    setPipelineCreated(prevState => [...prevState, false]);
+                }
+
+                if (i.blocks.length > 0) {
                     const loaders = [];
                     const transformers = [];
                     const exporters = [];
@@ -587,7 +598,6 @@ const PythonEditor = () => {
                     }))
                     setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
                 } else {
-                    setPipelineCreated(prevState => [...prevState, false]);
                     setBlocksPosition(prevState => [...prevState, 0]);
                     setPipelines((prevState) => ({
                         ...prevState,
@@ -612,6 +622,10 @@ const PythonEditor = () => {
             setLoading(false);
         })
     }, [tabs, tabsName, counter, pipelines])
+
+    React.useEffect(() => {
+        console.log(pipelineCreated);
+    }, [pipelineCreated])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>

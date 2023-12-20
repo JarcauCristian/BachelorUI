@@ -17,7 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import {Alert, Backdrop, CircularProgress, Snackbar} from "@mui/material";
 import axios from "axios";
-import {CREATE_BLOCK} from "./utils/apiEndpoints";
+import {CREATE_BLOCK, MODIFY_DESCRIPTION} from "./utils/apiEndpoints";
 import Cookies from "js-cookie";
 
 
@@ -107,6 +107,10 @@ const ReactFlowPanel = (props) => {
         setNodes(new_nodes);
     }, [other.componentNodes, setNodes]);
 
+    React.useEffect(() => {
+        setEdges(other.componentEdges);
+    }, [other.componentEdges, setEdges])
+
     const createPipeline = () => {
         if (nodes.length === 0) {
             handleToast("Pipeline is empty!", "error");
@@ -161,7 +165,19 @@ const ReactFlowPanel = (props) => {
                 })));
                 setLoading(false);
                 setIsPipelineCreated(true);
-                handleToast("Pipeline Created Successfully!", "success");
+
+                axios({
+                    method: "PUT",
+                    url: MODIFY_DESCRIPTION,
+                    data: {
+                        "name": other.pipeline_name,
+                        "tags": "created"
+                    }
+                }).then((response) => {
+                    handleToast("Pipeline Created Successfully!", "success");
+                }).catch((error) => {
+                    handleToast("Failed to create Pipeline!", "error");
+                })
             }
         }
     }
@@ -172,6 +188,7 @@ const ReactFlowPanel = (props) => {
 
     return (
         <div
+            key={index}
             role="tabpanel"
             hidden={value !== index}
             id={`simple-tabpanel-${index}`}
@@ -193,7 +210,7 @@ const ReactFlowPanel = (props) => {
                 <CircularProgress color="inherit" />
             </Backdrop>
             {value === index && (
-                    isPipelineCreated ?
+                    other.created ?
                         <Box sx={{
                             display: "flex",
                             flexDirection: "row",
