@@ -584,31 +584,46 @@ const PythonEditor = () => {
 
                     Edges(i.blocks, firstNode);
 
-
-                    setPipelines((prevState) => ({
-                        ...prevState,
-                        [name]: {
-                            [type] : {
-                                loader: loaders.length > 0 ? loaders[0] : "",
-                                transformers: transformers,
-                                exporter: exporters.length > 0 ? exporters[0] : "",
-                                edges: edges
+                    const isInStorage = localStorage.getItem(`pipeline-${name}`);
+                    if (!isInStorage) {
+                        setPipelines((prevState) => ({
+                            ...prevState,
+                            [name]: {
+                                [type] : {
+                                    loader: loaders.length > 0 ? loaders[0] : "",
+                                    transformers: transformers,
+                                    exporter: exporters.length > 0 ? exporters[0] : "",
+                                    edges: edges
+                                }
                             }
-                        }
-                    }))
+                        }))
+                    } else {
+                        setPipelines((prevState) => ({
+                            ...prevState,
+                            [name]: JSON.parse(isInStorage)
+                        }))
+                    }
                     setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
                 } else {
                     setBlocksPosition(prevState => [...prevState, 0]);
-                    setPipelines((prevState) => ({
-                        ...prevState,
-                        [name]: {
-                            [type] : {
-                                loader: "",
-                                transformers: [],
-                                exporter: ""
+                    const isInStorage = localStorage.getItem(`pipeline-${name}`);
+                    if (!isInStorage) {
+                        setPipelines((prevState) => ({
+                            ...prevState,
+                            [name]: {
+                                [type] : {
+                                    loader: "",
+                                    transformers: [],
+                                    exporter: ""
+                                }
                             }
-                        }
-                    }))
+                        }))
+                    } else {
+                        setPipelines((prevState) => ({
+                            ...prevState,
+                            [name]: JSON.parse(isInStorage)
+                        }))
+                    }
                 }
 
 
@@ -624,8 +639,10 @@ const PythonEditor = () => {
     }, [tabs, tabsName, counter, pipelines])
 
     React.useEffect(() => {
-        console.log(pipelineCreated);
-    }, [pipelineCreated])
+        if (!pipelineCreated[value]) {
+            localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(pipelines[tabsName[value]]));
+        }
+    }, [pipelineCreated, value, tabsName, pipelines]);
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -841,7 +858,7 @@ const PythonEditor = () => {
                     </Tabs>
                 </Box>
                 {tabs && (tabs.map((entry, index) => (
-                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: pipelineCreated[value] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"]["edges"] : pipelines[tabsName[value]]["batch"]["edges"] : [], drawerWidth: drawerWidth, created: pipelineCreated[value]}} />
+                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: pipelineCreated[value] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"]["edges"] : pipelines[tabsName[value]]["batch"]["edges"] : [], drawerWidth: drawerWidth, created: pipelineCreated[value], edgeChanging: !pipelineCreated[value], pipeline_name: tabsName[value]}} />
                 )))}
             </Box>
         </div>

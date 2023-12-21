@@ -26,14 +26,13 @@ const ReactFlowPanel = (props) => {
     const { children, value, index, ...other } = props;
 
     const [nodes, setNodes] = useNodesState([]);
-    const [edges, setEdges] = useEdgesState(other.componentEdges);
+    const [edges, setEdges] = useEdgesState(localStorage.getItem(`edges-${other.pipeline_name}`) ? JSON.parse(localStorage.getItem(`edges-${other.pipeline_name}`)) : other.componentEdges);
     const [open, setOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [creationFailed, setCreationFailed] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
-    const [isPipelineCreated, setIsPipelineCreated] = React.useState(other.created);
 
     const handleToast = (message, severity) => {
         setToastMessage(message);
@@ -108,8 +107,14 @@ const ReactFlowPanel = (props) => {
     }, [other.componentNodes, setNodes]);
 
     React.useEffect(() => {
-        setEdges(other.componentEdges);
-    }, [other.componentEdges, setEdges])
+        const areEdgesStored = localStorage.getItem(`edges-${other.pipeline_name}`);
+
+        if (areEdgesStored && other.componentEdges > 0) {
+            setEdges(JSON.parse(areEdgesStored));
+        } else {
+            setEdges(other.componentEdges);
+        }
+    }, [other.componentEdges, other.pipeline_name, setEdges])
 
     const createPipeline = () => {
         if (nodes.length === 0) {
@@ -164,7 +169,6 @@ const ReactFlowPanel = (props) => {
                     updatable: false,
                 })));
                 setLoading(false);
-                setIsPipelineCreated(true);
 
                 axios({
                     method: "PUT",
@@ -185,6 +189,14 @@ const ReactFlowPanel = (props) => {
     const onEdgeClick = React.useCallback((oldEdge, newConnection) => {
 
     }, []);
+
+    React.useEffect(() => {
+        console.log(other.edgeChanging);
+        if (other.edgeChanging && other.componentEdges.length === 0) {
+            localStorage.setItem(`edges-${other.pipeline_name}`, JSON.stringify(edges));
+            other.edgeChanging = false;
+        }
+    }, [other.pipeline_name, other.edgeChanging, other.componentEdges, edges]);
 
     return (
         <div
