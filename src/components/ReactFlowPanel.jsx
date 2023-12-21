@@ -26,13 +26,14 @@ const ReactFlowPanel = (props) => {
     const { children, value, index, ...other } = props;
 
     const [nodes, setNodes] = useNodesState([]);
-    const [edges, setEdges] = useEdgesState(localStorage.getItem(`edges-${other.pipeline_name}`) ? JSON.parse(localStorage.getItem(`edges-${other.pipeline_name}`)) : other.componentEdges);
+    const [edges, setEdges] = useEdgesState(other.componentEdges);
     const [open, setOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [creationFailed, setCreationFailed] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
+    const [pipelineCreated, setPipelineCreated] = React.useState(other.created);
 
     const handleToast = (message, severity) => {
         setToastMessage(message);
@@ -174,13 +175,16 @@ const ReactFlowPanel = (props) => {
                     method: "PUT",
                     url: MODIFY_DESCRIPTION,
                     data: {
-                        "name": other.pipeline_name,
-                        "tags": "created"
+                        "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                        "description": "created"
                     }
-                }).then((response) => {
+                }).then((_) => {
                     handleToast("Pipeline Created Successfully!", "success");
+                    setLoading(false);
+                    setPipelineCreated(true);
                 }).catch((error) => {
                     handleToast("Failed to create Pipeline!", "error");
+                    setLoading(false);
                 })
             }
         }
@@ -191,7 +195,6 @@ const ReactFlowPanel = (props) => {
     }, []);
 
     React.useEffect(() => {
-        console.log(other.edgeChanging);
         if (other.edgeChanging && other.componentEdges.length === 0) {
             localStorage.setItem(`edges-${other.pipeline_name}`, JSON.stringify(edges));
             other.edgeChanging = false;
@@ -215,14 +218,14 @@ const ReactFlowPanel = (props) => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: '#000', zIndex: 100, position: "absolute" }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
             {value === index && (
-                    other.created ?
+                    pipelineCreated ?
                         <Box sx={{
                             display: "flex",
                             flexDirection: "row",

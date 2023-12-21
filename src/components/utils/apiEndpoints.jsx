@@ -7,7 +7,7 @@ export const DELETE_PIPELINE = (name) => `${baseUrl}/pipeline/delete?name=${name
 export const CREATE_PIPELINE = (name, type) => `${baseUrl}/pipeline/create?name=${name}&ptype=${type}`
 export const PIPELINES = (contains) => `${baseUrl}/pipelines/specific?contains=${contains}`
 
-export const MODIFY_DESCRIPTION = `${baseUrl}/pipeline/add_tags`;
+export const MODIFY_DESCRIPTION = `${baseUrl}/pipeline/description`;
 
 export const PIPELINE_DESCRIPTION = (name) => `${baseUrl}/pipeline/description?name=${name}`
 

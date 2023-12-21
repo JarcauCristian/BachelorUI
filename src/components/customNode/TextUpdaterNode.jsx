@@ -15,7 +15,7 @@ function TextUpdaterNode({ data, isConnectable }) {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [open, setOpen] = React.useState(false);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
-    const [blockContent, setBlockContent] = React.useState("");
+    const [blockContent, setBlockContent] = React.useState(data.content);
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
 
@@ -61,7 +61,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                 <CircularProgress color="inherit" />
             </Backdrop>
             <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="xl">
-                <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage={data.language} defaultValue={data.content} onChange={handleEditorChange}/>
+                <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage={data.language} defaultValue={blockContent} onChange={handleEditorChange}/>
             </Dialog>
             {data.type !== "loader" && (<Handle type="target" position={Position.Left} isConnectable={isConnectable} />)}
             <div>

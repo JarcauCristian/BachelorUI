@@ -19,8 +19,6 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
-import ReactFlow, {addEdge, applyEdgeChanges, applyNodeChanges, Background, Controls, MiniMap} from "reactflow";
-import TextUpdaterNode from "../components/customNode/TextUpdaterNode";
 import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
 import {
@@ -54,6 +52,9 @@ const PythonEditor = () => {
     const [streamingLoaderName, setStreamingLoaderName] = React.useState("");
     const [streamingTransformerName, setStreamingTransformerName] = React.useState("");
     const [streamingExporterName, setStreamingExporterName] = React.useState("");
+    const [batchLoaderName, setBatchLoaderName] = React.useState("");
+    const [batchTransformerName, setBatchTransformerName] = React.useState("");
+    const [batchExporterName, setBatchExporterName] = React.useState("");
     const [counter, setCounter] = React.useState(0);
     const [pipelines, setPipelines] = React.useState({});
     const [toastMessage, setToastMessage] = React.useState("");
@@ -65,6 +66,9 @@ const PythonEditor = () => {
     const [streamingLoaderOpen, setStreamingLoaderOpen] = React.useState(false);
     const [streamingTransformerOpen, setStreamingTransformerOpen] = React.useState(false);
     const [streamingExporterOpen, setStreamingExporterOpen] = React.useState(false);
+    const [batchLoaderOpen, setBatchLoaderOpen] = React.useState(false);
+    const [batchTransformerOpen, setBatchTransformerOpen] = React.useState(false);
+    const [batchExporterOpen, setBatchExporterOpen] = React.useState(false);
     const [blocksPosition, setBlocksPosition] = React.useState([]);
     const [pipelineCreated, setPipelineCreated] = React.useState([]);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
@@ -169,6 +173,13 @@ const PythonEditor = () => {
             url: DELETE_PIPELINE(name)
         }).then((response) => {
             setCounter(counter - 1);
+            if (!pipelineCreated[index]) {
+                setBlocksPosition(prevState => {
+                    const updatedComponents = [...prevState];
+                    updatedComponents.splice(index, 1);
+                    return updatedComponents;
+                })
+            }
             setTabs(prevComponents => {
                 const updatedComponents = [...prevComponents];
                 updatedComponents.splice(index, 1);
@@ -180,11 +191,6 @@ const PythonEditor = () => {
                 return updatedComponents;
             })
             setPipelineCreated(prevState => {
-                const updatedComponents = [...prevState];
-                updatedComponents.splice(index, 1);
-                return updatedComponents;
-            })
-            setBlocksPosition(prevState => {
                 const updatedComponents = [...prevState];
                 updatedComponents.splice(index, 1);
                 return updatedComponents;
@@ -210,6 +216,9 @@ const PythonEditor = () => {
         if (streamingLoaderOpen) setStreamingLoaderOpen(false);
         if (streamingTransformerOpen) setStreamingTransformerOpen(false);
         if (streamingExporterOpen) setStreamingExporterOpen(false);
+        if (batchLoaderOpen) setBatchLoaderOpen(false);
+        if (batchTransformerOpen) setBatchTransformerOpen(false);
+        if (batchExporterOpen) setBatchExporterOpen(false);
     }
 
     const handleStreamingLoader = () => {
@@ -432,19 +441,256 @@ const PythonEditor = () => {
         }
     }
 
-    const checkIfBlockNameExists = (name) => {
-        for (let block of pipelines[tabsName[value]].stream.transformers) {
-            if (name === block.data.name) {
-                return true;
-            }
-        }
+    const handleBatchLoader = () => {
+        if (tabs.length > 0) {
+            axios({
+                method: "GET",
+                url: BLOCK_MODEL("batch", "loader")
+            }).then((response) => {
+                if (tabsName[value] in pipelines) {
+                    const checking = /^[a-z_]+$/.test(batchLoaderName);
+                    if (checking) {
+                        if ("batch" in pipelines[tabsName[value]]) {
+                            if (pipelines[tabsName[value]]["batch"]["loader"] === "") {
+                                if (!checkIfBlockNameExists(batchLoaderName)) {
+                                    const newNode = {
+                                        id: batchLoaderName,
+                                        type: 'textUpdater',
+                                        position: {x: blocksPosition[value], y: 0},
+                                        data: {
+                                            params: {},
+                                            type: "loader",
+                                            name: batchLoaderName,
+                                            pipeline_name: tabsName[value],
+                                            label: CAPS(batchLoaderName),
+                                            language: "python",
+                                            background: "#4877ff",
+                                            content: response.data,
+                                        },
+                                    };
 
-        if (pipelines[tabsName[value]].stream.loader === "" && pipelines[tabsName[value]].stream.exporter === "") {
-            return false;
-        } else if (pipelines[tabsName[value]].stream.loader === "" && pipelines[tabsName[value]].stream.exporter !== "") {
-            return name === pipelines[tabsName[value]].stream.exporter.data.name;
-        } else if (pipelines[tabsName[value]].stream.loader !== "" && pipelines[tabsName[value]].stream.exporter === "") {
-            return name === pipelines[tabsName[value]].stream.loader.data.name;
+                                    setBlocksPosition((prevState) => {
+                                        return prevState.map((item, index) => {
+                                            if (index === value) {
+                                                return item + 300;
+                                            }
+                                            return item;
+                                        });
+                                    });
+
+                                    setPipelines((prevPipelines) => ({
+                                        ...prevPipelines,
+                                        [tabsName[value]]: {
+                                            ...prevPipelines[tabsName[value]],
+                                            batch: {
+                                                ...prevPipelines[tabsName[value]].batch,
+                                                loader: newNode,
+                                            },
+                                        },
+                                    }));
+                                    setBatchLoaderOpen(false);
+                                } else {
+                                    handleToast("There is already a block with that name!", "error");
+                                }
+                            } else {
+                                handleToast("Only one loader", "warning"); // de modificat
+                            }
+                        } else {
+                            handleToast("Only stream blocks can be added to a stream pipeline!", "error");
+                        }
+                    } else {
+                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                    }
+                } else {
+                    handleToast("There is non pipeline with that name!", "error");
+                    setBatchLoaderOpen(false);
+                }
+            }).catch((error) => {
+                console.log(error);
+                handleToast("Error loading block model!", "error");
+                setBatchLoaderOpen(false);
+            })
+        } else {
+            handleToast("There are no currently opened tabs!", "error");
+            setBatchLoaderOpen(false);
+        }
+    }
+
+    const handleBatchTransformer = () => {
+        if (tabs.length > 0) {
+            axios({
+                method: "GET",
+                url: BLOCK_MODEL("batch", "transformer")
+            }).then((response) => {
+                if (tabsName[value] in pipelines) {
+                    const checking = /^[a-z_]+$/.test(batchTransformerName);
+                    if (checking) {
+                        if ("batch" in pipelines[tabsName[value]]) {
+                            if (!checkIfBlockNameExists(batchTransformerName)) {
+                                const newNode = {
+                                    id: batchTransformerName,
+                                    type: 'textUpdater',
+                                    position: {x: blocksPosition[value], y: 0},
+                                    data: {
+                                        params: {},
+                                        type: "transformer",
+                                        name: batchTransformerName,
+                                        pipeline_name: tabsName[value],
+                                        label: CAPS(batchTransformerName),
+                                        language: "python",
+                                        background: "#7d55ec",
+                                        content: response.data,
+                                    },
+                                };
+
+                                setBlocksPosition((prevState) => {
+                                    return prevState.map((item, index) => {
+                                        if (index === value) {
+                                            return item + 300;
+                                        }
+                                        return item;
+                                    });
+                                });
+
+                                setPipelines((prevPipelines) => ({
+                                    ...prevPipelines,
+                                    [tabsName[value]]: {
+                                        ...prevPipelines[tabsName[value]],
+                                        batch: {
+                                            ...prevPipelines[tabsName[value]].batch,
+                                            loader: prevPipelines[tabsName[value]].batch.loader,
+                                            transformers: [...prevPipelines[tabsName[value]].batch.transformers, newNode],
+                                            exporter: prevPipelines[tabsName[value]].batch.exporter
+                                        },
+                                    },
+                                }));
+                                setBatchTransformerOpen(false);
+                            } else {
+                                handleToast("There is already a block with that name!", "error");
+                            }
+                        } else {
+                            handleToast("Only stream blocks can be added to a stream pipeline!", "error");
+                        }
+                    } else {
+                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                    }
+                } else {
+                    handleToast("There is non pipeline with that name!", "error");
+                    setBatchTransformerOpen(false);
+                }
+            }).catch((error) => {
+                handleToast("Error loading block model!", "error");
+                setBatchTransformerOpen(false);
+            })
+        } else {
+            handleToast("There are no currently opened tabs!", "error");
+            setBatchTransformerOpen(false);
+        }
+    }
+
+    const handleBatchExporter = () => {
+        if (tabs.length > 0) {
+            axios({
+                method: "GET",
+                url: BLOCK_MODEL("batch", "exporter")
+            }).then((response) => {
+                if (tabsName[value] in pipelines) {
+                    const checking = /^[a-z_]+$/.test(batchExporterName);
+                    if (checking) {
+                        if ("batch" in pipelines[tabsName[value]]) {
+                            if (pipelines[tabsName[value]]["batch"]["exporter"] === "") {
+                                if (!checkIfBlockNameExists(batchExporterName)) {
+                                    const newNode = {
+                                        id: batchExporterName,
+                                        type: 'textUpdater',
+                                        position: { x: blocksPosition[value], y: 0 },
+                                        data: {
+                                            params: {},
+                                            type: "exporter",
+                                            name: batchExporterName,
+                                            pipeline_name: tabsName[value],
+                                            label: CAPS(batchExporterName),
+                                            language: "python",
+                                            background: "#ffcc19",
+                                            content: response.data,
+                                        },
+                                    };
+
+                                    setBlocksPosition((prevState) => {
+                                        return prevState.map((item, index) => {
+                                            if (index === value) {
+                                                return item + 300;
+                                            }
+                                            return item;
+                                        });
+                                    });
+
+                                    setPipelines((prevPipelines) => ({
+                                        ...prevPipelines,
+                                        [tabsName[value]]: {
+                                            ...prevPipelines[tabsName[value]],
+                                            batch: {
+                                                ...prevPipelines[tabsName[value]].batch,
+                                                exporter: newNode,
+                                            },
+                                        },
+                                    }));
+                                    setBatchExporterOpen(false);
+                                } else {
+                                    handleToast("There is already a block with that name!", "error");
+                                }
+                            } else {
+                                handleToast("Only one exporter", "warning"); // de modificat
+                            }
+                        } else {
+                            handleToast("Only stream blocks can be added to a stream pipeline!", "error");
+                        }
+                    } else {
+                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                    }
+                } else {
+                    setBatchExporterOpen(false);
+                    handleToast("There is non pipeline with that name!", "error");
+                }
+            }).catch((error) => {
+                setBatchExporterOpen(false);
+                handleToast("Error loading block model!", "error");
+            })
+        } else {
+            setBatchExporterOpen(false);
+            handleToast("There are no currently opened tabs!", "error");
+        }
+    }
+
+    const checkIfBlockNameExists = (name) => {
+        if ("stream" in pipelines[tabsName[value]]) {
+            for (let block of pipelines[tabsName[value]].stream.transformers) {
+                if (name === block.data.name) {
+                    return true;
+                }
+            }
+
+            if (pipelines[tabsName[value]].stream.loader === "" && pipelines[tabsName[value]].stream.exporter === "") {
+                return false;
+            } else if (pipelines[tabsName[value]].stream.loader === "" && pipelines[tabsName[value]].stream.exporter !== "") {
+                return name === pipelines[tabsName[value]].stream.exporter.data.name;
+            } else if (pipelines[tabsName[value]].stream.loader !== "" && pipelines[tabsName[value]].stream.exporter === "") {
+                return name === pipelines[tabsName[value]].stream.loader.data.name;
+            }
+        } else {
+            for (let block of pipelines[tabsName[value]].batch.transformers) {
+                if (name === block.data.name) {
+                    return true;
+                }
+            }
+
+            if (pipelines[tabsName[value]].batch.loader === "" && pipelines[tabsName[value]].batch.exporter === "") {
+                return false;
+            } else if (pipelines[tabsName[value]].batch.loader === "" && pipelines[tabsName[value]].batch.exporter !== "") {
+                return name === pipelines[tabsName[value]].batch.exporter.data.name;
+            } else if (pipelines[tabsName[value]].batch.loader !== "" && pipelines[tabsName[value]].batch.exporter === "") {
+                return name === pipelines[tabsName[value]].batch.loader.data.name;
+            }
         }
     }
 
@@ -603,7 +849,7 @@ const PythonEditor = () => {
                             [name]: JSON.parse(isInStorage)
                         }))
                     }
-                    setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
+                    //setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
                 } else {
                     setBlocksPosition(prevState => [...prevState, 0]);
                     const isInStorage = localStorage.getItem(`pipeline-${name}`);
@@ -643,6 +889,10 @@ const PythonEditor = () => {
             localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(pipelines[tabsName[value]]));
         }
     }, [pipelineCreated, value, tabsName, pipelines]);
+
+    React.useEffect(() => {
+        console.log(blocksPosition);
+    }, [blocksPosition])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -719,6 +969,39 @@ const PythonEditor = () => {
                     </Button>
                 </Box>
             </Dialog>
+            <Dialog open={batchLoaderOpen} onClose={handleClose}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
+                    <DialogTitle sx={{ fontWeight: "bold" }}>
+                        BLOCK NAME
+                    </DialogTitle>
+                    <TextField variant="outlined" onChange={(event) => setBatchLoaderName(event.target.value)} label="Block Name"/>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleBatchLoader}>
+                        Add Loader
+                    </Button>
+                </Box>
+            </Dialog>
+            <Dialog open={batchTransformerOpen} onClose={handleClose}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
+                    <DialogTitle sx={{ fontWeight: "bold" }}>
+                        BLOCK NAME
+                    </DialogTitle>
+                    <TextField variant="outlined" onChange={(event) => setBatchTransformerName(event.target.value)} label="Block Name"/>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleBatchTransformer}>
+                        Add Transformer
+                    </Button>
+                </Box>
+            </Dialog>
+            <Dialog open={batchExporterOpen} onClose={handleClose}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
+                    <DialogTitle sx={{ fontWeight: "bold" }}>
+                        BLOCK NAME
+                    </DialogTitle>
+                    <TextField variant="outlined" onChange={(event) => setBatchExporterName(event.target.value)} label="Block Name"/>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleBatchExporter}>
+                        Add Exporter
+                    </Button>
+                </Box>
+            </Dialog>
             <Drawer
                 variant="permanent"
                 sx={{
@@ -751,7 +1034,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchLoaderOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -765,7 +1048,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchTransformerOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -779,7 +1062,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchExporterOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -849,8 +1132,8 @@ const PythonEditor = () => {
             <Box sx={{ marginLeft: 30 }}>
                 <Box sx={{ borderBottom: 2, borderColor: 'black', marginTop: -82.2 }}>
                     <Tabs value={value} onChange={handleChange}>
-                        {tabs.map((entry) => (
-                            entry
+                        {tabs.map((entry, index) => (
+                            React.cloneElement(entry, { key: index })
                         ))}
                         <Button variant="filled" sx={{ backgroundColor: "white", color: "black" }} onClick={() => setOpen(true)}>
                             <AddBoxIcon />
@@ -858,7 +1141,25 @@ const PythonEditor = () => {
                     </Tabs>
                 </Box>
                 {tabs && (tabs.map((entry, index) => (
-                    <ReactFlowPanel key={index} index={index} value={value} {...{componentNodes: "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"] : pipelines[tabsName[value]]["batch"], componentEdges: pipelineCreated[value] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]]["stream"]["edges"] : pipelines[tabsName[value]]["batch"]["edges"] : [], drawerWidth: drawerWidth, created: pipelineCreated[value], edgeChanging: !pipelineCreated[value], pipeline_name: tabsName[value]}} />
+                    <ReactFlowPanel
+                        key={index}
+                        index={index}
+                        value={value}
+                        {...{
+                            componentNodes: pipelines[tabsName[value]] && "stream" in pipelines[tabsName[value]]
+                                ? pipelines[tabsName[value]]["stream"]
+                                : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"],
+                            componentEdges: pipelineCreated[value] && pipelines[tabsName[value]]
+                                ? "stream" in pipelines[tabsName[value]]
+                                    ? pipelines[tabsName[value]]["stream"]["edges"]
+                                    : pipelines[tabsName[value]]["batch"]["edges"]
+                                : [],
+                            drawerWidth: drawerWidth,
+                            created: pipelineCreated[value],
+                            edgeChanging: !pipelineCreated[value],
+                            pipeline_name: tabsName[value]
+                        }}
+                    />
                 )))}
             </Box>
         </div>
