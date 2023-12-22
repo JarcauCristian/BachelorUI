@@ -195,11 +195,12 @@ const ReactFlowPanel = (props) => {
     }, []);
 
     React.useEffect(() => {
-        if (other.edgeChanging && other.componentEdges.length === 0) {
-            localStorage.setItem(`edges-${other.pipeline_name}`, JSON.stringify(edges));
-            other.edgeChanging = false;
-        }
-    }, [other.pipeline_name, other.edgeChanging, other.componentEdges, edges]);
+        localStorage.setItem(`edges-${other.pipeline_name}`, JSON.stringify(edges));
+        other.setPipelines((prevState) => ({
+            ...prevState,
+            [other.pipeline_name]::
+        }))
+    }, [other.pipeline_name, edges, other.componentEdges]);
 
     return (
         <div

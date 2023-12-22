@@ -32,6 +32,7 @@ import {nodeTypes} from "../components/utils/nodeTypes";
 import {useEffect} from "react";
 import {CAPS} from "../components/utils/utliFunctions";
 import Cookies from "js-cookie";
+import {json} from "react-router-dom";
 
 const drawerWidth = 240;
 function a11yProps(index: number) {
@@ -114,7 +115,8 @@ const PythonEditor = () => {
                             stream: {
                                 loader: "",
                                 transformers: [],
-                                exporter: ""
+                                exporter: "",
+                                edges: []
                             }
                         }
                     }))
@@ -142,7 +144,8 @@ const PythonEditor = () => {
                             batch: {
                                 loader: "",
                                 transformers: [],
-                                exporter: ""
+                                exporter: "",
+                                edges: []
                             }
                         }
                     }))
@@ -236,7 +239,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: streamingLoaderName,
                                         type: 'textUpdater',
-                                        position: {x: blocksPosition[value], y: 0},
+                                        position: {x: blocksPosition[value] + 300, y: 0},
                                         data: {
                                             params: {},
                                             type: "loader",
@@ -309,7 +312,7 @@ const PythonEditor = () => {
                                 const newNode = {
                                     id: streamingTransformerName,
                                     type: 'textUpdater',
-                                    position: {x: blocksPosition[value], y: 0},
+                                    position: {x: blocksPosition[value] + 300, y: 0},
                                     data: {
                                         params: {},
                                         type: "transformer",
@@ -339,7 +342,8 @@ const PythonEditor = () => {
                                             ...prevPipelines[tabsName[value]].stream,
                                             loader: prevPipelines[tabsName[value]].stream.loader,
                                             transformers: [...prevPipelines[tabsName[value]].stream.transformers, newNode],
-                                            exporter: prevPipelines[tabsName[value]].stream.exporter
+                                            exporter: prevPipelines[tabsName[value]].stream.exporter,
+                                            edges: prevPipelines[tabsName[value]].stream.edges
                                         },
                                     },
                                 }));
@@ -382,7 +386,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: streamingExporterName,
                                         type: 'textUpdater',
-                                        position: { x: blocksPosition[value], y: 0 },
+                                        position: { x: blocksPosition[value] + 300, y: 0 },
                                         data: {
                                             params: {},
                                             type: "exporter",
@@ -456,7 +460,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: batchLoaderName,
                                         type: 'textUpdater',
-                                        position: {x: blocksPosition[value], y: 0},
+                                        position: {x: blocksPosition[value] + 300, y: 0},
                                         data: {
                                             params: {},
                                             type: "loader",
@@ -530,7 +534,7 @@ const PythonEditor = () => {
                                 const newNode = {
                                     id: batchTransformerName,
                                     type: 'textUpdater',
-                                    position: {x: blocksPosition[value], y: 0},
+                                    position: {x: blocksPosition[value] + 300, y: 0},
                                     data: {
                                         params: {},
                                         type: "transformer",
@@ -560,7 +564,8 @@ const PythonEditor = () => {
                                             ...prevPipelines[tabsName[value]].batch,
                                             loader: prevPipelines[tabsName[value]].batch.loader,
                                             transformers: [...prevPipelines[tabsName[value]].batch.transformers, newNode],
-                                            exporter: prevPipelines[tabsName[value]].batch.exporter
+                                            exporter: prevPipelines[tabsName[value]].batch.exporter,
+                                            edges: prevPipelines[tabsName[value]].batch.edges
                                         },
                                     },
                                 }));
@@ -603,7 +608,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: batchExporterName,
                                         type: 'textUpdater',
-                                        position: { x: blocksPosition[value], y: 0 },
+                                        position: { x: blocksPosition[value] + 300, y: 0 },
                                         data: {
                                             params: {},
                                             type: "exporter",
@@ -713,7 +718,8 @@ const PythonEditor = () => {
                 } else {
                     setPipelineCreated(prevState => [...prevState, false]);
                 }
-
+                const nodesInStorage = localStorage.getItem(`pipeline-${name}`);
+                const edgesInStorage = localStorage.getItem(`edges-${name}`);
                 if (i.blocks.length > 0) {
                     const loaders = [];
                     const transformers = [];
@@ -830,8 +836,7 @@ const PythonEditor = () => {
 
                     Edges(i.blocks, firstNode);
 
-                    const isInStorage = localStorage.getItem(`pipeline-${name}`);
-                    if (!isInStorage) {
+                    if (!nodesInStorage && !edgesInStorage) {
                         setPipelines((prevState) => ({
                             ...prevState,
                             [name]: {
@@ -846,14 +851,13 @@ const PythonEditor = () => {
                     } else {
                         setPipelines((prevState) => ({
                             ...prevState,
-                            [name]: JSON.parse(isInStorage)
+                            [name]: JSON.parse(nodesInStorage)
                         }))
                     }
-                    //setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
+                    setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
                 } else {
-                    setBlocksPosition(prevState => [...prevState, 0]);
-                    const isInStorage = localStorage.getItem(`pipeline-${name}`);
-                    if (!isInStorage) {
+                    if (!nodesInStorage && !edgesInStorage) {
+                        setBlocksPosition(prevState => [...prevState, 0]);
                         setPipelines((prevState) => ({
                             ...prevState,
                             [name]: {
@@ -865,11 +869,50 @@ const PythonEditor = () => {
                             }
                         }))
                     } else {
+                        let maxX = 0;
+                        let maxIndex = 0;
+                        if ("stream" in JSON.parse(nodesInStorage)) {
+                            Object.entries(JSON.parse(nodesInStorage).stream).forEach(([key, value]) => {
+                                if (key === "transformers") {
+                                    for (let i = 0; i < value.length; i++) {
+                                        if (value[i].position.x > maxX) {
+                                            maxX = value[i].position.x;
+                                            maxIndex = key;
+                                        }
+                                    }
+                                } else {
+                                    if (value.position.x > maxX) {
+                                        maxX = value.position.x;
+                                        maxIndex = key;
+                                    }
+                                }
+                            });
+                            setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex].position.x]);
+                        } else {
+                            Object.entries(JSON.parse(nodesInStorage).batch).forEach(([key, value]) => {
+                                if (key === "transformers") {
+                                    for (let i = 0; i < value.length; i++) {
+                                        if (value[i].position.x > maxX) {
+                                            maxX = value[i].position.x;
+                                            maxIndex = key;
+                                        }
+                                    }
+                                } else {
+                                    if (value.position.x > maxX) {
+                                        maxX = value.position.x;
+                                        maxIndex = key;
+                                    }
+                                }
+                            });
+                            setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex].position.x]);
+                        }
+
                         setPipelines((prevState) => ({
                             ...prevState,
-                            [name]: JSON.parse(isInStorage)
+                            [name]: JSON.parse(nodesInStorage)
                         }))
                     }
+
                 }
 
 
@@ -1153,10 +1196,10 @@ const PythonEditor = () => {
                                 ? "stream" in pipelines[tabsName[value]]
                                     ? pipelines[tabsName[value]]["stream"]["edges"]
                                     : pipelines[tabsName[value]]["batch"]["edges"]
-                                : [],
+                                : localStorage.getItem(`edges-${pipelines[tabsName[value]]}`) ? JSON.parse(localStorage.getItem(`edges-${pipelines[tabsName[value]]}`)) : [],
                             drawerWidth: drawerWidth,
                             created: pipelineCreated[value],
-                            edgeChanging: !pipelineCreated[value],
+                            setPipes: setPipelines,
                             pipeline_name: tabsName[value]
                         }}
                     />
