@@ -15,10 +15,26 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import AddIcon from '@mui/icons-material/Add';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import {Alert, Backdrop, CircularProgress, Snackbar} from "@mui/material";
+import {
+    Alert,
+    Backdrop,
+    CircularProgress,
+    Dialog,
+    DialogTitle,
+    FormControl,
+    InputLabel, Select,
+    Snackbar,
+    TextField
+} from "@mui/material";
 import axios from "axios";
-import {CREATE_BLOCK, MODIFY_DESCRIPTION} from "./utils/apiEndpoints";
+import {CREATE_BLOCK, CREATE_PIPELINE_TRIGGER, MODIFY_DESCRIPTION} from "./utils/apiEndpoints";
 import Cookies from "js-cookie";
+import PipelineSteps from "./PipelineSteps";
+import Button from "@mui/material/Button";
+import MenuItem from "@mui/material/MenuItem";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {DateTimePicker} from "@mui/x-date-pickers";
+import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
 
 
 const ReactFlowPanel = (props) => {
@@ -34,15 +50,14 @@ const ReactFlowPanel = (props) => {
     const [creationFailed, setCreationFailed] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [pipelineCreated, setPipelineCreated] = React.useState(other.created);
+    const [streamDialogOpen, setStreamDialogOpen] = React.useState(false);
+    const [runInterval, setRunInterval] = React.useState(null);
+    const [dateTime, setDateTime] = React.useState(null);
 
     const handleToast = (message, severity) => {
         setToastMessage(message);
         setToastSeverity(severity);
         setOpen(true);
-    }
-
-    const handleBackdropClose = () => {
-        setLoading(false);
     }
 
     const handleClose = (event, reason) => {
@@ -90,50 +105,76 @@ const ReactFlowPanel = (props) => {
         return true;
     };
 
+    const handleDialogClose = () => {
+        setStreamDialogOpen(false);
+    }
+
+    const handleDateTimeChange = (newValue) => {
+        setDateTime(newValue);
+    }
+
     useEffect(() => {
         const new_nodes = [];
-        Object.entries(other.componentNodes).forEach(([key, value]) => {
-            if (key === "transformers") {
-                for (let i of value) {
-                    new_nodes.push(i);
+        if (other.componentNodes) {
+            Object.entries(other.componentNodes).forEach(([key, value]) => {
+                if (key === "transformers") {
+                    for (let i of value) {
+                        new_nodes.push(i);
+                    }
+                } else {
+                    if (value !== "" && key !== "edges") {
+                        new_nodes.push(value);
+                    }
                 }
-            } else {
-                if (value !== "" && key !== "edges") {
-                    new_nodes.push(value);
-                }
-            }
-        })
+            })
 
-        setNodes(new_nodes);
+            setNodes(new_nodes);
+        }
     }, [other.componentNodes, setNodes]);
 
-    React.useEffect(() => {
-        const areEdgesStored = localStorage.getItem(`edges-${other.pipeline_name}`);
 
-        if (areEdgesStored && other.componentEdges > 0) {
-            setEdges(JSON.parse(areEdgesStored));
-        } else {
-            setEdges(other.componentEdges);
-        }
-    }, [other.componentEdges, other.pipeline_name, setEdges])
 
     const createPipeline = () => {
         if (nodes.length === 0) {
             handleToast("Pipeline is empty!", "error");
         } else {
-            setLoading(true);
+            let hasLoader = false;
+            let hasExporter = false;
+
             for (let node of nodes) {
-                const downStreamBlocks = [];
-                const upStreamBlocks = [];
+                if (node.data.type === "loader") {
+                    hasLoader = true;
+                } else if (node.data.type === "exporter") {
+                    hasExporter = true;
+                }
+            }
+
+            if (!hasLoader || !hasExporter) {
+                handleToast("Pipeline should have a loader and an exporter!", "error");
+                return;
+            }
+
+
+            setTimeout(() => {
+                setLoading(true);
+            }, 1000);
+
+            for (let node of nodes) {
+                const downStreamBlocks: string = [];
+                const upStreamBlocks: string = [];
                 for (let edge of edges) {
                     if (edge.source === node.id) {
                         downStreamBlocks.push(edge.target);
-                    } else {
+                    } else if (edge.target === node.id) {
                         upStreamBlocks.push(edge.source);
                     }
                 }
 
-                const blob = node.data.language === "yaml" ? new Blob([node.data.content], { type: "text/yaml"}) : new Blob([node.data.content], { type: "application/octet-stream"})
+                const isInStorage = localStorage.getItem(`${other.pipeline_name}-${node.id}-block-content`);
+
+                const blob = node.data.language === "yaml" ?
+                    isInStorage ? new Blob([isInStorage], { type: "text/yaml"}) : new Blob([node.data.content], { type: "text/yaml"}) :
+                    isInStorage ? new Blob([isInStorage], { type: "application/octet-stream"}) : new Blob([node.data.content], { type: "application/octet-stream"})
                 const file = new File([blob], "random");
 
                 const formData = new FormData();
@@ -141,8 +182,8 @@ const ReactFlowPanel = (props) => {
                 formData.append("block_name", node.id);
                 formData.append("block_type", node.data.type === "loader" || node.data.type === "exporter" ? "data_" + node.data.type : node.data.type);
                 formData.append("pipeline_name", node.data.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"));
-                formData.append("downstream_blocks", downStreamBlocks);
-                formData.append("upstream_blocks", upStreamBlocks);
+                formData.append("downstream_blocks", downStreamBlocks.length === 0 ? [] : downStreamBlocks);
+                formData.append("upstream_blocks", upStreamBlocks.length === 0 ? [] : upStreamBlocks);
                 formData.append("language", node.data.language);
 
                 axios({
@@ -152,9 +193,10 @@ const ReactFlowPanel = (props) => {
                     headers: {
                         "Content-Type": "multipart/form-data"
                     }
-                }).then((response) => {
+                }).then((_) => {
 
                 }).catch((error) => {
+                    console.log(error);
                     handleToast("Block Could Not Be Created!", "error");
                     setCreationFailed(true);
                 })
@@ -180,8 +222,43 @@ const ReactFlowPanel = (props) => {
                     }
                 }).then((_) => {
                     handleToast("Pipeline Created Successfully!", "success");
-                    setLoading(false);
-                    setPipelineCreated(true);
+
+                    const allKeys = Object.keys(localStorage);
+
+                    allKeys.forEach(key => {
+                        if(key.includes(other.pipeline_name)) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+
+                    setNodes(nodes.map(node => ({
+                        ...node,
+                        data: {
+                            ...node.data,
+                            editable: false
+                        }
+                    })));
+
+                    const payload = other.type === "batch" ? {
+                            "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                            "trigger_type": "api",
+                        } : {
+                        "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                        "trigger_type": "time",
+                        "interval": runInterval,
+                        "start_time": dateTime.toISOString()
+                    }
+
+                    axios({
+                        method: "POST",
+                        url: CREATE_PIPELINE_TRIGGER,
+                        data: payload
+                    }).then((_) => {
+                        setLoading(false);
+                        setPipelineCreated(true);
+                    }).catch((_) => {
+
+                    })
                 }).catch((error) => {
                     handleToast("Failed to create Pipeline!", "error");
                     setLoading(false);
@@ -194,13 +271,59 @@ const ReactFlowPanel = (props) => {
 
     }, []);
 
+    const handleChange = (event) => {
+        setRunInterval(event.target.value);
+    };
+
     React.useEffect(() => {
-        localStorage.setItem(`edges-${other.pipeline_name}`, JSON.stringify(edges));
-        other.setPipelines((prevState) => ({
-            ...prevState,
-            [other.pipeline_name]::
-        }))
-    }, [other.pipeline_name, edges, other.componentEdges]);
+        if (other.componentNodes) {
+            if (other.type === "stream") {
+                other.setPipes((prevState) => ({
+                    ...prevState,
+                    [other.pipeline_name]: {
+                        [other.type]: {
+                            ...prevState[other.pipeline_name].stream,
+                            loader: prevState[other.pipeline_name].stream.loader,
+                            transformers: prevState[other.pipeline_name].stream.transformers,
+                            exporter: prevState[other.pipeline_name].stream.exporter,
+                            edges: edges
+                        }
+                    }
+                }))
+            } else {
+                other.setPipes((prevState) => ({
+                    ...prevState,
+                    [other.pipeline_name]: {
+                        [other.type]: {
+                            ...prevState[other.pipeline_name].batch,
+                            loader: prevState[other.pipeline_name].batch.loader,
+                            transformers: prevState[other.pipeline_name].batch.transformers,
+                            exporter: prevState[other.pipeline_name].batch.exporter,
+                            edges: edges
+                        }
+                    }
+                }))
+            }
+        }
+    }, [edges]);
+
+    const handleOpenDialog = () => {
+        setStreamDialogOpen(true);
+    }
+
+    const handleSubmit = () => {
+        if (!runInterval || !dateTime) {
+            handleToast("Both fields are required", "error");
+        } else {
+            const now = new Date();
+            if (dateTime >= now) {
+                setStreamDialogOpen(false);
+                createPipeline();
+            } else {
+                handleToast("Please select a datetime that is in the future!", "error");
+            }
+        }
+    }
 
     return (
         <div
@@ -218,51 +341,67 @@ const ReactFlowPanel = (props) => {
             >
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
-            <Backdrop
-                sx={{ color: '#000', zIndex: 100, position: "absolute" }}
-                open={loading}
-                onClick={handleBackdropClose}
-            >
-                <CircularProgress color="inherit" />
-            </Backdrop>
+            <Dialog open={streamDialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "space-evenly",
+                        p: 4,
+                    }}
+                >
+                    <DialogTitle sx={{ fontWeight: "bold", textAlign: "center", mb: 3 }}>
+                        {"Pipeline Schedule".toUpperCase()}
+                    </DialogTitle>
+                    <FormControl
+                        fullWidth
+                        sx={{
+                            '& .MuiFormControl-root': {
+                                mb: 2,
+                            },
+                        }}
+                    >
+                        <InputLabel>Trigger Interval</InputLabel>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            id="demo-simple-select"
+                            value={runInterval}
+                            onChange={handleChange}
+                            displayEmpty
+                            inputProps={{ 'aria-label': 'Without label' }}
+                            sx={{ mb: 2 }} // Margin bottom
+                        >
+                            <MenuItem value={"hourly"}>Hourly</MenuItem>
+                            <MenuItem value={"daily"}>Daily</MenuItem>
+                            <MenuItem value={"monthly"}>Monthly</MenuItem>
+                        </Select>
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <DateTimePicker
+                                renderInput={(props) => <TextField {...props} />}
+                                label="Start Time For Trigger"
+                                value={dateTime}
+                                onChange={handleDateTimeChange}
+                                sx={{ mb: 2 }}
+                            />
+                        </LocalizationProvider>
+                        <Button
+                            variant="contained"
+                            sx={{
+                                backgroundColor: "black",
+                                color: "white",
+                                '&:hover': { backgroundColor: "gray", color: "black" },
+                                mt: 2,
+                            }}
+                            onClick={handleSubmit}
+                        >
+                            Create Pipeline
+                        </Button>
+                    </FormControl>
+                </Box>
+            </Dialog>
             {value === index && (
-                    pipelineCreated ?
-                        <Box sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-around",
-                            width: 400,
-                            height: 70,
-                            borderRadius: 2,
-                            backgroundColor: "#36454f",
-                            position: "absolute",
-                            zIndex: 2,
-                            marginLeft: "35vw",
-                            marginTop: "2vh"
-                        }}>
-                            <PlayCircleIcon sx={{color: "white", fontSize: 40, cursor: "pointer"}}/>
-                            <Typography sx={{color: "white", fontWeight: "bold", fontSize: 25}}>Run
-                                Pipeline</Typography>
-                        </Box> :
-                        <Box sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "space-around",
-                            width: 400,
-                            height: 70,
-                            borderRadius: 2,
-                            backgroundColor: "#36454f",
-                            position: "absolute",
-                            zIndex: 2,
-                            marginLeft: "35vw",
-                            marginTop: "2vh"
-                        }}>
-                            <AddIcon sx={{color: "white", fontSize: 40, cursor: "pointer"}} onClick={createPipeline}/>
-                            <Typography sx={{color: "white", fontWeight: "bold", fontSize: 25}}>Create
-                                Pipeline</Typography>
-                        </Box>
+                <PipelineSteps createPipeline={createPipeline} pipelineType={other.type} handleToast={handleToast} openDialog={handleOpenDialog} pipelineCreated={pipelineCreated} loading={loading} nodesName={other.orderBlockNames} pipelineName={other.pipeline_name}/>
             )}
             {value === index && (
                 <ReactFlow key={index}

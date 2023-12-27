@@ -1,11 +1,8 @@
 import * as React from 'react';
 import { Handle, Position } from 'reactflow';
-import axios from "axios";
-import {Alert, Backdrop, CircularProgress, Dialog, DialogTitle, List, Snackbar, TextField} from "@mui/material";
-import Typography from "@mui/material/Typography";
-import ListItem from "@mui/material/ListItem";
+import LockIcon from '@mui/icons-material/Lock';
+import {Alert, Backdrop, CircularProgress, Dialog, Snackbar} from "@mui/material";
 import Button from "@mui/material/Button";
-import {stringify} from "qs";
 import Editor from "@monaco-editor/react";
 
 
@@ -43,6 +40,24 @@ function TextUpdaterNode({ data, isConnectable }) {
         setBlockContent(value);
     }
 
+    React.useEffect(() => {
+        if (!data.created) {
+            localStorage.setItem(`${data.pipeline_name}-${data.name}-block-content`, blockContent);
+        }
+    }, [blockContent, data.pipeline_name, data.name]);
+
+    React.useEffect(() => {
+        if (isRun.current) return;
+
+        isRun.current = true;
+
+        const isBlockContent = localStorage.getItem(`${data.pipeline_name}-${data.name}-block-content`);
+
+        if (isBlockContent) {
+            setBlockContent(isBlockContent);
+        }
+    })
+
     return (
         <div className="text-updater-node" style={{background: data.background}}>
             <Snackbar
@@ -69,9 +84,13 @@ function TextUpdaterNode({ data, isConnectable }) {
                     <strong>{data.label}</strong>
                 </div>
                 <div className="custom-node__body" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Button variant="filled" sx={{ backgroundColor: "#f0f0f0", '&:hover': { bgcolor: "darkgray", color: "black" }}} onClick={handleDialogOpen}>
-                        Edit Block
-                    </Button>
+                    {data.editable ?
+                        <Button variant="filled" sx={{ backgroundColor: "#f0f0f0", '&:hover': { bgcolor: "darkgray", color: "black" }}} onClick={handleDialogOpen}>
+                            Edit Block
+                        </Button>
+                        :
+                        <LockIcon sx={{ fontSize: 50 }}/>
+                    }
                 </div>
             </div>
             {data.type !== "exporter" && (<Handle type="source" position={Position.Right} isConnectable={isConnectable}  />)}
