@@ -1,5 +1,5 @@
 
-const baseUrl = "http://localhost:7000";
+const baseUrl = "http://localhost:8000";
 
 export const BLOCK_MODEL = (pipeline_type, block_type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}`;
 export const DELETE_PIPELINE = (name) => `${baseUrl}/pipeline/delete?name=${name}`;

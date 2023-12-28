@@ -247,7 +247,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             setStreamPipelineData(response.data);
             setTimeout(() => {
                 setDialogOpen(true);
-            }, 1000)
+            }, 200)
         }).catch((_) => {
             handleToast("Error getting last run status!", "error");
         })

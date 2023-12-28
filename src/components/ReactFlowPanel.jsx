@@ -49,10 +49,9 @@ const ReactFlowPanel = (props) => {
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [creationFailed, setCreationFailed] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
-    const [pipelineCreated, setPipelineCreated] = React.useState(other.created);
     const [streamDialogOpen, setStreamDialogOpen] = React.useState(false);
-    const [runInterval, setRunInterval] = React.useState(null);
-    const [dateTime, setDateTime] = React.useState(null);
+    const [runInterval, setRunInterval] = React.useState("hourly");
+    const [dateTime, setDateTime] = React.useState(new Date());
 
     const handleToast = (message, severity) => {
         setToastMessage(message);
@@ -122,7 +121,7 @@ const ReactFlowPanel = (props) => {
                         new_nodes.push(i);
                     }
                 } else {
-                    if (value !== "" && key !== "edges") {
+                    if (value !== "" && (key === "loader" || key === "exporter")) {
                         new_nodes.push(value);
                     }
                 }
@@ -137,6 +136,10 @@ const ReactFlowPanel = (props) => {
     const createPipeline = () => {
         if (nodes.length === 0) {
             handleToast("Pipeline is empty!", "error");
+        } else if (edges.length === 0) {
+            handleToast("Can't create pipeline without edges!", "error");
+        } else if (edges.length !== nodes.length - 1) {
+            handleToast("Please connect all the nodes together!", "error");
         } else {
             let hasLoader = false;
             let hasExporter = false;
@@ -255,7 +258,6 @@ const ReactFlowPanel = (props) => {
                         data: payload
                     }).then((_) => {
                         setLoading(false);
-                        setPipelineCreated(true);
                     }).catch((_) => {
 
                     })
@@ -276,7 +278,13 @@ const ReactFlowPanel = (props) => {
     };
 
     React.useEffect(() => {
-        if (other.componentNodes) {
+        if (other.created) {
+            setEdges(other.componentEdges);
+        }
+    }, [setEdges, other.componentEdges, other.created]);
+
+    React.useEffect(() => {
+        if (other.componentNodes && !other.created) {
             if (other.type === "stream") {
                 other.setPipes((prevState) => ({
                     ...prevState,
@@ -286,8 +294,10 @@ const ReactFlowPanel = (props) => {
                             loader: prevState[other.pipeline_name].stream.loader,
                             transformers: prevState[other.pipeline_name].stream.transformers,
                             exporter: prevState[other.pipeline_name].stream.exporter,
-                            edges: edges
-                        }
+                            edges: edges,
+                            created: prevState[other.pipeline_name].stream.created,
+                            blockPosition: prevState[other.pipeline_name].stream.blockPosition
+                        },
                     }
                 }))
             } else {
@@ -299,8 +309,10 @@ const ReactFlowPanel = (props) => {
                             loader: prevState[other.pipeline_name].batch.loader,
                             transformers: prevState[other.pipeline_name].batch.transformers,
                             exporter: prevState[other.pipeline_name].batch.exporter,
-                            edges: edges
-                        }
+                            edges: edges,
+                            created: prevState[other.pipeline_name].batch.created,
+                            blockPosition: prevState[other.pipeline_name].batch.blockPosition
+                        },
                     }
                 }))
             }
@@ -401,7 +413,7 @@ const ReactFlowPanel = (props) => {
                 </Box>
             </Dialog>
             {value === index && (
-                <PipelineSteps createPipeline={createPipeline} pipelineType={other.type} handleToast={handleToast} openDialog={handleOpenDialog} pipelineCreated={pipelineCreated} loading={loading} nodesName={other.orderBlockNames} pipelineName={other.pipeline_name}/>
+                <PipelineSteps createPipeline={createPipeline} pipelineType={other.type} handleToast={handleToast} openDialog={handleOpenDialog} pipelineCreated={other.created} loading={loading} nodesName={other.orderBlockNames} pipelineName={other.pipeline_name}/>
             )}
             {value === index && (
                 <ReactFlow key={index}

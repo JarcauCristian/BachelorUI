@@ -1,14 +1,21 @@
 import * as React from 'react';
-import Editor from "@monaco-editor/react"
 import Drawer from "@mui/material/Drawer";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import {
     Accordion,
     AccordionDetails,
-    AccordionSummary, Alert, Backdrop, CircularProgress,
+    AccordionSummary,
+    Alert,
+    Backdrop,
+    CircularProgress,
     Dialog,
-    DialogTitle, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup,
+    DialogTitle,
+    FormControl,
+    FormControlLabel,
+    FormLabel,
+    Radio,
+    RadioGroup,
     Snackbar,
     Tab,
     Tabs,
@@ -24,15 +31,12 @@ import axios from "axios";
 import {
     BLOCK_MODEL,
     CREATE_PIPELINE,
-    DELETE_PIPELINE, MODIFY_DESCRIPTION,
-    PIPELINE_DESCRIPTION,
-    PIPELINES, READ_PIPELINE
+    DELETE_PIPELINE,
+    PIPELINES,
+    READ_PIPELINE
 } from "../components/utils/apiEndpoints";
-import {nodeTypes} from "../components/utils/nodeTypes";
-import {useEffect} from "react";
 import {CAPS} from "../components/utils/utliFunctions";
 import Cookies from "js-cookie";
-import {json} from "react-router-dom";
 
 const drawerWidth = 240;
 function a11yProps(index: number) {
@@ -109,22 +113,28 @@ const PythonEditor = () => {
                 axios({
                     method: "POST",
                     url: CREATE_PIPELINE(name, type)
-                }).then((response) => {
-                    setPipelines((prevState) => ({
-                        ...prevState,
-                        [tabName]: {
-                            stream: {
-                                loader: "",
-                                transformers: [],
-                                exporter: "",
-                                edges: []
+                }).then((_) => {
+                    setPipelines((prevState) => {
+                        return {
+                            ...prevState,
+                            [tabName]: {
+                                ...prevState[tabName],
+                                stream: {
+                                    loader: "",
+                                    transformers: [],
+                                    exporter: "",
+                                    edges: [],
+                                    created: false,
+                                    blockPosition: 0
+                                },
                             }
-                        }
-                    }))
+                        };
+                    });
 
-                    setPipelineCreated(prevState => [...prevState, false]);
+
+                    //setPipelineCreated(prevState => [...prevState, false]);
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
-                    setBlocksPosition(prevState => [...prevState, 0]);
+                    //setBlocksPosition(prevState => [...prevState, 0]);
                     setTabsName(prevState => [...prevState, tabName]);
                     setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                     setCounter(counter + 1);
@@ -139,21 +149,27 @@ const PythonEditor = () => {
                 axios({
                     method: "POST",
                     url: CREATE_PIPELINE(name, type)
-                }).then((response) => {
-                    setPipelines((prevState) => ({
-                        ...prevState,
-                        [tabName]: {
-                            batch: {
-                                loader: "",
-                                transformers: [],
-                                exporter: "",
-                                edges: []
+                }).then((_) => {
+                    setPipelines((prevState) => {
+                        return {
+                            ...prevState,
+                            [tabName]: {
+                                ...prevState[tabName],
+                                batch: {
+                                    loader: "",
+                                    transformers: [],
+                                    exporter: "",
+                                    edges: [],
+                                    created: false,
+                                    blockPosition: 0
+                                },
                             }
-                        }
-                    }))
+                        };
+                    });
 
-                    setPipelineCreated(prevState => [...prevState, false]);
-                    setBlocksPosition(prevState => [...prevState, 0]);
+
+                    //setPipelineCreated(prevState => [...prevState, false]);
+                    //setBlocksPosition(prevState => [...prevState, 0]);
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     setTabsName(prevState => [...prevState, tabName]);
                     setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
@@ -179,28 +195,33 @@ const PythonEditor = () => {
             url: DELETE_PIPELINE(name)
         }).then((_) => {
             setCounter(counter - 1);
-            if (!pipelineCreated[index]) {
-                setBlocksPosition(prevState => {
-                    const updatedComponents = [...prevState];
-                    updatedComponents.splice(index, 1);
-                    return updatedComponents;
-                })
-            }
+            // if (!pipelineCreated[index]) {
+            //     setBlocksPosition(prevState => {
+            //         const updatedComponents = [...prevState];
+            //         updatedComponents.splice(index, 1);
+            //         return updatedComponents;
+            //     })
+            // }
             setTabs(prevComponents => {
                 const updatedComponents = [...prevComponents];
                 updatedComponents.splice(index, 1);
                 return updatedComponents;
+            })
+            setPipelines((prevState) => {
+                const updatedPipelines = {...prevState};
+                delete updatedPipelines[tabName];
+                return updatedPipelines;
             })
             setTabsName(prevState => {
                 const updatedComponents = [...prevState];
                 updatedComponents.splice(index, 1);
                 return updatedComponents;
             })
-            setPipelineCreated(prevState => {
-                const updatedComponents = [...prevState];
-                updatedComponents.splice(index, 1);
-                return updatedComponents;
-            })
+            // setPipelineCreated(prevState => {
+            //     const updatedComponents = [...prevState];
+            //     updatedComponents.splice(index, 1);
+            //     return updatedComponents;
+            // })
             setPipelinesBlocksNames(prevState => {
                 const updatedComponents = [...prevState];
                 updatedComponents.splice(index, 1);
@@ -245,7 +266,7 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("stream", "loader")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelineCreated[value]) {
+                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
                     const checking = /^[a-z_]+$/.test(streamingLoaderName);
                     if (checking) {
                         if ("stream" in pipelines[tabsName[value]]) {
@@ -254,7 +275,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: streamingLoaderName,
                                         type: 'textUpdater',
-                                        position: {x: blocksPosition[value] + 300, y: 0},
+                                        position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
                                         data: {
                                             params: {},
                                             type: "loader",
@@ -269,6 +290,7 @@ const PythonEditor = () => {
                                         },
                                     };
 
+
                                     setBlocksPosition((prevState) => {
                                         return prevState.map((item, index) => {
                                             if (index === value) {
@@ -277,6 +299,7 @@ const PythonEditor = () => {
                                             return item;
                                         });
                                     });
+                                    const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
 
                                     setPipelines((prevPipelines) => ({
                                         ...prevPipelines,
@@ -285,6 +308,11 @@ const PythonEditor = () => {
                                             stream: {
                                                 ...prevPipelines[tabsName[value]].stream,
                                                 loader: newNode,
+                                                exporter: prevPipelines[tabsName[value]].stream.exporter,
+                                                transformers: prevPipelines[tabsName[value]].stream.transformers,
+                                                created: prevPipelines[tabsName[value]].stream.created,
+                                                edges: prevPipelines[tabsName[value]].stream.edges,
+                                                blockPosition: prevPos
                                             },
                                         },
                                     }));
@@ -302,7 +330,7 @@ const PythonEditor = () => {
                         handleToast("Only lowercase letters and underscores are allowed!", "error");
                     }
                 } else {
-                    if (pipelineCreated[value]) {
+                    if (!pipelines[tabsName[value]].stream.created) {
                         handleToast("Pipeline already created!", "error");
                     } else {
                         handleToast("There is non pipeline with that name!", "error");
@@ -325,7 +353,7 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("stream", "transformer")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelineCreated[value]) {
+                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
                     const checking = /^[a-z_]+$/.test(streamingTransformerName);
                     if (checking) {
                         if ("stream" in pipelines[tabsName[value]]) {
@@ -333,7 +361,7 @@ const PythonEditor = () => {
                                 const newNode = {
                                     id: streamingTransformerName,
                                     type: 'textUpdater',
-                                    position: {x: blocksPosition[value] + 300, y: 0},
+                                    position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
                                     data: {
                                         params: {},
                                         type: "transformer",
@@ -357,6 +385,8 @@ const PythonEditor = () => {
                                     });
                                 });
 
+                                const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
+
                                 setPipelines((prevPipelines) => ({
                                     ...prevPipelines,
                                     [tabsName[value]]: {
@@ -366,7 +396,9 @@ const PythonEditor = () => {
                                             loader: prevPipelines[tabsName[value]].stream.loader,
                                             transformers: [...prevPipelines[tabsName[value]].stream.transformers, newNode],
                                             exporter: prevPipelines[tabsName[value]].stream.exporter,
-                                            edges: prevPipelines[tabsName[value]].stream.edges
+                                            edges: prevPipelines[tabsName[value]].stream.edges,
+                                            blockPosition: prevPos,
+                                            created: prevPipelines[tabsName[value]].stream.created
                                         },
                                     },
                                 }));
@@ -381,7 +413,7 @@ const PythonEditor = () => {
                         handleToast("Only lowercase letters and underscores are allowed!", "error");
                     }
                 } else {
-                    if (pipelineCreated[value]) {
+                    if (pipelines[tabsName[value]].stream.created) {
                         handleToast("Pipeline already created!", "error");
                     } else {
                         handleToast("There is non pipeline with that name!", "error");
@@ -404,7 +436,7 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("stream", "exporter")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelineCreated[value]) {
+                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
                     const checking = /^[a-z_]+$/.test(streamingExporterName);
                     if (checking) {
                         if ("stream" in pipelines[tabsName[value]]) {
@@ -413,7 +445,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: streamingExporterName,
                                         type: 'textUpdater',
-                                        position: { x: blocksPosition[value] + 300, y: 0 },
+                                        position: { x: pipelines[tabsName[value]].stream.blockPosition, y: 0 },
                                         data: {
                                             params: {},
                                             type: "exporter",
@@ -437,14 +469,21 @@ const PythonEditor = () => {
                                         });
                                     });
 
+                                    const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
+
                                     setPipelines((prevPipelines) => ({
                                         ...prevPipelines,
                                         [tabsName[value]]: {
                                             ...prevPipelines[tabsName[value]],
                                             stream: {
                                                 ...prevPipelines[tabsName[value]].stream,
+                                                loader: prevPipelines[tabsName[value]].stream.loader,
+                                                transformers: prevPipelines[tabsName[value]].stream.transformers,
                                                 exporter: newNode,
-                                            },
+                                                edges: prevPipelines[tabsName[value]].stream.edges,
+                                                blockPosition:  prevPos,
+                                                created: prevPipelines[tabsName[value]].stream.created
+                                            }
                                         },
                                     }));
                                     setStreamingExporterOpen(false);
@@ -461,7 +500,7 @@ const PythonEditor = () => {
                         handleToast("Only lowercase letters and underscores are allowed!", "error");
                     }
                 } else {
-                    if (pipelineCreated[value]) {
+                    if (pipelines[tabsName[value]].stream.created) {
                         handleToast("Pipeline already created!", "error");
                     } else {
                         handleToast("There is non pipeline with that name!", "error");
@@ -484,7 +523,7 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("batch", "loader")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelineCreated[value]) {
+                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
                     const checking = /^[a-z_]+$/.test(batchLoaderName);
                     if (checking) {
                         if ("batch" in pipelines[tabsName[value]]) {
@@ -493,7 +532,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: batchLoaderName,
                                         type: 'textUpdater',
-                                        position: {x: blocksPosition[value] + 300, y: 0},
+                                        position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
                                         data: {
                                             params: {},
                                             type: "loader",
@@ -517,6 +556,8 @@ const PythonEditor = () => {
                                         });
                                     });
 
+                                    const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
+
                                     setPipelines((prevPipelines) => ({
                                         ...prevPipelines,
                                         [tabsName[value]]: {
@@ -524,6 +565,11 @@ const PythonEditor = () => {
                                             batch: {
                                                 ...prevPipelines[tabsName[value]].batch,
                                                 loader: newNode,
+                                                exporter: prevPipelines[tabsName[value]].batch.exporter,
+                                                transformers: prevPipelines[tabsName[value]].batch.transformers,
+                                                edges: prevPipelines[tabsName[value]].batch.edges,
+                                                created: prevPipelines[tabsName[value]].batch.created,
+                                                blockPosition: prevPos
                                             },
                                         },
                                     }));
@@ -541,7 +587,7 @@ const PythonEditor = () => {
                         handleToast("Only lowercase letters and underscores are allowed!", "error");
                     }
                 } else {
-                    if (pipelineCreated[value]) {
+                    if (pipelines[tabsName[value]].batch.created) {
                         handleToast("Pipeline already created!", "error");
                     } else {
                         handleToast("There is non pipeline with that name!", "error");
@@ -549,7 +595,6 @@ const PythonEditor = () => {
                     setBatchLoaderOpen(false);
                 }
             }).catch((error) => {
-                console.log(error);
                 handleToast("Error loading block model!", "error");
                 setBatchLoaderOpen(false);
             })
@@ -565,7 +610,7 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("batch", "transformer")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelineCreated[value]) {
+                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
                     const checking = /^[a-z_]+$/.test(batchTransformerName);
                     if (checking) {
                         if ("batch" in pipelines[tabsName[value]]) {
@@ -573,7 +618,7 @@ const PythonEditor = () => {
                                 const newNode = {
                                     id: batchTransformerName,
                                     type: 'textUpdater',
-                                    position: {x: blocksPosition[value] + 300, y: 0},
+                                    position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
                                     data: {
                                         params: {},
                                         type: "transformer",
@@ -597,6 +642,8 @@ const PythonEditor = () => {
                                     });
                                 });
 
+                                const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
+
                                 setPipelines((prevPipelines) => ({
                                     ...prevPipelines,
                                     [tabsName[value]]: {
@@ -606,8 +653,11 @@ const PythonEditor = () => {
                                             loader: prevPipelines[tabsName[value]].batch.loader,
                                             transformers: [...prevPipelines[tabsName[value]].batch.transformers, newNode],
                                             exporter: prevPipelines[tabsName[value]].batch.exporter,
-                                            edges: prevPipelines[tabsName[value]].batch.edges
+                                            edges: prevPipelines[tabsName[value]].batch.edges,
+                                            blockPosition: prevPos,
+                                            created: prevPipelines[tabsName[value]].batch.created
                                         },
+
                                     },
                                 }));
                                 setBatchTransformerOpen(false);
@@ -621,7 +671,7 @@ const PythonEditor = () => {
                         handleToast("Only lowercase letters and underscores are allowed!", "error");
                     }
                 } else {
-                    if (pipelineCreated[value]) {
+                    if (pipelines[tabsName[value]].batch.created) {
                         handleToast("Pipeline already created!", "error");
                     } else {
                         handleToast("There is non pipeline with that name!", "error");
@@ -644,7 +694,7 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("batch", "exporter")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelineCreated[value]) {
+                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
                     const checking = /^[a-z_]+$/.test(batchExporterName);
                     if (checking) {
                         if ("batch" in pipelines[tabsName[value]]) {
@@ -653,7 +703,7 @@ const PythonEditor = () => {
                                     const newNode = {
                                         id: batchExporterName,
                                         type: 'textUpdater',
-                                        position: { x: blocksPosition[value] + 300, y: 0 },
+                                        position: { x: pipelines[tabsName[value]].batch.blockPosition, y: 0 },
                                         data: {
                                             params: {},
                                             type: "exporter",
@@ -677,13 +727,20 @@ const PythonEditor = () => {
                                         });
                                     });
 
+                                    const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
+
                                     setPipelines((prevPipelines) => ({
                                         ...prevPipelines,
                                         [tabsName[value]]: {
                                             ...prevPipelines[tabsName[value]],
                                             batch: {
                                                 ...prevPipelines[tabsName[value]].batch,
+                                                loader: prevPipelines[tabsName[value]].batch.loader,
+                                                transformers: prevPipelines[tabsName[value]].batch.transformers,
+                                                edges: prevPipelines[tabsName[value]].batch.edges,
+                                                created: prevPipelines[tabsName[value]].batch.created,
                                                 exporter: newNode,
+                                                blockPosition: prevPos
                                             },
                                         },
                                     }));
@@ -701,7 +758,7 @@ const PythonEditor = () => {
                         handleToast("Only lowercase letters and underscores are allowed!", "error");
                     }
                 } else {
-                    if (pipelineCreated[value]) {
+                    if (pipelines[tabsName[value]].batch.created) {
                         handleToast("Pipeline already created!", "error");
                     } else {
                         handleToast("There is non pipeline with that name!", "error");
@@ -901,13 +958,16 @@ const PythonEditor = () => {
                                 loader: loaders.length > 0 ? loaders[0] : "",
                                 transformers: transformers,
                                 exporter: exporters.length > 0 ? exporters[0] : "",
-                                edges: edges
-                            }
+                                edges: edges,
+                                created: true,
+                                blockPosition: positions[orderedBlocks[orderedBlocks.length - 1].name][0]
+                            },
                         }
                     }))
                     setPipelinesBlocksNames(prevState => [...prevState, nodesNames]);
-                    setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name]][0]);
+                    //setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name][0]]);
                 } else {
+                    console.log("Here!");
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     if (!nodesInStorage) {
                         setBlocksPosition(prevState => [...prevState, 0]);
@@ -918,8 +978,10 @@ const PythonEditor = () => {
                                     loader: "",
                                     transformers: [],
                                     exporter: "",
-                                    edges: []
-                                }
+                                    edges: [],
+                                    created: false,
+                                    blockPosition: 0
+                                },
                             }
                         }))
                     } else {
@@ -927,6 +989,7 @@ const PythonEditor = () => {
                         let maxIndex = 0;
                         const nodeType = "stream" in JSON.parse(nodesInStorage) ? "stream" : "batch";
                         let modifiedNodes = {[nodeType]: {}};
+                        let position = 0;
                         if ("stream" in JSON.parse(nodesInStorage)) {
                             Object.entries(JSON.parse(nodesInStorage).stream).forEach(([key, value]) => {
                                 if (key !== "edges") {
@@ -948,8 +1011,10 @@ const PythonEditor = () => {
                             if (maxX !== -1) {
                                 if (maxIndex.length > 1 && typeof(maxIndex) === "object") {
                                     setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x]);
+                                    position = JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x;
                                 } else {
                                     setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex].position.x]);
+                                    position = JSON.parse(nodesInStorage).stream[maxIndex].position.x;
                                 }
                             } else {
                                 setBlocksPosition(prevState => [...prevState, 0]);
@@ -973,8 +1038,10 @@ const PythonEditor = () => {
                             if (maxX !== -1) {
                                 if (maxIndex.length > 1  && typeof(maxIndex) === "object") {
                                     setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x]);
+                                    position = JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x;
                                 } else {
                                     setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex].position.x]);
+                                    position = JSON.parse(nodesInStorage).batch[maxIndex].position.x
                                 }
                             } else {
                                 setBlocksPosition(prevState => [...prevState, 0]);
@@ -982,7 +1049,7 @@ const PythonEditor = () => {
                         }
 
                         Object.entries(JSON.parse(nodesInStorage)[nodeType]).forEach(([key, value]) => {
-                            if (key !== "edges") {
+                            if (!["edges", "created", "blockPosition"].includes(key)) {
                                 if (key === "transformers") {
                                     const newTransformers = [];
                                     for (let i of value) {
@@ -1029,16 +1096,24 @@ const PythonEditor = () => {
                                     }
                                 }
                             } else {
-                                modifiedNodes[nodeType]["edges"] = value;
+                                if (key === "blockPosition") {
+                                    modifiedNodes[nodeType]["blockPosition"] = position
+                                } else if (key === "created") {
+                                    modifiedNodes[nodeType]["created"] = false
+                                } else if (key === "edges") {
+                                    modifiedNodes[nodeType]["edges"] = value;
+                                }
                             }
                         })
-
                         setPipelines((prevState) => ({
                             ...prevState,
-                            [name]: modifiedNodes
+                            [name]: {
+                                ...modifiedNodes
+                            }
                         }))
-                    }
 
+
+                    }
                 }
 
 
@@ -1054,13 +1129,23 @@ const PythonEditor = () => {
     }, [tabs, tabsName, counter, pipelines])
 
     React.useEffect(() => {
-        if (!pipelineCreated[value] && tabs.length > 0) {
-            localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(pipelines[tabsName[value]]));
+        const creation = pipelines[tabsName[value]] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null;
+        if (
+            Object.keys(pipelines).length > 0 &&
+            (creation !== null) &&
+            tabs.length > 0
+        ) {
+            if (!creation) {
+                localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(pipelines[tabsName[value]]));
+            }
         }
-    }, [pipelineCreated, value, tabsName, pipelines]);
+    }, [value, tabsName, pipelines]);
 
     React.useEffect(() => {
-       if (pipelineCreated[value] && pipelinesBlocksNames.length === 0) {
+        if (Object.keys(pipelines).length > 0 && pipelines[tabsName[value]]) {
+
+        const creation = pipelines[tabsName] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null;
+       if (creation && pipelinesBlocksNames.length === 0) {
            const name = tabsName[value] + "_" + Cookies.get("userID").split("-").join("_");
 
            axios({
@@ -1091,7 +1176,12 @@ const PythonEditor = () => {
 
            })
        }
-    }, [pipelinesBlocksNames, tabsName, value, pipelineCreated]);
+        }
+    }, [pipelinesBlocksNames, tabsName, value]);
+
+    React.useEffect(() => {
+        console.log(pipelines);
+    }, [pipelines])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -1339,28 +1429,32 @@ const PythonEditor = () => {
                         </Button>
                     </Tabs>
                 </Box>
-                {tabs && (tabs.map((entry, index) => (
-                    <ReactFlowPanel
-                        key={index}
-                        index={index}
-                        value={value}
-                        {...{
-                            componentNodes: pipelines[tabsName[value]] && "stream" in pipelines[tabsName[value]]
-                                ? pipelines[tabsName[value]]["stream"]
-                                : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"],
-                            componentEdges: pipelines[tabsName[value]]
-                                ? "stream" in pipelines[tabsName[value]]
-                                    ? pipelines[tabsName[value]]["stream"]["edges"]
-                                    : pipelines[tabsName[value]]["batch"]["edges"] : [],
-                            drawerWidth: drawerWidth,
-                            created: pipelineCreated[value],
-                            setPipes: setPipelines,
-                            pipeline_name: tabsName[value] ? tabsName[value] : "",
-                            type: tabsName[value] ? Object.keys(pipelines[tabsName[value]])[0] : "",
-                            orderBlockNames: pipelinesBlocksNames[value] ? pipelinesBlocksNames[value] : ""
-                        }}
-                    />
-                )))}
+                {tabs && (tabs.map((_, index) => {
+                        return (
+                            <ReactFlowPanel
+                                key={index}
+                                index={index}
+                                value={value}
+                                {...{
+                                    componentNodes: Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]]
+                                        ? pipelines[tabsName[value]]["stream"]
+                                        : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"],
+                                    componentEdges: Object.keys(pipelines[tabsName[value]]).length > 0
+                                        ? "stream" in pipelines[tabsName[value]]
+                                            ? pipelines[tabsName[value]]["stream"]["edges"]
+                                            : pipelines[tabsName[value]]["batch"]["edges"] : [],
+                                    drawerWidth: drawerWidth,
+                                    created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
+                                    setPipes: setPipelines,
+                                    pipeline_name: tabsName[value] ? tabsName[value] : "",
+                                    type: tabsName[value] ? Object.keys(pipelines[tabsName[value]])[0] : "",
+                                    orderBlockNames: pipelinesBlocksNames[value] ? pipelinesBlocksNames[value] : ""
+                                }}
+                            />
+                        )
+                    }
+
+                ))}
             </Box>
         </div>
     );
