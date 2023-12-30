@@ -29,7 +29,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
 import {
-    BLOCK_MODEL,
+    BLOCK_MODEL, BLOCK_MODEL_TRANSFORMERS,
     CREATE_PIPELINE,
     DELETE_PIPELINE,
     PIPELINES,
@@ -74,6 +74,8 @@ const PythonEditor = () => {
     const [batchLoaderOpen, setBatchLoaderOpen] = React.useState(false);
     const [batchTransformerOpen, setBatchTransformerOpen] = React.useState(false);
     const [batchExporterOpen, setBatchExporterOpen] = React.useState(false);
+    const [batchNullOpen, setBatchNullOpen] = React.useState(false);
+    const [batchAnomalyOpen, setBatchAnomalyOpen] = React.useState(false);
     const [blocksPosition, setBlocksPosition] = React.useState([]);
     const [pipelineCreated, setPipelineCreated] = React.useState([]);
     const [pipelinesBlocksNames, setPipelinesBlocksNames] = React.useState([]);
@@ -195,13 +197,6 @@ const PythonEditor = () => {
             url: DELETE_PIPELINE(name)
         }).then((_) => {
             setCounter(counter - 1);
-            // if (!pipelineCreated[index]) {
-            //     setBlocksPosition(prevState => {
-            //         const updatedComponents = [...prevState];
-            //         updatedComponents.splice(index, 1);
-            //         return updatedComponents;
-            //     })
-            // }
             setTabs(prevComponents => {
                 const updatedComponents = [...prevComponents];
                 updatedComponents.splice(index, 1);
@@ -217,11 +212,6 @@ const PythonEditor = () => {
                 updatedComponents.splice(index, 1);
                 return updatedComponents;
             })
-            // setPipelineCreated(prevState => {
-            //     const updatedComponents = [...prevState];
-            //     updatedComponents.splice(index, 1);
-            //     return updatedComponents;
-            // })
             setPipelinesBlocksNames(prevState => {
                 const updatedComponents = [...prevState];
                 updatedComponents.splice(index, 1);
@@ -257,6 +247,8 @@ const PythonEditor = () => {
         if (streamingExporterOpen) setStreamingExporterOpen(false);
         if (batchLoaderOpen) setBatchLoaderOpen(false);
         if (batchTransformerOpen) setBatchTransformerOpen(false);
+        if (batchNullOpen) setBatchNullOpen(false);
+        if (batchAnomalyOpen) setBatchAnomalyOpen(false);
         if (batchExporterOpen) setBatchExporterOpen(false);
     }
 
@@ -266,10 +258,10 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("stream", "loader")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                    const checking = /^[a-z_]+$/.test(streamingLoaderName);
-                    if (checking) {
-                        if ("stream" in pipelines[tabsName[value]]) {
+                if ("stream" in pipelines[tabsName[value]]) {
+                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
+                        const checking = /^[a-z_]+$/.test(streamingLoaderName);
+                        if (checking) {
                             if (pipelines[tabsName[value]]["stream"]["loader"] === "") {
                                 if (!checkIfBlockNameExists(streamingLoaderName)) {
                                     const newNode = {
@@ -324,18 +316,18 @@ const PythonEditor = () => {
                                 handleToast("Only one loader", "warning"); // de modificat
                             }
                         } else {
-                            handleToast("Only batch blocks can be added to a batch pipeline!", "error");
+                            handleToast("Only lowercase letters and underscores are allowed!", "error");
                         }
                     } else {
-                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        if (!pipelines[tabsName[value]].stream.created) {
+                            handleToast("Pipeline already created!", "error");
+                        } else {
+                            handleToast("There is non pipeline with that name!", "error");
+                        }
+                        setStreamingLoaderOpen(false);
                     }
                 } else {
-                    if (!pipelines[tabsName[value]].stream.created) {
-                        handleToast("Pipeline already created!", "error");
-                    } else {
-                        handleToast("There is non pipeline with that name!", "error");
-                    }
-                    setStreamingLoaderOpen(false);
+                    handleToast("Only batch blocks can be added to a batch pipeline!", "error");
                 }
             }).catch((error) => {
                 handleToast("Error loading block model!", "error");
@@ -353,10 +345,10 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("stream", "transformer")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                    const checking = /^[a-z_]+$/.test(streamingTransformerName);
-                    if (checking) {
-                        if ("stream" in pipelines[tabsName[value]]) {
+                if ("stream" in pipelines[tabsName[value]]) {
+                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
+                        const checking = /^[a-z_]+$/.test(streamingTransformerName);
+                        if (checking) {
                             if (!checkIfBlockNameExists(streamingTransformerName)) {
                                 const newNode = {
                                     id: streamingTransformerName,
@@ -407,18 +399,18 @@ const PythonEditor = () => {
                                 handleToast("There is already a block with that name!", "error");
                             }
                         } else {
-                            handleToast("Only batch blocks can be added to a batch pipeline!", "error");
+                            handleToast("Only lowercase letters and underscores are allowed!", "error");
                         }
                     } else {
-                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        if (pipelines[tabsName[value]].stream.created) {
+                            handleToast("Pipeline already created!", "error");
+                        } else {
+                            handleToast("There is non pipeline with that name!", "error");
+                        }
+                        setStreamingTransformerOpen(false);
                     }
                 } else {
-                    if (pipelines[tabsName[value]].stream.created) {
-                        handleToast("Pipeline already created!", "error");
-                    } else {
-                        handleToast("There is non pipeline with that name!", "error");
-                    }
-                    setStreamingTransformerOpen(false);
+                    handleToast("Only batch blocks can be added to a batch pipeline!", "error");
                 }
             }).catch((error) => {
                 handleToast("Error loading block model!", "error");
@@ -436,16 +428,17 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("stream", "exporter")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                    const checking = /^[a-z_]+$/.test(streamingExporterName);
-                    if (checking) {
-                        if ("stream" in pipelines[tabsName[value]]) {
+                if ("stream" in pipelines[tabsName[value]]) {
+                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
+                        const checking = /^[a-z_]+$/.test(streamingExporterName);
+                        if (checking) {
+
                             if (pipelines[tabsName[value]]["stream"]["exporter"] === "") {
                                 if (!checkIfBlockNameExists(streamingExporterName)) {
                                     const newNode = {
                                         id: streamingExporterName,
                                         type: 'textUpdater',
-                                        position: { x: pipelines[tabsName[value]].stream.blockPosition, y: 0 },
+                                        position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
                                         data: {
                                             params: {},
                                             type: "exporter",
@@ -481,7 +474,7 @@ const PythonEditor = () => {
                                                 transformers: prevPipelines[tabsName[value]].stream.transformers,
                                                 exporter: newNode,
                                                 edges: prevPipelines[tabsName[value]].stream.edges,
-                                                blockPosition:  prevPos,
+                                                blockPosition: prevPos,
                                                 created: prevPipelines[tabsName[value]].stream.created
                                             }
                                         },
@@ -493,19 +486,20 @@ const PythonEditor = () => {
                             } else {
                                 handleToast("Only one exporter", "warning"); // de modificat
                             }
+
                         } else {
-                            handleToast("Only batch blocks can be added to a batch pipeline!", "error");
+                            handleToast("Only lowercase letters and underscores are allowed!", "error");
                         }
                     } else {
-                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        if (pipelines[tabsName[value]].stream.created) {
+                            handleToast("Pipeline already created!", "error");
+                        } else {
+                            handleToast("There is non pipeline with that name!", "error");
+                        }
+                        setStreamingExporterOpen(false);
                     }
                 } else {
-                    if (pipelines[tabsName[value]].stream.created) {
-                        handleToast("Pipeline already created!", "error");
-                    } else {
-                        handleToast("There is non pipeline with that name!", "error");
-                    }
-                    setStreamingExporterOpen(false);
+                    handleToast("Only batch blocks can be added to a batch pipeline!", "error");
                 }
             }).catch((error) => {
                 setStreamingExporterOpen(false);
@@ -523,10 +517,10 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("batch", "loader")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
-                    const checking = /^[a-z_]+$/.test(batchLoaderName);
-                    if (checking) {
-                        if ("batch" in pipelines[tabsName[value]]) {
+                if ("batch" in pipelines[tabsName[value]]) {
+                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
+                        const checking = /^[a-z_]+$/.test(batchLoaderName);
+                        if (checking) {
                             if (pipelines[tabsName[value]]["batch"]["loader"] === "") {
                                 if (!checkIfBlockNameExists(batchLoaderName)) {
                                     const newNode = {
@@ -534,27 +528,18 @@ const PythonEditor = () => {
                                         type: 'textUpdater',
                                         position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
                                         data: {
-                                            params: {},
+                                            params: response.data.variables,
                                             type: "loader",
                                             name: batchLoaderName,
                                             pipeline_name: tabsName[value],
                                             label: CAPS(batchLoaderName),
                                             language: "python",
                                             background: "#4877ff",
-                                            content: response.data,
+                                            content: response.data.content,
                                             editable: true,
                                             created: false
                                         },
                                     };
-
-                                    setBlocksPosition((prevState) => {
-                                        return prevState.map((item, index) => {
-                                            if (index === value) {
-                                                return item + 300;
-                                            }
-                                            return item;
-                                        });
-                                    });
 
                                     const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
 
@@ -578,23 +563,23 @@ const PythonEditor = () => {
                                     handleToast("There is already a block with that name!", "error");
                                 }
                             } else {
-                                handleToast("Only one loader", "warning"); // de modificat
+                                handleToast("Only one loader", "warning");
                             }
                         } else {
-                            handleToast("Only stream blocks can be added to a stream pipeline!", "error");
+                            handleToast("Only lowercase letters and underscores are allowed!", "error");
                         }
                     } else {
-                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        if (pipelines[tabsName[value]].batch.created) {
+                            handleToast("Pipeline already created!", "error");
+                        } else {
+                            handleToast("There is non pipeline with that name!", "error");
+                        }
+                        setBatchLoaderOpen(false);
                     }
                 } else {
-                    if (pipelines[tabsName[value]].batch.created) {
-                        handleToast("Pipeline already created!", "error");
-                    } else {
-                        handleToast("There is non pipeline with that name!", "error");
-                    }
-                    setBatchLoaderOpen(false);
+                    handleToast("Only stream blocks can be added to a stream pipeline!", "error");
                 }
-            }).catch((error) => {
+            }).catch((_) => {
                 handleToast("Error loading block model!", "error");
                 setBatchLoaderOpen(false);
             })
@@ -604,16 +589,16 @@ const PythonEditor = () => {
         }
     }
 
-    const handleBatchTransformer = () => {
+    const handleBatchTransformer = (name) => {
         if (tabs.length > 0) {
             axios({
                 method: "GET",
-                url: BLOCK_MODEL("batch", "transformer")
+                url: BLOCK_MODEL_TRANSFORMERS("batch", "transformer", name)
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
-                    const checking = /^[a-z_]+$/.test(batchTransformerName);
-                    if (checking) {
-                        if ("batch" in pipelines[tabsName[value]]) {
+                if ("batch" in pipelines[tabsName[value]]) {
+                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
+                        const checking = /^[a-z_]+$/.test(batchTransformerName);
+                        if (checking) {
                             if (!checkIfBlockNameExists(batchTransformerName)) {
                                 const newNode = {
                                     id: batchTransformerName,
@@ -632,7 +617,6 @@ const PythonEditor = () => {
                                         created: false
                                     },
                                 };
-
                                 setBlocksPosition((prevState) => {
                                     return prevState.map((item, index) => {
                                         if (index === value) {
@@ -641,9 +625,7 @@ const PythonEditor = () => {
                                         return item;
                                     });
                                 });
-
                                 const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
-
                                 setPipelines((prevPipelines) => ({
                                     ...prevPipelines,
                                     [tabsName[value]]: {
@@ -657,26 +639,24 @@ const PythonEditor = () => {
                                             blockPosition: prevPos,
                                             created: prevPipelines[tabsName[value]].batch.created
                                         },
-
                                     },
                                 }));
                                 setBatchTransformerOpen(false);
                             } else {
                                 handleToast("There is already a block with that name!", "error");
                             }
-                        } else {
-                            handleToast("Only stream blocks can be added to a stream pipeline!", "error");
+                        } else {handleToast("Only lowercase letters and underscores are allowed!", "error");
                         }
                     } else {
-                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        if (pipelines[tabsName[value]].batch.created) {
+                            handleToast("Pipeline already created!", "error");
+                        } else {
+                            handleToast("There is non pipeline with that name!", "error");
+                        }
+                        setBatchTransformerOpen(false);
                     }
                 } else {
-                    if (pipelines[tabsName[value]].batch.created) {
-                        handleToast("Pipeline already created!", "error");
-                    } else {
-                        handleToast("There is non pipeline with that name!", "error");
-                    }
-                    setBatchTransformerOpen(false);
+                    handleToast("Only stream blocks can be added to a stream pipeline!", "error");
                 }
             }).catch((error) => {
                 handleToast("Error loading block model!", "error");
@@ -694,76 +674,77 @@ const PythonEditor = () => {
                 method: "GET",
                 url: BLOCK_MODEL("batch", "exporter")
             }).then((response) => {
-                if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
-                    const checking = /^[a-z_]+$/.test(batchExporterName);
-                    if (checking) {
-                        if ("batch" in pipelines[tabsName[value]]) {
-                            if (pipelines[tabsName[value]]["batch"]["exporter"] === "") {
-                                if (!checkIfBlockNameExists(batchExporterName)) {
-                                    const newNode = {
-                                        id: batchExporterName,
-                                        type: 'textUpdater',
-                                        position: { x: pipelines[tabsName[value]].batch.blockPosition, y: 0 },
-                                        data: {
-                                            params: {},
-                                            type: "exporter",
-                                            name: batchExporterName,
-                                            pipeline_name: tabsName[value],
-                                            label: CAPS(batchExporterName),
-                                            language: "python",
-                                            background: "#ffcc19",
-                                            content: response.data,
-                                            editable: false,
-                                            created: false
-                                        },
-                                    };
-
-                                    setBlocksPosition((prevState) => {
-                                        return prevState.map((item, index) => {
-                                            if (index === value) {
-                                                return item + 300;
-                                            }
-                                            return item;
-                                        });
-                                    });
-
-                                    const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
-
-                                    setPipelines((prevPipelines) => ({
-                                        ...prevPipelines,
-                                        [tabsName[value]]: {
-                                            ...prevPipelines[tabsName[value]],
-                                            batch: {
-                                                ...prevPipelines[tabsName[value]].batch,
-                                                loader: prevPipelines[tabsName[value]].batch.loader,
-                                                transformers: prevPipelines[tabsName[value]].batch.transformers,
-                                                edges: prevPipelines[tabsName[value]].batch.edges,
-                                                created: prevPipelines[tabsName[value]].batch.created,
-                                                exporter: newNode,
-                                                blockPosition: prevPos
+                if ("batch" in pipelines[tabsName[value]]) {
+                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
+                        const checking = /^[a-z_]+$/.test(batchExporterName);
+                        if (checking) {
+                                if (pipelines[tabsName[value]]["batch"]["exporter"] === "") {
+                                    if (!checkIfBlockNameExists(batchExporterName)) {
+                                        const newNode = {
+                                            id: batchExporterName,
+                                            type: 'textUpdater',
+                                            position: { x: pipelines[tabsName[value]].batch.blockPosition, y: 0 },
+                                            data: {
+                                                params: {},
+                                                type: "exporter",
+                                                name: batchExporterName,
+                                                pipeline_name: tabsName[value],
+                                                label: CAPS(batchExporterName),
+                                                language: "python",
+                                                background: "#ffcc19",
+                                                content: response.data,
+                                                editable: false,
+                                                created: false
                                             },
-                                        },
-                                    }));
-                                    setBatchExporterOpen(false);
+                                        };
+
+                                        setBlocksPosition((prevState) => {
+                                            return prevState.map((item, index) => {
+                                                if (index === value) {
+                                                    return item + 300;
+                                                }
+                                                return item;
+                                            });
+                                        });
+
+                                        const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
+
+                                        setPipelines((prevPipelines) => ({
+                                            ...prevPipelines,
+                                            [tabsName[value]]: {
+                                                ...prevPipelines[tabsName[value]],
+                                                batch: {
+                                                    ...prevPipelines[tabsName[value]].batch,
+                                                    loader: prevPipelines[tabsName[value]].batch.loader,
+                                                    transformers: prevPipelines[tabsName[value]].batch.transformers,
+                                                    edges: prevPipelines[tabsName[value]].batch.edges,
+                                                    created: prevPipelines[tabsName[value]].batch.created,
+                                                    exporter: newNode,
+                                                    blockPosition: prevPos
+                                                },
+                                            },
+                                        }));
+                                        setBatchExporterOpen(false);
+                                    } else {
+                                        handleToast("There is already a block with that name!", "error");
+                                    }
                                 } else {
-                                    handleToast("There is already a block with that name!", "error");
+                                    handleToast("Only one exporter", "warning"); // de modificat
                                 }
-                            } else {
-                                handleToast("Only one exporter", "warning"); // de modificat
-                            }
+
                         } else {
-                            handleToast("Only stream blocks can be added to a stream pipeline!", "error");
+                            handleToast("Only lowercase letters and underscores are allowed!", "error");
                         }
                     } else {
-                        handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        if (pipelines[tabsName[value]].batch.created) {
+                            handleToast("Pipeline already created!", "error");
+                        } else {
+                            handleToast("There is non pipeline with that name!", "error");
+                        }
+                        setBatchExporterOpen(false);
                     }
-                } else {
-                    if (pipelines[tabsName[value]].batch.created) {
-                        handleToast("Pipeline already created!", "error");
-                    } else {
-                        handleToast("There is non pipeline with that name!", "error");
-                    }
-                    setBatchExporterOpen(false);
+                }  else {
+                    handleToast("Only stream blocks can be added to a stream pipeline!", "error");
                 }
             }).catch((error) => {
                 setBatchExporterOpen(false);
@@ -965,9 +946,7 @@ const PythonEditor = () => {
                         }
                     }))
                     setPipelinesBlocksNames(prevState => [...prevState, nodesNames]);
-                    //setBlocksPosition(prevState => [...prevState, positions[orderedBlocks[orderedBlocks.length - 1].name][0]]);
                 } else {
-                    console.log("Here!");
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     if (!nodesInStorage) {
                         setBlocksPosition(prevState => [...prevState, 0]);
@@ -1108,7 +1087,7 @@ const PythonEditor = () => {
                         setPipelines((prevState) => ({
                             ...prevState,
                             [name]: {
-                                ...modifiedNodes
+                                ...JSON.parse(nodesInStorage)
                             }
                         }))
 
@@ -1178,10 +1157,6 @@ const PythonEditor = () => {
        }
         }
     }, [pipelinesBlocksNames, tabsName, value]);
-
-    React.useEffect(() => {
-        console.log(pipelines);
-    }, [pipelines])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -1269,13 +1244,24 @@ const PythonEditor = () => {
                     </Button>
                 </Box>
             </Dialog>
-            <Dialog open={batchTransformerOpen} onClose={handleClose}>
+            <Dialog open={batchNullOpen} onClose={handleClose}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         BLOCK NAME
                     </DialogTitle>
                     <TextField variant="outlined" onChange={(event) => setBatchTransformerName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleBatchTransformer}>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleBatchTransformer("remove_null_rows")}>
+                        Add Transformer
+                    </Button>
+                </Box>
+            </Dialog>
+            <Dialog open={batchAnomalyOpen} onClose={handleClose}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
+                    <DialogTitle sx={{ fontWeight: "bold" }}>
+                        BLOCK NAME
+                    </DialogTitle>
+                    <TextField variant="outlined" onChange={(event) => setBatchTransformerName(event.target.value)} label="Block Name"/>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleBatchTransformer("anomaly_detection")}>
                         Add Transformer
                     </Button>
                 </Box>
@@ -1333,16 +1319,30 @@ const PythonEditor = () => {
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Transformers".toUpperCase()}
+                                            {"remove null rows".toUpperCase()}
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchTransformerOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchNullOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
                                 </Accordion>
                                 <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded === 'batch_panel3'} onChange={handleBatchChange('batch_panel3')}>
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                    >
+                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                            {"anomaly detection".toUpperCase()}
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchAnomalyOpen(true)}>
+                                            Add
+                                        </Button>
+                                    </AccordionDetails>
+                                </Accordion>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded === 'batch_panel4'} onChange={handleBatchChange('batch_panel4')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1436,19 +1436,18 @@ const PythonEditor = () => {
                                 index={index}
                                 value={value}
                                 {...{
-                                    componentNodes: Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]]
+                                    componentNodes: (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]
                                         : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"],
-                                    componentEdges: Object.keys(pipelines[tabsName[value]]).length > 0
-                                        ? "stream" in pipelines[tabsName[value]]
-                                            ? pipelines[tabsName[value]]["stream"]["edges"]
-                                            : pipelines[tabsName[value]]["batch"]["edges"] : [],
+                                    componentEdges: (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
+                                        ? pipelines[tabsName[value]]["stream"]["edges"]
+                                        : pipelines[tabsName[value]]["batch"]["edges"],
                                     drawerWidth: drawerWidth,
                                     created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
                                     setPipes: setPipelines,
-                                    pipeline_name: tabsName[value] ? tabsName[value] : "",
-                                    type: tabsName[value] ? Object.keys(pipelines[tabsName[value]])[0] : "",
-                                    orderBlockNames: pipelinesBlocksNames[value] ? pipelinesBlocksNames[value] : ""
+                                    pipeline_name: tabsName[value] !== undefined ? tabsName[value] : "",
+                                    type: tabsName[value] !== undefined ? Object.keys(pipelines[tabsName[value]])[0] : "",
+                                    orderBlockNames: pipelinesBlocksNames[value] !== undefined ? pipelinesBlocksNames[value] : ""
                                 }}
                             />
                         )

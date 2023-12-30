@@ -2,6 +2,7 @@
 const baseUrl = "http://localhost:8000";
 
 export const BLOCK_MODEL = (pipeline_type, block_type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}`;
+export const BLOCK_MODEL_TRANSFORMERS = (pipeline_type, block_type, type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}&transformer_type=${type}`;
 export const DELETE_PIPELINE = (name) => `${baseUrl}/pipeline/delete?name=${name}`;
 
 export const CREATE_PIPELINE = (name, type) => `${baseUrl}/pipeline/create?name=${name}&ptype=${type}`;
@@ -25,3 +26,7 @@ export const CHANGE_PIPELINE_STATUS = `${baseUrl}/pipeline/trigger/status`;
 export const PIPELINE_STATUS = (name) => `${baseUrl}/pipeline/status?name=${name}`;
 
 export const PIPELINE_TRIGGER_STATUS = (name) => `${baseUrl}/pipeline/trigger/status?name=${name}`;
+
+export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
+
+export const UPLOAD_TEMP_FILE = "http://62.72.21.79:10000/upload";

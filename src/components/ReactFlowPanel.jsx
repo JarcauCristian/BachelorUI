@@ -52,6 +52,7 @@ const ReactFlowPanel = (props) => {
     const [streamDialogOpen, setStreamDialogOpen] = React.useState(false);
     const [runInterval, setRunInterval] = React.useState("hourly");
     const [dateTime, setDateTime] = React.useState(new Date());
+    const isRun = React.useRef(0);
 
     const handleToast = (message, severity) => {
         setToastMessage(message);
@@ -258,6 +259,21 @@ const ReactFlowPanel = (props) => {
                         data: payload
                     }).then((_) => {
                         setLoading(false);
+                        other.setPipes((prevState) => ({
+                            ...prevState,
+                            [other.pipeline_name]: {
+                                [other.type]: {
+                                    ...prevState[other.pipeline_name][other.type],
+                                    loader: prevState[other.pipeline_name][other.type].loader,
+                                    transformers:  prevState[other.pipeline_name][other.type].transformers,
+                                    exporter:  prevState[other.pipeline_name][other.type].exporter,
+                                    edges: prevState[other.pipeline_name][other.type].edges,
+                                    created: true,
+                                    blockPosition: prevState[other.pipeline_name][other.type].blockPosition
+                                },
+                            }
+                        }))
+                        window.location.reload();
                     }).catch((_) => {
 
                     })
@@ -278,13 +294,17 @@ const ReactFlowPanel = (props) => {
     };
 
     React.useEffect(() => {
-        if (other.created) {
+        if (!other.created) {
+            if (isRun.current === 2) return;
+
+            isRun.current++;
+
             setEdges(other.componentEdges);
         }
     }, [setEdges, other.componentEdges, other.created]);
 
     React.useEffect(() => {
-        if (other.componentNodes && !other.created) {
+        if (!other.created && edges !== other.componentEdges) {
             if (other.type === "stream") {
                 other.setPipes((prevState) => ({
                     ...prevState,
@@ -418,7 +438,7 @@ const ReactFlowPanel = (props) => {
             {value === index && (
                 <ReactFlow key={index}
                            nodes={nodes}
-                           edges={edges}
+                           edges={other.created ? other.componentEdges : edges}
                            onNodesChange={onNodesChange}
                            onEdgesChange={onEdgesChange}
                            snapToGrid

@@ -27,10 +27,9 @@ function App() {
               : isLogin && userRole === "data-producer" ?
                     <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
                         <Route index element={<LandingPage role={userRole} />}/>
-                        <Route path="data_uploader" element={<DataUploader token={token}/>}/>
-                        <Route path="data_orchestration" element={<DataOrchestrator token={token}/>}/>
-                        <Route path="datasets" element={<DataOrchestrator token={token}/>}/>
-                        <Route path="models" element={<DataOrchestrator token={token}/>}/>
+                        <Route path="orchestration" element={<PythonEditor token={token}/>}/>
+                        <Route path="datasets" element={<PythonEditor token={token}/>}/>
+                        <Route path="models" element={<PythonEditor token={token}/>}/>
                     </Route>
                     : isLogin && userRole === "data-scientist" ?
                         <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
