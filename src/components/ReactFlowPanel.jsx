@@ -22,7 +22,7 @@ import {
     TextField
 } from "@mui/material";
 import axios from "axios";
-import {CREATE_BLOCK, CREATE_PIPELINE_TRIGGER, MODIFY_DESCRIPTION} from "./utils/apiEndpoints";
+import {CREATE_BLOCK, CREATE_PIPELINE_TRIGGER, MODIFY_DESCRIPTION, PIPELINE_VARIABLES} from "./utils/apiEndpoints";
 import Cookies from "js-cookie";
 import PipelineSteps from "./PipelineSteps";
 import Button from "@mui/material/Button";
@@ -166,159 +166,186 @@ const ReactFlowPanel = (props) => {
 
 
     const createPipeline = () => {
-        if (nodes.length === 0) {
-            handleToast("Pipeline is empty!", "error");
-        } else if (edges.length === 0) {
-            handleToast("Can't create pipeline without edges!", "error");
-        } else if (edges.length !== nodes.length - 1) {
-            handleToast("Please connect all the nodes together!", "error");
-        } else {
-            let hasLoader = false;
-            let hasExporter = false;
 
+        setTimeout(() => {
+            setLoading(true);
+        }, 1000);
+
+        let variables = {};
+        let counter = 0;
+        if (other.type === "batch") {
             for (let node of nodes) {
-                if (node.data.type === "loader") {
-                    hasLoader = true;
-                } else if (node.data.type === "exporter") {
-                    hasExporter = true;
-                }
-            }
+                if (Object.keys(node.data.params).length > 0) {
+                    const blockVariable = localStorage.getItem(`${other.pipeline_name}-${node.id}-variables`);
 
-            if (!hasLoader || !hasExporter) {
-                handleToast("Pipeline should have a loader and an exporter!", "error");
-                return;
-            }
-
-
-            setTimeout(() => {
-                setLoading(true);
-            }, 1000);
-
-            for (let node of nodes) {
-                const downStreamBlocks: string = [];
-                const upStreamBlocks: string = [];
-                for (let edge of edges) {
-                    if (edge.source === node.id) {
-                        downStreamBlocks.push(edge.target);
-                    } else if (edge.target === node.id) {
-                        upStreamBlocks.push(edge.source);
-                    }
-                }
-
-                const isInStorage = localStorage.getItem(`${other.pipeline_name}-${node.id}-block-content`);
-
-                const blob = node.data.language === "yaml" ?
-                    isInStorage ? new Blob([isInStorage], { type: "text/yaml"}) : new Blob([node.data.content], { type: "text/yaml"}) :
-                    isInStorage ? new Blob([isInStorage], { type: "application/octet-stream"}) : new Blob([node.data.content], { type: "application/octet-stream"})
-                const file = new File([blob], "random");
-
-                const formData = new FormData();
-                formData.append("file", file);
-                formData.append("block_name", node.id);
-                formData.append("block_type", node.data.type === "loader" || node.data.type === "exporter" ? "data_" + node.data.type : node.data.type);
-                formData.append("pipeline_name", node.data.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"));
-                formData.append("downstream_blocks", downStreamBlocks.length === 0 ? [] : downStreamBlocks);
-                formData.append("upstream_blocks", upStreamBlocks.length === 0 ? [] : upStreamBlocks);
-                formData.append("language", node.data.language);
-
-                axios({
-                    method: "POST",
-                    url: CREATE_BLOCK,
-                    data: formData,
-                    headers: {
-                        "Content-Type": "multipart/form-data"
-                    }
-                }).then((_) => {
-
-                }).catch((error) => {
-                    console.log(error);
-                    handleToast("Block Could Not Be Created!", "error");
-                    setCreationFailed(true);
-                })
-            }
-            if (!creationFailed) {
-                setNodes(prevNodes => prevNodes.map(node => ({
-                    ...node,
-                    draggable: false,
-                })));
-                setEdges(prevNodes => prevNodes.map(edge => ({
-                    ...edge,
-                    focusable: false,
-                    updatable: false,
-                })));
-                setLoading(false);
-
-                axios({
-                    method: "PUT",
-                    url: MODIFY_DESCRIPTION,
-                    data: {
-                        "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
-                        "description": "created"
-                    }
-                }).then((_) => {
-                    handleToast("Pipeline Created Successfully!", "success");
-
-                    const allKeys = Object.keys(localStorage);
-
-                    allKeys.forEach(key => {
-                        if(key.includes(other.pipeline_name)) {
-                            localStorage.removeItem(key);
-                        }
-                    });
-
-                    setNodes(nodes.map(node => ({
-                        ...node,
-                        data: {
-                            ...node.data,
-                            editable: false
-                        }
-                    })));
-
-                    const payload = other.type === "batch" ? {
-                            "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
-                            "trigger_type": "api",
-                        } : {
-                        "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
-                        "trigger_type": "time",
-                        "interval": runInterval,
-                        "start_time": dateTime.toISOString()
-                    }
-
-                    axios({
-                        method: "POST",
-                        url: CREATE_PIPELINE_TRIGGER,
-                        data: payload
-                    }).then((_) => {
-                        setLoading(false);
-                        other.setPipes((prevState) => ({
-                            ...prevState,
-                            [other.pipeline_name]: {
-                                [other.type]: {
-                                    ...prevState[other.pipeline_name][other.type],
-                                    loader: prevState[other.pipeline_name][other.type].loader,
-                                    transformers:  prevState[other.pipeline_name][other.type].transformers,
-                                    exporter:  prevState[other.pipeline_name][other.type].exporter,
-                                    edges: prevState[other.pipeline_name][other.type].edges,
-                                    created: true,
-                                    blockPosition: prevState[other.pipeline_name][other.type].blockPosition
-                                },
+                    if (blockVariable) {
+                        for (let [key, value] of Object.entries(JSON.parse(blockVariable))) {
+                            if (key === "initial_name"){
+                                variables[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
+                            } else {
+                                variables[key] = value;
                             }
-                        }))
-                        window.location.reload();
-                    }).catch((_) => {
-
-                    })
-                }).catch((error) => {
-                    handleToast("Failed to create Pipeline!", "error");
-                    setLoading(false);
-                })
+                        }
+                    } else {
+                        counter++;
+                    }
+                }
             }
         }
+
+        if (counter > 0) {
+            handleToast("Please add all the variables for all the blocks!", "error");
+            return;
+        }
+
+        axios({
+            method: "POST",
+            url: PIPELINE_VARIABLES,
+            data: {
+                name: other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                variables: variables
+            }
+        }).catch((_) => {
+            handleToast("Variables for the pipeline could not be added, please try again!", "error");
+        })
+
+        if (nodes.length === 0) {
+            handleToast("Pipeline is empty!", "error");
+            return;
+        }
+        if (edges.length === 0) {
+            handleToast("Can't create pipeline without edges!", "error");
+            return;
+        }
+        if (edges.length !== nodes.length - 1) {
+            handleToast("Please connect all the nodes together!", "error");
+            return;
+        }
+
+        let hasLoader = false;
+        let hasExporter = false;
+
+        for (let node of nodes) {
+            if (node.data.type === "loader") {
+                hasLoader = true;
+            } else if (node.data.type === "exporter") {
+                hasExporter = true;
+            }
+        }
+
+        if (!hasLoader || !hasExporter) {
+            handleToast("Pipeline should have a loader and an exporter!", "error");
+            return;
+        }
+
+        for (let node of nodes) {
+            const downStreamBlocks: string = [];
+            const upStreamBlocks: string = [];
+
+            for (let edge of edges) {
+                if (edge.source === node.id) {
+                    downStreamBlocks.push(edge.target);
+                } else if (edge.target === node.id) {
+                    upStreamBlocks.push(edge.source);
+                }
+            }
+            const isInStorage = localStorage.getItem(`${other.pipeline_name}-${node.id}-block-content`);
+            const blob = node.data.language === "yaml" ?
+                isInStorage ? new Blob([isInStorage], { type: "text/yaml"}) : new Blob([node.data.content], { type: "text/yaml"}) :
+                isInStorage ? new Blob([isInStorage], { type: "application/octet-stream"}) : new Blob([node.data.content], { type: "application/octet-stream"})
+            const file = new File([blob], "random");
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("block_name", node.id);
+            formData.append("block_type", node.data.type === "loader" || node.data.type === "exporter" ? "data_" + node.data.type : node.data.type);
+            formData.append("pipeline_name", node.data.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"));
+            formData.append("downstream_blocks", downStreamBlocks.length === 0 ? [] : downStreamBlocks);
+            formData.append("upstream_blocks", upStreamBlocks.length === 0 ? [] : upStreamBlocks);
+            formData.append("language", node.data.language);
+            axios({
+                method: "POST",
+                url: CREATE_BLOCK,
+                data: formData,
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }).catch((error) => {
+                console.log(error);
+                handleToast("Block Could Not Be Created!", "error");
+                setCreationFailed(true);
+            })
+        }
+
+        if (!creationFailed) {
+            setNodes(prevNodes => prevNodes.map(node => ({
+                ...node,
+                draggable: false,
+            })));
+            setEdges(prevNodes => prevNodes.map(edge => ({
+                ...edge,
+                focusable: false,
+                updatable: false,
+            })));
+            setLoading(false);
+            axios({
+                method: "PUT",
+                url: MODIFY_DESCRIPTION,
+                data: {
+                    "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                    "description": "created"
+                }
+            }).then((_) => {
+                handleToast("Pipeline Created Successfully!", "success");
+                const allKeys = Object.keys(localStorage);
+                allKeys.forEach(key => {
+                    if(key.includes(other.pipeline_name)) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                setNodes(nodes.map(node => ({
+                    ...node,
+                    data: {
+                        ...node.data,
+                        editable: false
+                    }
+                })));
+                const payload = other.type === "batch" ? {
+                    "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                    "trigger_type": "api",
+                } : {
+                    "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                    "trigger_type": "time",
+                    "interval": runInterval,
+                    "start_time": dateTime.toISOString()
+                }
+                axios({
+                    method: "POST",
+                    url: CREATE_PIPELINE_TRIGGER,
+                    data: payload
+                }).then((_) => {
+                    setLoading(false);
+                    other.setPipes((prevState) => ({
+                        ...prevState,
+                        [other.pipeline_name]: {
+                            [other.type]: {
+                                ...prevState[other.pipeline_name][other.type],
+                                loader: prevState[other.pipeline_name][other.type].loader,
+                                transformers:  prevState[other.pipeline_name][other.type].transformers,
+                                exporter:  prevState[other.pipeline_name][other.type].exporter,
+                                edges: prevState[other.pipeline_name][other.type].edges,
+                                created: true,
+                                blockPosition: prevState[other.pipeline_name][other.type].blockPosition
+                            },
+                        }
+                    }))
+                    window.location.reload();
+                })
+            }).catch((_) => {
+                handleToast("Failed to create Pipeline!", "error");
+                setLoading(false);
+            })
+        }
     }
-
-    const onEdgeClick = React.useCallback((oldEdge, newConnection) => {
-
-    }, []);
 
     const handleChange = (event) => {
         setRunInterval(event.target.value);
@@ -472,13 +499,12 @@ const ReactFlowPanel = (props) => {
                 <ReactFlow key={index}
                            nodes={nodes.map((node) => ({
                                ...node,
-                               data: {...node.data, onDelete: deleteNode}
+                               data: {...node.data, onDelete: deleteNode, toast: handleToast}
                            }))}
                            edges={other.created ? other.componentEdges : edges}
                            onNodesChange={onNodesChange}
                            onEdgesChange={onEdgesChange}
                            snapToGrid
-                           onEdgeClick={onEdgeClick}
                            onEdgeUpdate={onEdgeUpdate}
                            onEdgeUpdateStart={onEdgeUpdateStart}
                            onEdgeUpdateEnd={onEdgeUpdateEnd}

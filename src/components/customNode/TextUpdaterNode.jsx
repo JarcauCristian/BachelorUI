@@ -215,6 +215,11 @@ function TextUpdaterNode({ data, isConnectable }) {
         }
     }, [])
 
+    const allFieldsFilled = () => {
+        return Object.values(values).every(x => x !== '' && x !== null);
+    };
+
+
     const handleSubmit = () => {
         const textEntries = {};
 
@@ -227,6 +232,10 @@ function TextUpdaterNode({ data, isConnectable }) {
                 textEntries[key] = value;
             }
         }
+        if (!allFieldsFilled()) {
+            data.toast("Please enter values for all the fields in the dialog!", "error");
+            return;
+        }
         localStorage.setItem(`${data.pipeline_name}-${data.name}-variables`, JSON.stringify(textEntries));
 
         if (fileInput) {
@@ -234,7 +243,8 @@ function TextUpdaterNode({ data, isConnectable }) {
 
             formData.append("file", fileInput);
             formData.append("tags", JSON.stringify({}));
-            formData.append("name", textEntries["initial_name"]);
+            formData.append("name",  Cookies.get("userID").split("-").join("_") + "/" + textEntries["initial_name"]);
+            formData.append("temporary", true);
 
             axios({
                 method: "PUT",
@@ -248,6 +258,8 @@ function TextUpdaterNode({ data, isConnectable }) {
                 console.error(error);
             })
         }
+
+        data.toast("Variables set successfully!", "success");
         handleVariableDialogClose();
     }
 
@@ -282,7 +294,9 @@ function TextUpdaterNode({ data, isConnectable }) {
             <div>
                 <div className="custom-node__header" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
                     <strong>{data.label}</strong>
-                    <HighlightOffIcon onClick={() => data.onDelete(data.name)}/>
+                    {data.editable &&
+                        <HighlightOffIcon onClick={() => data.onDelete(data.name)}/>
+                    }
                 </div>
                 <div className="custom-node__body" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {data.editable ?
