@@ -15,8 +15,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from '@mui/icons-material/Person';
 import {useNavigate} from "react-router-dom";
-import appBarHeight from "../components/utils/appBarHeight";
-import useAppBarHeight from "../components/utils/appBarHeight";
+import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
 
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
@@ -55,7 +54,7 @@ const LandingPage = ({role, userID}) => {
         if (role === "data-scientist") {
             navigate("/notebooks");
         } else if (role === "data-producer") {
-            navigate("/data_uploader");
+            navigate("/orchestration");
         }
     }
 
@@ -246,8 +245,20 @@ const LandingPage = ({role, userID}) => {
                             Notebooks
                         </Typography>
                         <Typography variant="p" sx={{maxWidth: 150, fontWeight: "bold", fontSize: 10}}>
-                            Choose a Maximum of 2 Datasets and Start Training. <br/>
+                            Choose a Dataset and Start Training. <br/>
                             A maximum of 10 Notebooks can exist at one time.
+                        </Typography>
+                    </CardContent>
+                </Card>
+                <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
+                    <CardContent>
+                        <AutoAwesomeMotionIcon sx={{fontSize: 100, color: "black", marginLeft: "25%"}} />
+                        <Typography variant="h3" sx={{marginTop: 10}}>
+                            Pipelines
+                        </Typography>
+                        <Typography variant="p" sx={{maxWidth: 150, fontWeight: "bold", fontSize: 10}}>
+                            Upload the data and start making your ETL pipelines. <br/>
+                            A maximum of 10 pipelines can be opened at a time.
                         </Typography>
                     </CardContent>
                 </Card>

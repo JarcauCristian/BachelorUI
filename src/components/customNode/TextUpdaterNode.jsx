@@ -103,6 +103,7 @@
 import * as React from 'react';
 import { Handle, Position } from 'reactflow';
 import LockIcon from '@mui/icons-material/Lock';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {
     Alert,
     Backdrop,
@@ -122,10 +123,6 @@ import Cookies from "js-cookie";
 
 function TextUpdaterNode({ data, isConnectable }) {
     const isRun = React.useRef(false);
-    const [toastMessage, setToastMessage] = React.useState("");
-    const [toastSeverity, setToastSeverity] = React.useState("error");
-    const [open, setOpen] = React.useState(false);
-    const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [blockContent, setBlockContent] = React.useState(data.content);
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [variableDialogOpen, setVariableDialogOpen] = React.useState(false);
@@ -134,14 +131,6 @@ function TextUpdaterNode({ data, isConnectable }) {
         return acc;
     }, {}));
     const [loading, setLoading] = React.useState(false);
-
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-
-        setOpen(false);
-    };
 
     const handleBackdropClose = () => {
         setLoading(false);
@@ -264,14 +253,6 @@ function TextUpdaterNode({ data, isConnectable }) {
 
     return (
         <div className="text-updater-node" style={{background: data.background}}>
-            <Snackbar
-                open={open}
-                autoHideDuration={2000}
-                anchorOrigin={{ vertical, horizontal }}
-                onClose={handleClose}
-            >
-                <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
-            </Snackbar>
             <Backdrop
                 sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={loading}
@@ -299,8 +280,9 @@ function TextUpdaterNode({ data, isConnectable }) {
             </Dialog>
             {data.type !== "loader" && (<Handle type="target" position={Position.Left} isConnectable={isConnectable} />)}
             <div>
-                <div className="custom-node__header">
+                <div className="custom-node__header" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
                     <strong>{data.label}</strong>
+                    <HighlightOffIcon onClick={() => data.onDelete(data.name)}/>
                 </div>
                 <div className="custom-node__body" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {data.editable ?

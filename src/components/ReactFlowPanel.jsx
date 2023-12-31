@@ -5,20 +5,15 @@ import ReactFlow, {
     applyEdgeChanges,
     applyNodeChanges,
     Background,
-    Controls,
+    Controls, getConnectedEdges, getIncomers, getOutgoers,
     MiniMap,
     updateEdge, useEdgesState, useNodesState
 } from "reactflow";
-import {useEffect, useMemo} from "react";
+import {useEffect} from "react";
 import {nodeTypes} from "./utils/nodeTypes";
-import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import AddIcon from '@mui/icons-material/Add';
-import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import {
     Alert,
-    Backdrop,
-    CircularProgress,
     Dialog,
     DialogTitle,
     FormControl,
@@ -52,6 +47,7 @@ const ReactFlowPanel = (props) => {
     const [streamDialogOpen, setStreamDialogOpen] = React.useState(false);
     const [runInterval, setRunInterval] = React.useState("hourly");
     const [dateTime, setDateTime] = React.useState(new Date());
+    const [localUpdate, setLocalUpdate] = React.useState(false);
     const isRun = React.useRef(0);
 
     const handleToast = (message, severity) => {
@@ -114,23 +110,58 @@ const ReactFlowPanel = (props) => {
     }
 
     useEffect(() => {
-        const new_nodes = [];
-        if (other.componentNodes) {
-            Object.entries(other.componentNodes).forEach(([key, value]) => {
-                if (key === "transformers") {
-                    for (let i of value) {
-                        new_nodes.push(i);
+        if (!localUpdate) {
+            const new_nodes = [];
+            if (other.componentNodes) {
+                Object.entries(other.componentNodes).forEach(([key, value]) => {
+                    if (key === "transformers") {
+                        for (let i of value) {
+                            new_nodes.push(i);
+                        }
+                    } else {
+                        if (value !== "" && (key === "loader" || key === "exporter")) {
+                            new_nodes.push(value);
+                        }
                     }
-                } else {
-                    if (value !== "" && (key === "loader" || key === "exporter")) {
-                        new_nodes.push(value);
-                    }
-                }
-            })
+                })
 
-            setNodes(new_nodes);
+                setNodes(new_nodes);
+            }
         }
+        setLocalUpdate(false);
     }, [other.componentNodes, setNodes]);
+
+    const deleteNode = (nodeId) => {
+        const nodeToDelete = nodes.find((n) => n.id === nodeId);
+        if (!nodeToDelete) return;
+
+        localStorage.removeItem(`${other.pipeline_name}-${nodeToDelete.id}-block-content`);
+
+        setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+        setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+
+        setLocalUpdate(true);
+        other.setPipes((prevState) => {
+            const newState = JSON.parse(JSON.stringify(prevState));
+            if (nodeToDelete.data.type === 'transformer') {
+                newState[other.pipeline_name][other.type].transformers = newState[other.pipeline_name][other.type].transformers.filter(t => t.id !== nodeId);
+            } else if(nodeToDelete.data.type === 'loader' || nodeToDelete.data.type === 'exporter') {
+                newState[other.pipeline_name][other.type][nodeToDelete.data.type] = "";
+            }
+
+            let index = 0;
+            for (let i = 0; i < nodes.length; i++) {
+                if  (nodes[i].id === nodeToDelete.id) {
+                    index = i;
+                    break;
+                }
+            }
+
+            newState[other.pipeline_name][other.type]["blockPosition"] = index * 300;
+
+            return newState;
+        });
+    };
 
 
 
@@ -304,37 +335,39 @@ const ReactFlowPanel = (props) => {
     }, [setEdges, other.componentEdges, other.created]);
 
     React.useEffect(() => {
-        if (!other.created && edges !== other.componentEdges) {
-            if (other.type === "stream") {
-                other.setPipes((prevState) => ({
-                    ...prevState,
-                    [other.pipeline_name]: {
-                        [other.type]: {
-                            ...prevState[other.pipeline_name].stream,
-                            loader: prevState[other.pipeline_name].stream.loader,
-                            transformers: prevState[other.pipeline_name].stream.transformers,
-                            exporter: prevState[other.pipeline_name].stream.exporter,
-                            edges: edges,
-                            created: prevState[other.pipeline_name].stream.created,
-                            blockPosition: prevState[other.pipeline_name].stream.blockPosition
-                        },
-                    }
-                }))
-            } else {
-                other.setPipes((prevState) => ({
-                    ...prevState,
-                    [other.pipeline_name]: {
-                        [other.type]: {
-                            ...prevState[other.pipeline_name].batch,
-                            loader: prevState[other.pipeline_name].batch.loader,
-                            transformers: prevState[other.pipeline_name].batch.transformers,
-                            exporter: prevState[other.pipeline_name].batch.exporter,
-                            edges: edges,
-                            created: prevState[other.pipeline_name].batch.created,
-                            blockPosition: prevState[other.pipeline_name].batch.blockPosition
-                        },
-                    }
-                }))
+        if (isRun >= 2) {
+            if (!other.created && edges !== other.componentEdges) {
+                if (other.type === "stream") {
+                    other.setPipes((prevState) => ({
+                        ...prevState,
+                        [other.pipeline_name]: {
+                            [other.type]: {
+                                ...prevState[other.pipeline_name].stream,
+                                loader: prevState[other.pipeline_name].stream.loader,
+                                transformers: prevState[other.pipeline_name].stream.transformers,
+                                exporter: prevState[other.pipeline_name].stream.exporter,
+                                edges: edges,
+                                created: prevState[other.pipeline_name].stream.created,
+                                blockPosition: prevState[other.pipeline_name].stream.blockPosition
+                            },
+                        }
+                    }))
+                } else {
+                    other.setPipes((prevState) => ({
+                        ...prevState,
+                        [other.pipeline_name]: {
+                            [other.type]: {
+                                ...prevState[other.pipeline_name].batch,
+                                loader: prevState[other.pipeline_name].batch.loader,
+                                transformers: prevState[other.pipeline_name].batch.transformers,
+                                exporter: prevState[other.pipeline_name].batch.exporter,
+                                edges: edges,
+                                created: prevState[other.pipeline_name].batch.created,
+                                blockPosition: prevState[other.pipeline_name].batch.blockPosition
+                            },
+                        }
+                    }))
+                }
             }
         }
     }, [edges]);
@@ -437,7 +470,10 @@ const ReactFlowPanel = (props) => {
             )}
             {value === index && (
                 <ReactFlow key={index}
-                           nodes={nodes}
+                           nodes={nodes.map((node) => ({
+                               ...node,
+                               data: {...node.data, onDelete: deleteNode}
+                           }))}
                            edges={other.created ? other.componentEdges : edges}
                            onNodesChange={onNodesChange}
                            onEdgesChange={onEdgesChange}

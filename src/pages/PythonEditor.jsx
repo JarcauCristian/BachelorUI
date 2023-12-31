@@ -27,6 +27,7 @@ import Button from "@mui/material/Button";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
 import ReactFlowPanel from "../components/ReactFlowPanel";
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import axios from "axios";
 import {
     BLOCK_MODEL, BLOCK_MODEL_TRANSFORMERS,
@@ -108,7 +109,7 @@ const PythonEditor = () => {
             return;
         }
         const checking = /^[a-z_]+$/.test(tabName);
-        if (checking) {
+        if (checking && tabName.length < 10) {
             if (pipelineType === "stream") {
                 const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
                 const type = "streaming"
@@ -133,12 +134,9 @@ const PythonEditor = () => {
                         };
                     });
 
-
-                    //setPipelineCreated(prevState => [...prevState, false]);
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
-                    //setBlocksPosition(prevState => [...prevState, 0]);
                     setTabsName(prevState => [...prevState, tabName]);
-                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName + " STREAM"} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                     setCounter(counter + 1);
                     setOpen(false);
                 }).catch((error) => {
@@ -169,12 +167,9 @@ const PythonEditor = () => {
                         };
                     });
 
-
-                    //setPipelineCreated(prevState => [...prevState, false]);
-                    //setBlocksPosition(prevState => [...prevState, 0]);
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     setTabsName(prevState => [...prevState, tabName]);
-                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName + " BATCH"} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                     setCounter(counter + 1);
                     setOpen(false);
                 }).catch((error) => {
@@ -183,7 +178,11 @@ const PythonEditor = () => {
                 })
             }
         } else {
-            handleToast("Only lowercase letters and underscores are allowed!", "error");
+            if (!checking) {
+                handleToast("Only lowercase letters and underscores are allowed!", "error");
+            } else {
+                handleToast("Name must be 10 characters maximum!", "error");
+            }
         }
     }
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -261,7 +260,7 @@ const PythonEditor = () => {
                 if ("stream" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
                         const checking = /^[a-z_]+$/.test(streamingLoaderName);
-                        if (checking) {
+                        if (checking && streamingLoaderName.length < 10) {
                             if (pipelines[tabsName[value]]["stream"]["loader"] === "") {
                                 if (!checkIfBlockNameExists(streamingLoaderName)) {
                                     const newNode = {
@@ -273,7 +272,7 @@ const PythonEditor = () => {
                                             type: "loader",
                                             name: streamingLoaderName,
                                             pipeline_name: tabsName[value],
-                                            label: CAPS(streamingLoaderName),
+                                            label: CAPS(streamingLoaderName + " Loader"),
                                             language: "yaml",
                                             background: "#4877ff",
                                             content: response.data,
@@ -282,15 +281,6 @@ const PythonEditor = () => {
                                         },
                                     };
 
-
-                                    setBlocksPosition((prevState) => {
-                                        return prevState.map((item, index) => {
-                                            if (index === value) {
-                                                return item + 300;
-                                            }
-                                            return item;
-                                        });
-                                    });
                                     const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
 
                                     setPipelines((prevPipelines) => ({
@@ -316,7 +306,11 @@ const PythonEditor = () => {
                                 handleToast("Only one loader", "warning"); // de modificat
                             }
                         } else {
-                            handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            if (!checking) {
+                                handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            } else {
+                                handleToast("Name must be 10 characters maximum!", "error");
+                            }
                         }
                     } else {
                         if (!pipelines[tabsName[value]].stream.created) {
@@ -348,7 +342,7 @@ const PythonEditor = () => {
                 if ("stream" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
                         const checking = /^[a-z_]+$/.test(streamingTransformerName);
-                        if (checking) {
+                        if (checking && streamingTransformerName.length < 10) {
                             if (!checkIfBlockNameExists(streamingTransformerName)) {
                                 const newNode = {
                                     id: streamingTransformerName,
@@ -359,7 +353,7 @@ const PythonEditor = () => {
                                         type: "transformer",
                                         name: streamingTransformerName,
                                         pipeline_name: tabsName[value],
-                                        label: CAPS(streamingTransformerName),
+                                        label: CAPS(streamingTransformerName + " Transformer"),
                                         language: "python",
                                         background: "#7d55ec",
                                         content: response.data,
@@ -367,15 +361,6 @@ const PythonEditor = () => {
                                         created: false
                                     },
                                 };
-
-                                setBlocksPosition((prevState) => {
-                                    return prevState.map((item, index) => {
-                                        if (index === value) {
-                                            return item + 300;
-                                        }
-                                        return item;
-                                    });
-                                });
 
                                 const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
 
@@ -399,7 +384,11 @@ const PythonEditor = () => {
                                 handleToast("There is already a block with that name!", "error");
                             }
                         } else {
-                            handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            if (!checking) {
+                                handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            } else {
+                                handleToast("Name must be 10 characters maximum!", "error");
+                            }
                         }
                     } else {
                         if (pipelines[tabsName[value]].stream.created) {
@@ -431,8 +420,7 @@ const PythonEditor = () => {
                 if ("stream" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
                         const checking = /^[a-z_]+$/.test(streamingExporterName);
-                        if (checking) {
-
+                        if (checking && streamingExporterName.length < 10) {
                             if (pipelines[tabsName[value]]["stream"]["exporter"] === "") {
                                 if (!checkIfBlockNameExists(streamingExporterName)) {
                                     const newNode = {
@@ -444,7 +432,7 @@ const PythonEditor = () => {
                                             type: "exporter",
                                             name: streamingExporterName,
                                             pipeline_name: tabsName[value],
-                                            label: CAPS(streamingExporterName),
+                                            label: CAPS(streamingExporterName + " Exporter"),
                                             language: "yaml",
                                             background: "#ffcc19",
                                             content: response.data,
@@ -452,15 +440,6 @@ const PythonEditor = () => {
                                             created: false
                                         },
                                     };
-
-                                    setBlocksPosition((prevState) => {
-                                        return prevState.map((item, index) => {
-                                            if (index === value) {
-                                                return item + 300;
-                                            }
-                                            return item;
-                                        });
-                                    });
 
                                     const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
 
@@ -488,7 +467,11 @@ const PythonEditor = () => {
                             }
 
                         } else {
-                            handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            if (!checking) {
+                                handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            } else {
+                                handleToast("Name must be 10 characters maximum!", "error");
+                            }
                         }
                     } else {
                         if (pipelines[tabsName[value]].stream.created) {
@@ -520,7 +503,7 @@ const PythonEditor = () => {
                 if ("batch" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
                         const checking = /^[a-z_]+$/.test(batchLoaderName);
-                        if (checking) {
+                        if (checking && batchLoaderName.length < 10) {
                             if (pipelines[tabsName[value]]["batch"]["loader"] === "") {
                                 if (!checkIfBlockNameExists(batchLoaderName)) {
                                     const newNode = {
@@ -532,7 +515,7 @@ const PythonEditor = () => {
                                             type: "loader",
                                             name: batchLoaderName,
                                             pipeline_name: tabsName[value],
-                                            label: CAPS(batchLoaderName),
+                                            label: CAPS(batchLoaderName + " Loader"),
                                             language: "python",
                                             background: "#4877ff",
                                             content: response.data.content,
@@ -566,7 +549,11 @@ const PythonEditor = () => {
                                 handleToast("Only one loader", "warning");
                             }
                         } else {
-                            handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            if (!checking) {
+                                handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            } else {
+                                handleToast("Name must be 10 characters maximum!", "error");
+                            }
                         }
                     } else {
                         if (pipelines[tabsName[value]].batch.created) {
@@ -598,34 +585,28 @@ const PythonEditor = () => {
                 if ("batch" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
                         const checking = /^[a-z_]+$/.test(batchTransformerName);
-                        if (checking) {
+                        if (checking && batchTransformerName.length < 10) {
                             if (!checkIfBlockNameExists(batchTransformerName)) {
                                 const newNode = {
                                     id: batchTransformerName,
                                     type: 'textUpdater',
                                     position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
                                     data: {
-                                        params: {},
+                                        params: response.data.variables,
                                         type: "transformer",
                                         name: batchTransformerName,
                                         pipeline_name: tabsName[value],
-                                        label: CAPS(batchTransformerName),
+                                        label: CAPS(batchTransformerName + " " + name.split("_").join(" ")),
                                         language: "python",
                                         background: "#7d55ec",
-                                        content: response.data,
+                                        content: response.data.content,
                                         editable: true,
                                         created: false
                                     },
                                 };
-                                setBlocksPosition((prevState) => {
-                                    return prevState.map((item, index) => {
-                                        if (index === value) {
-                                            return item + 300;
-                                        }
-                                        return item;
-                                    });
-                                });
+
                                 const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
+
                                 setPipelines((prevPipelines) => ({
                                     ...prevPipelines,
                                     [tabsName[value]]: {
@@ -641,11 +622,20 @@ const PythonEditor = () => {
                                         },
                                     },
                                 }));
-                                setBatchTransformerOpen(false);
+                                if (name === "remove_null_rows") {
+                                    setBatchNullOpen(false);
+                                } else {
+                                    setBatchAnomalyOpen(false);
+                                }
                             } else {
                                 handleToast("There is already a block with that name!", "error");
                             }
-                        } else {handleToast("Only lowercase letters and underscores are allowed!", "error");
+                        } else {
+                            if (!checking) {
+                                handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            } else {
+                                handleToast("Name must be 10 characters maximum!", "error");
+                            }
                         }
                     } else {
                         if (pipelines[tabsName[value]].batch.created) {
@@ -653,18 +643,30 @@ const PythonEditor = () => {
                         } else {
                             handleToast("There is non pipeline with that name!", "error");
                         }
-                        setBatchTransformerOpen(false);
+                        if (name === "remove_null_rows") {
+                            setBatchNullOpen(false);
+                        } else {
+                            setBatchAnomalyOpen(false);
+                        }
                     }
                 } else {
                     handleToast("Only stream blocks can be added to a stream pipeline!", "error");
                 }
             }).catch((error) => {
                 handleToast("Error loading block model!", "error");
-                setBatchTransformerOpen(false);
+                if (name === "remove_null_rows") {
+                    setBatchNullOpen(false);
+                } else {
+                    setBatchAnomalyOpen(false);
+                }
             })
         } else {
             handleToast("There are no currently opened tabs!", "error");
-            setBatchTransformerOpen(false);
+            if (name === "remove_null_rows") {
+                setBatchNullOpen(false);
+            } else {
+                setBatchAnomalyOpen(false);
+            }
         }
     }
 
@@ -677,7 +679,7 @@ const PythonEditor = () => {
                 if ("batch" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
                         const checking = /^[a-z_]+$/.test(batchExporterName);
-                        if (checking) {
+                        if (checking && batchExporterName.length < 10) {
                                 if (pipelines[tabsName[value]]["batch"]["exporter"] === "") {
                                     if (!checkIfBlockNameExists(batchExporterName)) {
                                         const newNode = {
@@ -685,27 +687,18 @@ const PythonEditor = () => {
                                             type: 'textUpdater',
                                             position: { x: pipelines[tabsName[value]].batch.blockPosition, y: 0 },
                                             data: {
-                                                params: {},
+                                                params: response.data.variables,
                                                 type: "exporter",
                                                 name: batchExporterName,
                                                 pipeline_name: tabsName[value],
-                                                label: CAPS(batchExporterName),
+                                                label: CAPS(batchExporterName + " Exporter"),
                                                 language: "python",
                                                 background: "#ffcc19",
-                                                content: response.data,
-                                                editable: false,
+                                                content: response.data.content,
+                                                editable: true,
                                                 created: false
                                             },
                                         };
-
-                                        setBlocksPosition((prevState) => {
-                                            return prevState.map((item, index) => {
-                                                if (index === value) {
-                                                    return item + 300;
-                                                }
-                                                return item;
-                                            });
-                                        });
 
                                         const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
 
@@ -733,7 +726,11 @@ const PythonEditor = () => {
                                 }
 
                         } else {
-                            handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            if (!checking) {
+                                handleToast("Only lowercase letters and underscores are allowed!", "error");
+                            } else {
+                                handleToast("Name must be 10 characters maximum!", "error");
+                            }
                         }
                     } else {
                         if (pipelines[tabsName[value]].batch.created) {
@@ -964,126 +961,126 @@ const PythonEditor = () => {
                             }
                         }))
                     } else {
-                        let maxX = -1;
-                        let maxIndex = 0;
-                        const nodeType = "stream" in JSON.parse(nodesInStorage) ? "stream" : "batch";
-                        let modifiedNodes = {[nodeType]: {}};
-                        let position = 0;
-                        if ("stream" in JSON.parse(nodesInStorage)) {
-                            Object.entries(JSON.parse(nodesInStorage).stream).forEach(([key, value]) => {
-                                if (key !== "edges") {
-                                    if (key === "transformers") {
-                                        for (let i = 0; i < value.length; i++) {
-                                            if (value[i].position.x > maxX) {
-                                                maxX = value[i].position.x;
-                                                maxIndex = [key, i];
-                                            }
-                                        }
-                                    } else if ((key === "loader" || key === "exporter") && value !== ""){
-                                        if (value.position.x > maxX) {
-                                            maxX = value.position.x;
-                                            maxIndex = key;
-                                        }
-                                    }
-                                }
-                            });
-                            if (maxX !== -1) {
-                                if (maxIndex.length > 1 && typeof(maxIndex) === "object") {
-                                    setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x]);
-                                    position = JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x;
-                                } else {
-                                    setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex].position.x]);
-                                    position = JSON.parse(nodesInStorage).stream[maxIndex].position.x;
-                                }
-                            } else {
-                                setBlocksPosition(prevState => [...prevState, 0]);
-                            }
-                        } else {
-                            Object.entries(JSON.parse(nodesInStorage).batch).forEach(([key, value]) => {
-                                if (key === "transformers") {
-                                    for (let i = 0; i < value.length; i++) {
-                                        if (value[i].position.x > maxX) {
-                                            maxX = value[i].position.x;
-                                            maxIndex = key;
-                                        }
-                                    }
-                                } else if ((key === "loader" || key === "exporter") && value !== ""){
-                                    if (value.position.x > maxX) {
-                                        maxX = value.position.x;
-                                        maxIndex = key;
-                                    }
-                                }
-                            });
-                            if (maxX !== -1) {
-                                if (maxIndex.length > 1  && typeof(maxIndex) === "object") {
-                                    setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x]);
-                                    position = JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x;
-                                } else {
-                                    setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex].position.x]);
-                                    position = JSON.parse(nodesInStorage).batch[maxIndex].position.x
-                                }
-                            } else {
-                                setBlocksPosition(prevState => [...prevState, 0]);
-                            }
-                        }
-
-                        Object.entries(JSON.parse(nodesInStorage)[nodeType]).forEach(([key, value]) => {
-                            if (!["edges", "created", "blockPosition"].includes(key)) {
-                                if (key === "transformers") {
-                                    const newTransformers = [];
-                                    for (let i of value) {
-                                        const isContentInStorage = localStorage.getItem(`${name}-${i.id}-block-content`);
-
-                                        if (isContentInStorage) {
-                                            const newNode = {};
-                                            Object.entries(i).forEach(([k, v]) => {
-                                                if (k === "data"){
-                                                    newNode[k] = {...v, content: isContentInStorage};
-                                                } else {
-                                                    newNode[k] = v;
-                                                }
-                                            })
-                                            newTransformers.push(newNode);
-                                        } else {
-                                            newTransformers.push(i);
-                                        }
-                                    }
-                                    modifiedNodes[nodeType]["transformers"] = newTransformers;
-                                } else {
-                                    const isContentInStorage = localStorage.getItem(`${name}-${value.id}-block-content`);
-
-                                    if (isContentInStorage) {
-                                        const newNode = {};
-                                        Object.entries(value).forEach(([key, value]) => {
-                                            if (key === "data"){
-                                                newNode[key] = {...value, content: isContentInStorage};
-                                            } else {
-                                                newNode[key] = value;
-                                            }
-                                        })
-                                        if (key === "loader") {
-                                            modifiedNodes[nodeType]["loader"] = newNode;
-                                        } else {
-                                            modifiedNodes[nodeType]["exporter"] = newNode;
-                                        }
-                                    } else {
-                                        if (key === "loader") {
-                                            modifiedNodes[nodeType]["loader"] = value;
-                                        } else {
-                                            modifiedNodes[nodeType]["exporter"] = value;
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (key === "blockPosition") {
-                                    modifiedNodes[nodeType]["blockPosition"] = position
-                                } else if (key === "created") {
-                                    modifiedNodes[nodeType]["created"] = false
-                                } else if (key === "edges") {
-                                    modifiedNodes[nodeType]["edges"] = value;
-                                }
-                            }
-                        })
+                        // let maxX = -1;
+                        // let maxIndex = 0;
+                        // const nodeType = "stream" in JSON.parse(nodesInStorage) ? "stream" : "batch";
+                        // let modifiedNodes = {[nodeType]: {}};
+                        // let position = 0;
+                        // if ("stream" in JSON.parse(nodesInStorage)) {
+                        //     Object.entries(JSON.parse(nodesInStorage).stream).forEach(([key, value]) => {
+                        //         if (key !== "edges") {
+                        //             if (key === "transformers") {
+                        //                 for (let i = 0; i < value.length; i++) {
+                        //                     if (value[i].position.x > maxX) {
+                        //                         maxX = value[i].position.x;
+                        //                         maxIndex = [key, i];
+                        //                     }
+                        //                 }
+                        //             } else if ((key === "loader" || key === "exporter") && value !== ""){
+                        //                 if (value.position.x > maxX) {
+                        //                     maxX = value.position.x;
+                        //                     maxIndex = key;
+                        //                 }
+                        //             }
+                        //         }
+                        //     });
+                        //     if (maxX !== -1) {
+                        //         if (maxIndex.length > 1 && typeof(maxIndex) === "object") {
+                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x]);
+                        //             position = JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x;
+                        //         } else {
+                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex].position.x]);
+                        //             position = JSON.parse(nodesInStorage).stream[maxIndex].position.x;
+                        //         }
+                        //     } else {
+                        //         setBlocksPosition(prevState => [...prevState, 0]);
+                        //     }
+                        // } else {
+                        //     Object.entries(JSON.parse(nodesInStorage).batch).forEach(([key, value]) => {
+                        //         if (key === "transformers") {
+                        //             for (let i = 0; i < value.length; i++) {
+                        //                 if (value[i].position.x > maxX) {
+                        //                     maxX = value[i].position.x;
+                        //                     maxIndex = key;
+                        //                 }
+                        //             }
+                        //         } else if ((key === "loader" || key === "exporter") && value !== ""){
+                        //             if (value.position.x > maxX) {
+                        //                 maxX = value.position.x;
+                        //                 maxIndex = key;
+                        //             }
+                        //         }
+                        //     });
+                        //     if (maxX !== -1) {
+                        //         if (maxIndex.length > 1  && typeof(maxIndex) === "object") {
+                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x]);
+                        //             position = JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x;
+                        //         } else {
+                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex].position.x]);
+                        //             position = JSON.parse(nodesInStorage).batch[maxIndex].position.x
+                        //         }
+                        //     } else {
+                        //         setBlocksPosition(prevState => [...prevState, 0]);
+                        //     }
+                        // }
+                        //
+                        // Object.entries(JSON.parse(nodesInStorage)[nodeType]).forEach(([key, value]) => {
+                        //     if (!["edges", "created", "blockPosition"].includes(key)) {
+                        //         if (key === "transformers") {
+                        //             const newTransformers = [];
+                        //             for (let i of value) {
+                        //                 const isContentInStorage = localStorage.getItem(`${name}-${i.id}-block-content`);
+                        //
+                        //                 if (isContentInStorage) {
+                        //                     const newNode = {};
+                        //                     Object.entries(i).forEach(([k, v]) => {
+                        //                         if (k === "data"){
+                        //                             newNode[k] = {...v, content: isContentInStorage};
+                        //                         } else {
+                        //                             newNode[k] = v;
+                        //                         }
+                        //                     })
+                        //                     newTransformers.push(newNode);
+                        //                 } else {
+                        //                     newTransformers.push(i);
+                        //                 }
+                        //             }
+                        //             modifiedNodes[nodeType]["transformers"] = newTransformers;
+                        //         } else {
+                        //             const isContentInStorage = localStorage.getItem(`${name}-${value.id}-block-content`);
+                        //
+                        //             if (isContentInStorage) {
+                        //                 const newNode = {};
+                        //                 Object.entries(value).forEach(([key, value]) => {
+                        //                     if (key === "data"){
+                        //                         newNode[key] = {...value, content: isContentInStorage};
+                        //                     } else {
+                        //                         newNode[key] = value;
+                        //                     }
+                        //                 })
+                        //                 if (key === "loader") {
+                        //                     modifiedNodes[nodeType]["loader"] = newNode;
+                        //                 } else {
+                        //                     modifiedNodes[nodeType]["exporter"] = newNode;
+                        //                 }
+                        //             } else {
+                        //                 if (key === "loader") {
+                        //                     modifiedNodes[nodeType]["loader"] = value;
+                        //                 } else {
+                        //                     modifiedNodes[nodeType]["exporter"] = value;
+                        //                 }
+                        //             }
+                        //         }
+                        //     } else {
+                        //         if (key === "blockPosition") {
+                        //             modifiedNodes[nodeType]["blockPosition"] = position
+                        //         } else if (key === "created") {
+                        //             modifiedNodes[nodeType]["created"] = false
+                        //         } else if (key === "edges") {
+                        //             modifiedNodes[nodeType]["edges"] = value;
+                        //         }
+                        //     }
+                        // })
                         setPipelines((prevState) => ({
                             ...prevState,
                             [name]: {
@@ -1094,7 +1091,6 @@ const PythonEditor = () => {
 
                     }
                 }
-
 
                 setTabsName(prevState => [...prevState, name]);
                 setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={name} icon={<ClearIcon onClick={() => handleTabClose(counter, name)} />} iconPosition="end" {...a11yProps(counter)}/>]);
@@ -1288,7 +1284,7 @@ const PythonEditor = () => {
             >
                 <Toolbar />
                 <Box sx={{ overflow: "auto" }}>
-                    <Accordion expanded={expanded === 'panel1'} onChange={handleMainChange('panel1')}>
+                    <Accordion expanded={expanded.toString() === 'panel1'} onChange={handleMainChange('panel1')}>
                         <AccordionSummary
                             expandIcon={<ExpandMoreIcon />}
                             aria-controls="panel1bh-content"
@@ -1300,7 +1296,7 @@ const PythonEditor = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                             <Box>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded === 'batch_panel1'} onChange={handleBatchChange('batch_panel1')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel1'} onChange={handleBatchChange('batch_panel1')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1309,12 +1305,12 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchLoaderOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchLoaderOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded === 'batch_panel2'} onChange={handleBatchChange('batch_panel2')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel2'} onChange={handleBatchChange('batch_panel2')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1323,12 +1319,12 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchNullOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchNullOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded === 'batch_panel3'} onChange={handleBatchChange('batch_panel3')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel3'} onChange={handleBatchChange('batch_panel3')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1337,12 +1333,12 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchAnomalyOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchAnomalyOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded === 'batch_panel4'} onChange={handleBatchChange('batch_panel4')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel4'} onChange={handleBatchChange('batch_panel4')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1351,7 +1347,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setBatchExporterOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchExporterOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -1359,7 +1355,7 @@ const PythonEditor = () => {
                             </Box>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion expanded={expanded === 'panel2'} onChange={handleMainChange('panel2')}>
+                    <Accordion expanded={expanded.toString() === 'panel2'} onChange={handleMainChange('panel2')}>
                         <AccordionSummary
                             expandIcon={<ExpandMoreIcon />}
                             aria-controls="panel2bh-content"
@@ -1371,7 +1367,7 @@ const PythonEditor = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                             <Box>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded === 'stream_panel1'} onChange={handleStreamChange('stream_panel1')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded.toString() === 'stream_panel1'} onChange={handleStreamChange('stream_panel1')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1380,12 +1376,12 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setStreamingLoaderOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setStreamingLoaderOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded === 'stream_panel2'} onChange={handleStreamChange('stream_panel2')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded.toString() === 'stream_panel2'} onChange={handleStreamChange('stream_panel2')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1394,12 +1390,12 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setStreamingTransformerOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setStreamingTransformerOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded === 'stream_panel3'} onChange={handleStreamChange('stream_panel3')}>
+                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded.toString() === 'stream_panel3'} onChange={handleStreamChange('stream_panel3')}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
@@ -1408,7 +1404,7 @@ const PythonEditor = () => {
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { bgcolor: "#36454F", color: "white" } }} onClick={() => setStreamingExporterOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setStreamingExporterOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
