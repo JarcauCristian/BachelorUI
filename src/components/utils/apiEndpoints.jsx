@@ -18,7 +18,7 @@ export const CREATE_BLOCK =  `${baseUrl}/block/create`;
 
 export const READ_PIPELINE = (name) => `${baseUrl}/pipeline/read?pipeline_name=${name}`;
 export const RUN_PIPELINE = `${baseUrl}/pipeline/run`;
-export const BLOCK_STATUS = (pipeline_id, block_name) => `http://localhost:7000/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
+export const BLOCK_STATUS = (pipeline_id, block_name) => `${baseUrl}/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
 export const CREATE_PIPELINE_TRIGGER = `${baseUrl}/pipeline/create/trigger`;
 
 export const CHANGE_PIPELINE_STATUS = `${baseUrl}/pipeline/trigger/status`;

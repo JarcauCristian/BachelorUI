@@ -95,77 +95,104 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
 
         isRun.current = true;
 
-        const complete = {};
-        const fail = {}
+        const items = localStorage.getItem(`${pipelineName}-running-steps`);
 
-        nodesName.forEach((value) => {
-            complete[value] = false;
-            fail[value] = false;
-        })
+        if (items) {
+            const parsedItems = JSON.parse(items);
 
-        setCompleted(complete);
-        setFailed(fail);
+            setCompleted(parsedItems["completed"]);
+            setFailed(parsedItems["failed"]);
+            setActiveStep(parsedItems["activeStep"]);
+            setIsLoading(parsedItems["isLoading"]);
 
-        if (pipelineCreated) {
-            axios({
-                method: "GET",
-                url: PIPELINE_RUN_DATA(pipelineName + "_" + Cookies.get("userID").split("-").join("_"))
-            }).then((response) => {
-                setRunData(response.data);
-                console.log(response.data);
-            }).catch((_) => {
-                handleToast("Error loading pipeline run data!", "error");
+            startPipeline(parsedItems["activeStep"]);
+        } else {
+            const complete = {};
+            const fail = {}
+
+            nodesName.forEach((value) => {
+                complete[value] = false;
+                fail[value] = false;
             })
 
-            axios({
-                method: "GET",
-                url: PIPELINE_TRIGGER_STATUS(pipelineName + "_" + Cookies.get("userID").split("-").join("_"))
-            }).then((response) => {
-                if (response.data === "active") {
-                    setIsPipelineRunning(true);
-                } else {
-                    setIsPipelineRunning(false);
+            setCompleted(complete);
+            setFailed(fail);
+
+            if (pipelineCreated) {
+                axios({
+                    method: "GET",
+                    url: PIPELINE_RUN_DATA(pipelineName + "_" + Cookies.get("userID").split("-").join("_"))
+                }).then((response) => {
+                    setRunData(response.data);
+                }).catch((_) => {
+                    handleToast("Error loading pipeline run data!", "error");
+                })
+
+                if (pipelineType === "stream") {
+                    axios({
+                        method: "GET",
+                        url: PIPELINE_TRIGGER_STATUS(pipelineName + "_" + Cookies.get("userID").split("-").join("_"))
+                    }).then((response) => {
+                        if (response.data === "active") {
+                            setIsPipelineRunning(true);
+                        } else {
+                            setIsPipelineRunning(false);
+                        }
+                    }).catch((_) => {
+                        handleToast("Error getting pipeline status!", "error");
+                    })
                 }
-            }).catch((_) => {
-                handleToast("Error getting pipeline status!", "error");
-            })
+            }
         }
     }, [pipelineCreated, nodesName, failed, completed, setCompleted, setFailed, pipelineName, setRunData, handleToast])
 
-    const startPipeline = async () => {
-        if (nodesName.length < 2) {
-            handleToast("The pipeline does not meet the requirements!", "error");
-            return;
-        }
+    const startPipeline = async (index) => {
+        if (!isLoading) {
+            const complete = {};
+            const fail = {}
 
-        if (runData === null) {
-            handleToast("Run Data didn't load correctly!", "error");
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            await axios({
-                method: "POST",
-                url: RUN_PIPELINE,
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                data: {
-                    "run_id": runData.id,
-                    "token": runData.token,
-                    "variables": {}
-                }
+            nodesName.forEach((value) => {
+                complete[value] = false;
+                fail[value] = false;
             })
 
-            setIsLoading(false);
-        } catch (e) {
-            setIsLoading(false);
-            handleToast("Error starting the pipeline!", "error");
-            return;
+            setCompleted(complete);
+            setFailed(fail);
+            setActiveStep(-1);
+
+            if (nodesName.length < 2) {
+                handleToast("The pipeline does not meet the requirements!", "error");
+                return;
+            }
+
+            if (runData === null) {
+                handleToast("Run Data didn't load correctly!", "error");
+                return;
+            }
+
+            setIsLoading(true);
+            try {
+                await axios({
+                    method: "POST",
+                    url: RUN_PIPELINE,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    data: {
+                        "run_id": runData.id,
+                        "token": runData.token,
+                        "variables": {}
+                    }
+                })
+            } catch (e) {
+                setIsLoading(false);
+                handleToast("Error starting the pipeline!", "error");
+                return;
+            }
         }
 
-        for (let i = 0; i < nodesName.length; i++) {
+        for (let i = index; i < nodesName.length; i++) {
+            setActiveStep(i)
             const makeAPIRequest = async (node) => {
                 return new Promise((resolve) => {
                     const retry = async () => {
@@ -200,16 +227,20 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                 const newCompleted = completed;
                 newCompleted[node] = true;
                 setCompleted(newCompleted);
+
+                const toSave = {
+                    "completed": newCompleted,
+                    "failed": failed,
+                    "activeStep": activeStep,
+                    "isLoading": isLoading
+                }
+
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
             } else {
                 const newFailed = failed;
                 newFailed[node] = true;
-                setCompleted(newFailed);
+                setFailed(newFailed);
                 handleToast("Pipeline failed to finish!", "error");
-                for (let j = i; j < nodesName.length; j++) {
-                    const newFailed = failed;
-                    newFailed[node] = true;
-                    setCompleted(newFailed);
-                }
                 break;
             }
         }
@@ -318,7 +349,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                             borderRadius: 2,
                             backgroundColor: "#36454f",
                         }}>
-                            {!isLoading ? <PlayCircleIcon sx={{color: "white", fontSize: 40, cursor: "pointer"}} onClick={startPipeline}/> : <CircularProgress color="inherit" />}
+                            {!isLoading ? <PlayCircleIcon sx={{color: "white", fontSize: 40, cursor: "pointer"}} onClick={() => startPipeline(0)}/> : <CircularProgress color="inherit" />}
                             {!isLoading ? <Typography sx={{color: "white", fontWeight: "bold", fontSize: 25}}>Run
                                 Pipeline</Typography> : <Typography sx={{color: "white", fontWeight: "bold", fontSize: 25}}>Running...</Typography>}
                         </Box>
