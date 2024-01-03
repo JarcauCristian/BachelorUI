@@ -73,6 +73,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
     const [isLoading, setIsLoading] = React.useState(false);
     const [isPipelineRunning, setIsPipelineRunning] = React.useState(false);
     const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [webSocket, setWebSocket] = React.useState(false);
     const [streamPipelineData, setStreamPipelineData] = React.useState({
         "last_status": null,
         "next_run": null
@@ -128,7 +129,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
 
     const startPipeline = async (index) => {
         const isPresent = localStorage.getItem(`${pipelineName}-running-steps`)
-        if (!isPresent || (isPresent && index === 0)) {
+        if (!isPresent || JSON.parse(isPresent).lastRunStep === -1) {
             const complete = {};
             const fail = {}
 
@@ -160,12 +161,12 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                     },
                     timeout: 10000
                 })
-                setActiveStep(0);
                 const toSave = {
                     "completed": complete,
                     "failed": fail,
-                    "activeStep": 0,
-                    "isLoading": true
+                    "activeStep": -1,
+                    "lastRunStep": 0,
+                    "isLoading": true,
                 }
 
                 localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
@@ -176,114 +177,38 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             }
         }
 
-        // for (let i = index; i < nodesName.length; i++) {
-        //     setActiveStep(i)
-        //     const makeAPIRequest = async (node) => {
-        //         return new Promise((resolve) => {
-        //             const retry = async () => {
-        //                 try {
-        //                     const response = await axios({
-        //                         method: 'GET',
-        //                         url: BLOCK_STATUS(runData.id, node),
-        //                     });
-        //
-        //                     const data = response.data;
-        //
-        //                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
-        //                         console.log('Satisfactory response received:', data);
-        //                         resolve(data);
-        //                     } else {
-        //                         console.log('Unsatisfactory response:', data);
-        //                         setTimeout(retry, 2000);
-        //                     }
-        //                 } catch (error) {
-        //                     console.error('Error:', error);
-        //                     setTimeout(retry, 2000);
-        //                 }
-        //             };
-        //             retry();
-        //         });
-        //     };
-        //
-        //     const node = nodesName[i]
-        //     const result = await makeAPIRequest(node);
-        //
-        //     if (result === "completed") {
-        //         const newCompleted = completed;
-        //         newCompleted[node] = true;
-        //         setCompleted(newCompleted);
-        //
-        //         const toSave = {
-        //             "completed": newCompleted,
-        //             "failed": failed,
-        //             "activeStep": i,
-        //             "isLoading": true
-        //         }
-        //
-        //         localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-        //     } else {
-        //         const newFailed = failed;
-        //         newFailed[node] = true;
-        //         setFailed(newFailed);
-        //         handleToast("Pipeline failed to finish!", "error");
-        //         break;
-        //     }
-        // }
-        // if (activeStep === nodesName.length - 1) {
-        //     handleToast("Pipeline Completed Successfully! Items were saved!", "error");
-        // }
-        // setIsLoading(false);
-
         setIsLoading(true);
-        let i = index;
-        const ws = new WebSocket("ws://localhost:8000/block/status");
 
-        ws.onopen = function(event) {
-            console.log("Connected to WebSocket");
-            const data = {
-                pipeline_id: JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
-                block_name: nodesName[i]
-            };
-            i++;
-            ws.send(JSON.stringify(data));
-        };
+        for (let i = index; i < nodesName.length; i++) {
+            setActiveStep(i);
+            const result = await runStep(nodesName[i]);
 
-        ws.onerror = function(event) {
-            console.error("WebSocket error observed:", event);
-            handleToast("Error connecting to pipeline!", "error");
-        };
-
-        ws.onmessage = function(event) {
-            const message = JSON.parse(event.data);
-            const status = message.status;
-            const node = message.node;
-            setActiveStep(index + nodesName.indexOf(node));
-
-            if (status === "completed") {
-                const newCompleted = { ...completed, [node]: true };
+            if (result === "completed") {
+                const newCompleted = completed;
+                newCompleted[nodesName[i]] = true;
                 setCompleted(newCompleted);
 
                 const toSave = {
                     "completed": newCompleted,
                     "failed": failed,
-                    "activeStep": nodesName.indexOf(node),
+                    "activeStep": i + 1,
+                    "lastRunStep": i,
                     "isLoading": true
                 }
 
                 localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+            } else {
+                const newFailed = failed;
 
-                i++;
-            } else if (status === "failed") {
-                const newFailed = { ...failed, [node]: true };
-
-                for (let i = nodesName.indexOf(node); i < nodesName.length; i++) {
-                    newFailed[nodesName[i]] = true;
+                for (let j = i; j < nodesName.length; j++) {
+                    newFailed[nodesName[j]] = true;
                 }
                 setFailed(newFailed);
                 const toSave = {
                     "completed": completed,
                     "failed": newFailed,
-                    "activeStep": nodesName.indexOf(node),
+                    "activeStep": -1,
+                    "lastRunStep": -1,
                     "isLoading": false
                 }
 
@@ -291,36 +216,174 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                 handleToast("Pipeline failed to finish!", "error");
                 setIsLoading(false);
                 setActiveStep(-1);
-                ws.close();
+                break;
+            }
+        }
+
+        if (JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)).activeStep === nodesName.length - 1) {
+            handleToast("Pipeline Completed Successfully! Items were saved!", "error");
+            const toSave = {
+                "completed": completed,
+                "failed": failed,
+                "activeStep": -1,
+                "lastRunStep": -1,
+                "isLoading": false
             }
 
-            if (Object.values(completed).every(v => v)) {
-                const toSave = {
-                    "completed": completed,
-                    "failed": failed,
-                    "activeStep": nodesName.indexOf(node),
-                    "isLoading": false
-                }
+            localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+            setIsLoading(false);
+            setActiveStep(-1);
+        }
 
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-                handleToast("Pipeline Completed Successfully! Items were saved!", "success");
-                setIsLoading(false);
-                setActiveStep(-1);
-                ws.close();
-            }
-        };
-
-        ws.onclose = function(event) {
-            if (i < nodesName.length) {
-                const data = {
-                    pipeline_id: JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
-                    block_name: nodesName[i]
-                };
-                ws.send(JSON.stringify(data));
-            }
-        };
+        // for (let i = index; i < nodesName.length; i++) {
+        //     const result = await webSocketSend(i);
+        //
+        //     if (result) {
+        //         setIsLoading(false);
+        //         setActiveStep(-1);
+        //         break;
+        //     }
+        // }
     }
 
+    const webSocketSend = async (index) => {
+        return new Promise((resolve, reject) => {
+            if (!JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)).webSocket) {
+                const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), activeStep: index, webSocket: true};
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                setActiveStep(index);
+                let outerStatus = false;
+                const ws = new WebSocket("ws://localhost:8000/block/status");
+                setWebSocket(true);
+
+                ws.onopen = function (event) {
+                    console.log("Connected to WebSocket");
+                    const data = {
+                        pipeline_id: JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
+                        block_name: nodesName[index]
+                    };
+                    ws.send(JSON.stringify(data));
+                };
+
+                ws.onerror = function (event) {
+                    console.error("WebSocket error observed:", event);
+                    handleToast("Error connecting to pipeline!", "error");
+                    reject(event);
+                };
+
+                ws.onmessage = function (event) {
+                    const message = JSON.parse(event.data);
+                    const status = message.status;
+                    const node = message.node;
+
+                    if (status === "completed") {
+                        const newCompleted = {...completed, [node]: true};
+                        setCompleted(newCompleted);
+
+                        if (index === nodesName.length - 1) {
+                            outerStatus = true;
+                            const toSave = {
+                                "completed": completed,
+                                "failed": failed,
+                                "activeStep": -1,
+                                "lastRunStep": -1,
+                                "isLoading": false,
+                                "webSocket": false
+                            }
+
+                            localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                            handleToast("Pipeline Completed Successfully! Items were saved!", "success");
+                            setIsLoading(false);
+                            setActiveStep(-1);
+                            ws.close();
+                        } else {
+                            outerStatus = false;
+                            const toSave = {
+                                "completed": newCompleted,
+                                "failed": failed,
+                                "activeStep": nodesName.indexOf(node) + 1,
+                                "lastRunStep": index,
+                                "isLoading": true,
+                                "webSocket": true
+                            }
+
+                            localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                            ws.close();
+                        }
+                    } else if (status === "failed") {
+                        outerStatus = true;
+                        const newFailed = {...failed, [node]: true};
+
+                        for (let i = nodesName.indexOf(node) + 1; i < nodesName.length; i++) {
+                            newFailed[nodesName[i]] = true;
+                        }
+
+                        console.log("New Failed: ", newFailed);
+                        console.log("Index: ", nodesName.indexOf(node) + 1);
+                        setFailed(newFailed);
+                        const toSave = {
+                            "completed": completed,
+                            "failed": newFailed,
+                            "activeStep": -1,
+                            "lastRunStep": -1,
+                            "isLoading": false,
+                            "webSocket": false
+                        }
+
+                        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                        handleToast("Pipeline failed to finish!", "error");
+                        setIsLoading(false);
+                        setActiveStep(-1);
+                        ws.close();
+                    }
+                };
+
+                ws.onclose = function (event) {
+                    console.log("WebSocket closed: ", event, outerStatus);
+                    setWebSocket(false);
+                    if (outerStatus) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                };
+            }
+        })
+    }
+
+    const runStep = async (node) => {
+        return new Promise((resolve) => {
+            let counter = 0;
+            const retry = async () => {
+                if (counter === 5) {
+                    console.log("Failed");
+                    resolve("failed");
+                }
+                try {
+                    const response = await axios({
+                        method: 'GET',
+                        url: BLOCK_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id, node),
+                    });
+
+                    const data = response.data;
+
+                    if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
+                        //console.log('Satisfactory response received:', data);
+                        resolve(data);
+                    } else {
+                        //console.log('Unsatisfactory response:', data);
+                        setTimeout(retry, 10000);
+                        console.log(counter);
+                        counter += 1;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    setTimeout(retry, 10000);
+                }
+            };
+            retry();
+        });
+    }
     const enablePipeline = () => {
         axios({
             method: "PUT",
@@ -377,17 +440,22 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
 
     React.useEffect(() => {
         const savedState = JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`));
-
         if (savedState) {
-            setCompleted(savedState.completed);
-            setFailed(savedState.failed);
-            setActiveStep(savedState.activeStep);
-            setIsLoading(savedState.isLoading);
-            const nextStepIndex = findNextStepIndex(savedState);
-            if (nextStepIndex !== null) {
-                startPipeline(nextStepIndex);
+            if (savedState.lastRunStep !== -1) {
+                setCompleted(savedState.completed);
+                setFailed(savedState.failed);
+                setActiveStep(savedState.activeStep);
+                setIsLoading(savedState.isLoading);
+                setWebSocket(savedState.webSocket);
+                setTimeout(() => {
+                    startPipeline(savedState.lastRunStep + 1).then((_) => {});
+                }, 1000);
             } else {
-                console.log("No more steps to resume or handle completion.");
+                setCompleted(savedState.completed);
+                setFailed(savedState.failed);
+                setActiveStep(savedState.activeStep);
+                setIsLoading(savedState.isLoading);
+                setWebSocket(savedState.webSocket);
             }
         } else {
             const complete = {};
@@ -401,20 +469,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             setCompleted(complete);
             setFailed(fail);
         }
-    }, []); // Include necessary dependencies or keep empty to run only once on mount
-
-    function findNextStepIndex(savedState) {
-        const { completed, failed } = savedState;
-
-        for (let i = 0; i < nodesName.length; i++) {
-            if (!completed[nodesName[i]] && !failed[nodesName[i]]) {
-                return i;
-            }
-        }
-
-        return null;
-    }
-
+    }, []);
 
     return (
         <div>

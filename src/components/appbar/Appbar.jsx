@@ -41,7 +41,7 @@ function ResponsiveAppBar({logout, role, username}) {
       setPages(["Home", "About"]);
       setHoverEffect([false, false]);
     } else if (role === "data-producer") {
-      setPages(["Home", "Data Upload", "Data Orchestration", "Datasets", "Models"]);
+      setPages(["Home", "Orchestration", "Datasets", "Models"]);
       setHoverEffect([false, false, false, false, false]);
     } else if (role === "data-scientist") {
       setPages(["Home", "Datasets", "Notebooks", "Models"]);
