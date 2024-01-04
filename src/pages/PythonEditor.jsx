@@ -76,7 +76,7 @@ const PythonEditor = () => {
     const [batchTransformerOpen, setBatchTransformerOpen] = React.useState(false);
     const [batchExporterOpen, setBatchExporterOpen] = React.useState(false);
     const [batchNullOpen, setBatchNullOpen] = React.useState(false);
-    const [batchAnomalyOpen, setBatchAnomalyOpen] = React.useState(false);
+    const [batchImputationOpen, setBatchImputationOpen] = React.useState(false);
     const [blocksPosition, setBlocksPosition] = React.useState([]);
     const [pipelineCreated, setPipelineCreated] = React.useState([]);
     const [pipelinesBlocksNames, setPipelinesBlocksNames] = React.useState([]);
@@ -109,7 +109,7 @@ const PythonEditor = () => {
             return;
         }
         const checking = /^[a-z_]+$/.test(tabName);
-        if (checking && tabName.length < 10) {
+        if (checking && tabName.length <= 10) {
             if (pipelineType === "stream") {
                 const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
                 const type = "streaming"
@@ -247,7 +247,7 @@ const PythonEditor = () => {
         if (batchLoaderOpen) setBatchLoaderOpen(false);
         if (batchTransformerOpen) setBatchTransformerOpen(false);
         if (batchNullOpen) setBatchNullOpen(false);
-        if (batchAnomalyOpen) setBatchAnomalyOpen(false);
+        if (batchImputationOpen) setBatchImputationOpen(false);
         if (batchExporterOpen) setBatchExporterOpen(false);
     }
 
@@ -625,7 +625,7 @@ const PythonEditor = () => {
                                 if (name === "remove_null_rows") {
                                     setBatchNullOpen(false);
                                 } else {
-                                    setBatchAnomalyOpen(false);
+                                    setBatchImputationOpen(false);
                                 }
                             } else {
                                 handleToast("There is already a block with that name!", "error");
@@ -646,7 +646,7 @@ const PythonEditor = () => {
                         if (name === "remove_null_rows") {
                             setBatchNullOpen(false);
                         } else {
-                            setBatchAnomalyOpen(false);
+                            setBatchImputationOpen(false);
                         }
                     }
                 } else {
@@ -657,7 +657,7 @@ const PythonEditor = () => {
                 if (name === "remove_null_rows") {
                     setBatchNullOpen(false);
                 } else {
-                    setBatchAnomalyOpen(false);
+                    setBatchImputationOpen(false);
                 }
             })
         } else {
@@ -665,7 +665,7 @@ const PythonEditor = () => {
             if (name === "remove_null_rows") {
                 setBatchNullOpen(false);
             } else {
-                setBatchAnomalyOpen(false);
+                setBatchImputationOpen(false);
             }
         }
     }
@@ -1251,13 +1251,13 @@ const PythonEditor = () => {
                     </Button>
                 </Box>
             </Dialog>
-            <Dialog open={batchAnomalyOpen} onClose={handleClose}>
+            <Dialog open={batchImputationOpen} onClose={handleClose}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         BLOCK NAME
                     </DialogTitle>
                     <TextField variant="outlined" onChange={(event) => setBatchTransformerName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleBatchTransformer("anomaly_detection")}>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleBatchTransformer("data_imputation")}>
                         Add Transformer
                     </Button>
                 </Box>
@@ -1329,11 +1329,11 @@ const PythonEditor = () => {
                                         expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"anomaly detection".toUpperCase()}
+                                            {"Data Imputation".toUpperCase()}
                                         </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchAnomalyOpen(true)}>
+                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchImputationOpen(true)}>
                                             Add
                                         </Button>
                                     </AccordionDetails>
@@ -1432,12 +1432,12 @@ const PythonEditor = () => {
                                 index={index}
                                 value={value}
                                 {...{
-                                    componentNodes: (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
+                                    componentNodes: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]
-                                        : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"],
-                                    componentEdges: (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
+                                        : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"] : [],
+                                    componentEdges: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]["edges"]
-                                        : pipelines[tabsName[value]]["batch"]["edges"],
+                                        : pipelines[tabsName[value]]["batch"]["edges"] : [],
                                     drawerWidth: drawerWidth,
                                     created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
                                     setPipes: setPipelines,

@@ -110,7 +110,7 @@ import {
     CircularProgress,
     Dialog, DialogActions,
     DialogContent,
-    DialogTitle,
+    DialogTitle, FormControl, InputLabel, Select,
     Snackbar,
     TextField
 } from "@mui/material";
@@ -119,6 +119,7 @@ import Editor from "@monaco-editor/react";
 import axios from "axios";
 import {UPLOAD_TEMP_FILE} from "../utils/apiEndpoints";
 import Cookies from "js-cookie";
+import MenuItem from "@mui/material/MenuItem";
 
 
 function TextUpdaterNode({ data, isConnectable }) {
@@ -181,7 +182,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                     sx={{ mb: 2 }}
                 />
             );
-        } else {
+        } else if (type === 'int' || type === 'str') {
             return (
                 <TextField
                     key={key}
@@ -194,7 +195,26 @@ function TextUpdaterNode({ data, isConnectable }) {
                     sx={{ mb: 2 }}
                 />
             );
+        } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
+            return (
+                <FormControl key={key} fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>{key}</InputLabel>
+                    <Select
+                        name={key}
+                        value={values[key]}
+                        onChange={handleInputChange}
+                    >
+                        {type.map((item, index) => (
+                            <MenuItem key={index} value={item}>
+                                {item}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            );
         }
+
+        return null;
     };
 
     React.useEffect(() => {
