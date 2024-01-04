@@ -11,7 +11,8 @@ import Notebooks from "./pages/Notebooks";
 import Notebook from "./pages/Notebook";
 import Models from "./pages/Models";
 import Model from "./pages/Model";
-import PythonEditor from "./pages/PythonEditor";
+import Orchestrator from "./pages/Orchestrator";
+import DatasetGraph from "./pages/DatasetGraph";
 
 function App() {
 
@@ -27,14 +28,14 @@ function App() {
               : isLogin && userRole === "data-producer" ?
                     <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
                         <Route index element={<LandingPage role={userRole} />}/>
-                        <Route path="orchestration" element={<PythonEditor token={token}/>}/>
-                        <Route path="datasets" element={<PythonEditor token={token}/>}/>
-                        <Route path="models" element={<PythonEditor token={token}/>}/>
+                        <Route path="orchestration" element={<Orchestrator token={token}/>}/>
+                        <Route path="datasets" element={<Orchestrator token={token}/>}/>
+                        <Route path="models" element={<Orchestrator token={token}/>}/>
                     </Route>
                     : isLogin && userRole === "data-scientist" ?
                         <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
                             <Route index element={<LandingPage role={userRole} />}/>
-                            <Route path="datasets" element={<PythonEditor token={token}/>}/>
+                            <Route path="datasets" element={<DatasetGraph token={token}/>}/>
                             <Route path="notebooks" element={<Notebooks token={token}/>}/>
                             <Route path="/notebooks/:notebookID" element={<Notebook />} />
                             <Route path="models" element={<Models token={token}/>}/>

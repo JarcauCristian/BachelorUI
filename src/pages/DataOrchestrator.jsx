@@ -28,7 +28,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import TextUpdaterNode from '../components/customNode/TextUpdaterNode';
+import TextUpdaterNode from '../components/customNodes/TextUpdaterNode';
 import '../styles/custom_node.css';
 
 const initialNodes = [

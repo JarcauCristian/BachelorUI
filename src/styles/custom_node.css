@@ -5,6 +5,13 @@
     width: 250px;
 }
 
+.neo4j-node {
+    border: 2px solid #000;
+    border-radius: 50%;
+    background: white;
+    width: 250px;
+}
+
 .custom-node__header {
     padding: 8px 10px;
     border-bottom: 1px solid #e2e8f0;
@@ -12,5 +19,5 @@
 }
 
 .custom-node__body {
-    padding: 10px;
+    padding: 10px
 }

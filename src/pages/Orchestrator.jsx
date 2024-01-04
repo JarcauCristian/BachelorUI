@@ -47,7 +47,7 @@ function a11yProps(index: number) {
     };
 }
 
-const PythonEditor = () => {
+const Orchestrator = () => {
     const [expanded, setExpanded] = React.useState(false);
     const [batchExpanded, setBatchExpanded] = React.useState(false);
     const [streamExpanded, setStreamExpanded] = React.useState(false);
@@ -1435,9 +1435,9 @@ const PythonEditor = () => {
                                     componentNodes: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]
                                         : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"] : [],
-                                    componentEdges: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
+                                    componentEdges: (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]["edges"]
-                                        : pipelines[tabsName[value]]["batch"]["edges"] : [],
+                                        : pipelines[tabsName[value]]["batch"]["edges"],
                                     drawerWidth: drawerWidth,
                                     created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
                                     setPipes: setPipelines,
@@ -1455,4 +1455,4 @@ const PythonEditor = () => {
     );
 }
 
-export default PythonEditor;
+export default Orchestrator;

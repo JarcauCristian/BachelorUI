@@ -362,7 +362,6 @@ const ReactFlowPanel = (props) => {
     }, [setEdges, other.componentEdges, other.created]);
 
     React.useEffect(() => {
-        if (isRun >= 2) {
             if (!other.created && edges !== other.componentEdges) {
                 if (other.type === "stream") {
                     other.setPipes((prevState) => ({
@@ -396,7 +395,6 @@ const ReactFlowPanel = (props) => {
                     }))
                 }
             }
-        }
     }, [edges]);
 
     const handleOpenDialog = () => {
