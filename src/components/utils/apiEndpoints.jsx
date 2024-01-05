@@ -1,5 +1,6 @@
 
 const baseUrl = "http://localhost:8000";
+const neo4jUrl = "http://localhost:7000";
 
 export const BLOCK_MODEL = (pipeline_type, block_type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}`;
 export const BLOCK_MODEL_TRANSFORMERS = (pipeline_type, block_type, type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}&transformer_type=${type}`;
@@ -30,3 +31,5 @@ export const PIPELINE_TRIGGER_STATUS = (name) => `${baseUrl}/pipeline/trigger/st
 export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
 
 export const UPLOAD_TEMP_FILE = "http://62.72.21.79:10000/upload";
+
+export const GET_ALL_NODES = `${neo4jUrl}/all`;

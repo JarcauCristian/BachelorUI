@@ -1,31 +1,39 @@
 import * as React from 'react';
 import { Handle, Position } from 'reactflow';
-import CircleIcon from '@mui/icons-material/Circle';
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 
 function Neo4jNode({ data, isConnectable }) {
     const handleCount = data.handleCount || 4;
-    const radius = 50;
-    const center = { x: 50, y: 50 };
+    let handlesIndex = 1;
 
-    const handles = Array.from({ length: handleCount }, (_, index) => {
-        const angle = (index / handleCount) * 2 * Math.PI;
-        const x = center.x + radius * Math.cos(angle);
-        const y = center.y + radius * Math.sin(angle);
-
+    const handles =  Array.from({ length: handleCount }, (_, index) => {
+        let x;
+        switch (index) {
+            case 0:
+                x = 50;
+                break;
+            case 1:
+                x = 0;
+                break;
+            case 2:
+                x = 100;
+                break;
+            default:
+                x = handlesIndex % 2 === 0 ? (handlesIndex - 1) * (((handlesIndex - 1) / handleCount) * 100) : 100 - (handlesIndex * ((handlesIndex / handleCount) * 100));
+                handlesIndex += 1;
+                break;
+        }
         return (
             <Handle
                 key={index}
                 type="source"
-                position="right"
+                position={Position.Bottom}
                 id={`outputHandle${index + 1}`}
                 style={{
                     background: '#C0C0C0',
                     borderRadius: '50%',
-                    position: 'absolute',
-                    marginLeft: '-3px',
-                    top: `${y}%`,
-                    left: `${x}%`,
+                    left: `${x}%`
                 }}
             />
         );
@@ -36,14 +44,25 @@ function Neo4jNode({ data, isConnectable }) {
     }
 
     return (
-        <div className="neo4j-node" style={{ position: "relative", borderRadius: "50%", width: "100%", height: "100%", backgroundColor: "#36454F" }}>
-            {data.type !== "base" && (<Handle type="target" position={Position.Bottom} style={{ backgroundColor: "black" }} isConnectable={isConnectable} />)}
-            <div>
-                <div style={{ padding: 10 }}>
-                    <Typography variant="p" sx={{ fontSize: 10, fontWeight: "bold", color: "white" }}>{data.name.toUpperCase()}</Typography>
-                </div>
-            </div>
-            {data.type !== "leaf" && (handles)}
+        <div className="neo4j-node" style={{
+            border: '2px solid #2b4b6f',
+            borderRadius: '8px',
+            padding: '10px',
+            background: '#36454F',
+            color: 'white',
+            width: '100px',
+        }}>
+            {data.type !== "base" && (<Handle type="target" position={Position.Top} style={{ backgroundColor: "black" }} isConnectable={isConnectable} />)}
+            {data.hasInformation ?
+                <Button onClick={handleClick} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#36454F", color: "white", '&:hover': { backgroundColor: "#36454F", color: "white" } }}>
+                    {data.name.toUpperCase()}
+                </Button>
+                :
+                <Typography sx={{ fontWeight: "bold", padding: 0 }}>
+                    {data.name.toUpperCase()}
+                </Typography>
+            }
+            {data.type !== "leaf" && (<Handle type="source" position={Position.Bottom} style={{ backgroundColor: "#C0C0C0" }} isConnectable={isConnectable} />)}
         </div>
     );
 }
