@@ -105,13 +105,11 @@ import { Handle, Position } from 'reactflow';
 import LockIcon from '@mui/icons-material/Lock';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {
-    Alert,
     Backdrop,
     CircularProgress,
     Dialog, DialogActions,
     DialogContent,
     DialogTitle, FormControl, InputLabel, Select,
-    Snackbar,
     TextField
 } from "@mui/material";
 import Button from "@mui/material/Button";
@@ -183,18 +181,33 @@ function TextUpdaterNode({ data, isConnectable }) {
                 />
             );
         } else if (type === 'int' || type === 'str') {
-            return (
-                <TextField
-                    key={key}
-                    name={key}
-                    fullWidth
-                    label={key}
-                    type={type === 'int' ? 'number' : 'text'}
-                    value={values[key]}
-                    onChange={handleInputChange}
-                    sx={{ mb: 2 }}
-                />
-            );
+            if (key === "new category") {
+                return (
+                    <TextField
+                        key={key}
+                        name={key}
+                        fullWidth
+                        label={key + " Leave empty if the select category are sufficient."}
+                        type={type === 'int' ? 'number' : 'text'}
+                        value={values[key]}
+                        onChange={handleInputChange}
+                        sx={{ mb: 2 }}
+                    />
+                );
+            } else {
+                return (
+                    <TextField
+                        key={key}
+                        name={key}
+                        fullWidth
+                        label={key}
+                        type={type === 'int' ? 'number' : 'text'}
+                        value={values[key]}
+                        onChange={handleInputChange}
+                        sx={{ mb: 2 }}
+                    />
+                );
+            }
         } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
             return (
                 <FormControl key={key} fullWidth sx={{ mb: 2 }}>
@@ -236,7 +249,15 @@ function TextUpdaterNode({ data, isConnectable }) {
     }, [])
 
     const allFieldsFilled = () => {
-        return Object.values(values).every(x => x !== '' && x !== null);
+        let condition = true;
+        for (let [key, value] of Object.entries(values)) {
+            if (key !== "new category" && (value === '' || value === null)) {
+                condition = false;
+                break;
+            }
+        }
+
+        return condition;
     };
 
 
@@ -249,7 +270,9 @@ function TextUpdaterNode({ data, isConnectable }) {
             if (data.params[key] === 'file') {
                 fileInput = value;
             } else {
-                textEntries[key] = value;
+                if (data.params[key] === 'name') {
+                    textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
+                }
             }
         }
         if (!allFieldsFilled()) {
