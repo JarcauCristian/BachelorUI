@@ -4,40 +4,6 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 
 function Neo4jNode({ data, isConnectable }) {
-    const handleCount = data.handleCount || 4;
-    let handlesIndex = 1;
-
-    const handles =  Array.from({ length: handleCount }, (_, index) => {
-        let x;
-        switch (index) {
-            case 0:
-                x = 50;
-                break;
-            case 1:
-                x = 0;
-                break;
-            case 2:
-                x = 100;
-                break;
-            default:
-                x = handlesIndex % 2 === 0 ? (handlesIndex - 1) * (((handlesIndex - 1) / handleCount) * 100) : 100 - (handlesIndex * ((handlesIndex / handleCount) * 100));
-                handlesIndex += 1;
-                break;
-        }
-        return (
-            <Handle
-                key={index}
-                type="source"
-                position={Position.Bottom}
-                id={`outputHandle${index + 1}`}
-                style={{
-                    background: '#C0C0C0',
-                    borderRadius: '50%',
-                    left: `${x}%`
-                }}
-            />
-        );
-    });
 
     const handleClick = () => {
         alert(`Type: ${data.type}`);

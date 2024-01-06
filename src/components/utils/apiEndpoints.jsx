@@ -33,3 +33,5 @@ export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
 export const UPLOAD_TEMP_FILE = "http://62.72.21.79:10000/upload";
 
 export const GET_ALL_NODES = `${neo4jUrl}/all`;
+
+export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_id=${id}`;

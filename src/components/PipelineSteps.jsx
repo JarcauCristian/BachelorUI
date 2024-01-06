@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import {CAPS} from "./utils/utliFunctions";
 import {
+    BATCH_STATUS,
     BLOCK_STATUS,
     CHANGE_PIPELINE_STATUS,
     PIPELINE_RUN_DATA,
@@ -70,6 +71,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
     const [activeStep, setActiveStep] = React.useState(-1);
     const [completed, setCompleted] = React.useState({});
     const [failed, setFailed] = React.useState({});
+    const steps = ["start", "running", "finished"];
     const isRun = React.useRef(false);
     const isRunSteps = React.useRef(false);
     const [runData, setRunData] = React.useState(null);
@@ -129,129 +131,129 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         }
     }, [pipelineType, pipelineCreated, nodesName, failed, completed, setCompleted, setFailed, pipelineName, setRunData, handleToast])
 
-    const startPipeline = async (index) => {
-        const isPresent = localStorage.getItem(`${pipelineName}-running-steps`)
-        if (!isPresent || !JSON.parse(isPresent).isLoading) {
-            const complete = {};
-            const fail = {}
+    // const startPipeline = async (index) => {
+    //     const isPresent = localStorage.getItem(`${pipelineName}-running-steps`)
+    //     if (!isPresent || !JSON.parse(isPresent).isLoading) {
+    //         const complete = {};
+    //         const fail = {}
+    //
+    //         nodesName.forEach((value) => {
+    //             complete[value] = false;
+    //             fail[value] = false;
+    //         })
+    //
+    //         setCompleted(complete);
+    //         setFailed(fail);
+    //
+    //         if (nodesName.length < 2) {
+    //             handleToast("The pipeline does not meet the requirements!", "error");
+    //             return;
+    //         }
+    //
+    //         setIsLoading(true);
+    //         try {
+    //             await axios({
+    //                 method: "POST",
+    //                 url: RUN_PIPELINE,
+    //                 headers: {
+    //                     "Content-Type": "application/json"
+    //                 },
+    //                 data: {
+    //                     "run_id": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
+    //                     "token": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).token,
+    //                     "variables": {}
+    //                 },
+    //                 timeout: 10000
+    //             })
+    //             const toSave = {
+    //                 "completed": complete,
+    //                 "failed": fail,
+    //                 "activeStep": -1,
+    //                 "lastFinishedStep": -1,
+    //                 "isLoading": true,
+    //             }
+    //
+    //             localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+    //         } catch (e) {
+    //             setIsLoading(false);
+    //             handleToast("Error starting the pipeline!", "error");
+    //             return;
+    //         }
+    //     }
+    //
+    //     setIsLoading(true);
+    //
+    //     for (let i = index; i < nodesName.length; i++) {
+    //         setActiveStep(i);
+    //
+    //         if (i === 0) {
+    //             await delay(30000);
+    //         }
+    //
+    //         const result = await runStep(nodesName[i]);
+    //
+    //         if (result === "completed") {
+    //             const newCompleted = completed;
+    //             newCompleted[nodesName[i]] = true;
+    //             setCompleted(newCompleted);
+    //
+    //             const toSave = {
+    //                 "completed": newCompleted,
+    //                 "failed": failed,
+    //                 "activeStep": i + 1,
+    //                 "lastFinishedStep": i,
+    //                 "isLoading": true
+    //             }
+    //
+    //             localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+    //         } else {
+    //             const newFailed = failed;
+    //
+    //             console.log(i);
+    //
+    //             for (let j = i; j < nodesName.length; j++) {
+    //                 newFailed[nodesName[j]] = true;
+    //             }
+    //             setFailed(newFailed);
+    //             const toSave = {
+    //                 "completed": completed,
+    //                 "failed": newFailed,
+    //                 "activeStep": -1,
+    //                 "lastFinishedStep": -1,
+    //                 "isLoading": false
+    //             }
+    //
+    //             localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+    //             handleToast("Pipeline failed to finish!", "error");
+    //             setIsLoading(false);
+    //             setActiveStep(-1);
+    //             break;
+    //         }
+    //     }
+    //
+    //     if (JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)).lastFinishedStep === nodesName.length - 1) {
+    //         handleToast("Pipeline Completed Successfully! Items were saved!", "error");
+    //         const toSave = {
+    //             "completed": completed,
+    //             "failed": failed,
+    //             "activeStep": -1,
+    //             "lastFinishedStep": -1,
+    //             "isLoading": false
+    //         }
+    //
+    //         localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+    //         setIsLoading(false);
+    //         setActiveStep(-1);
+    //     }
+    // }
 
-            nodesName.forEach((value) => {
-                complete[value] = false;
-                fail[value] = false;
-            })
-
-            setCompleted(complete);
-            setFailed(fail);
-
-            if (nodesName.length < 2) {
-                handleToast("The pipeline does not meet the requirements!", "error");
-                return;
-            }
-
-            setIsLoading(true);
-            try {
-                await axios({
-                    method: "POST",
-                    url: RUN_PIPELINE,
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    data: {
-                        "run_id": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
-                        "token": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).token,
-                        "variables": {}
-                    },
-                    timeout: 10000
-                })
-                const toSave = {
-                    "completed": complete,
-                    "failed": fail,
-                    "activeStep": -1,
-                    "lastFinishedStep": -1,
-                    "isLoading": true,
-                }
-
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-            } catch (e) {
-                setIsLoading(false);
-                handleToast("Error starting the pipeline!", "error");
-                return;
-            }
-        }
-
-        setIsLoading(true);
-
-        for (let i = index; i < nodesName.length; i++) {
-            setActiveStep(i);
-
-            if (i === 0) {
-                await delay(30000);
-            }
-
-            const result = await runStep(nodesName[i]);
-
-            if (result === "completed") {
-                const newCompleted = completed;
-                newCompleted[nodesName[i]] = true;
-                setCompleted(newCompleted);
-
-                const toSave = {
-                    "completed": newCompleted,
-                    "failed": failed,
-                    "activeStep": i + 1,
-                    "lastFinishedStep": i,
-                    "isLoading": true
-                }
-
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-            } else {
-                const newFailed = failed;
-
-                console.log(i);
-
-                for (let j = i; j < nodesName.length; j++) {
-                    newFailed[nodesName[j]] = true;
-                }
-                setFailed(newFailed);
-                const toSave = {
-                    "completed": completed,
-                    "failed": newFailed,
-                    "activeStep": -1,
-                    "lastFinishedStep": -1,
-                    "isLoading": false
-                }
-
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-                handleToast("Pipeline failed to finish!", "error");
-                setIsLoading(false);
-                setActiveStep(-1);
-                break;
-            }
-        }
-
-        if (JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)).lastFinishedStep === nodesName.length - 1) {
-            handleToast("Pipeline Completed Successfully! Items were saved!", "error");
-            const toSave = {
-                "completed": completed,
-                "failed": failed,
-                "activeStep": -1,
-                "lastFinishedStep": -1,
-                "isLoading": false
-            }
-
-            localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-            setIsLoading(false);
-            setActiveStep(-1);
-        }
-    }
-
-    const runStep = async (node) => {
+    const runStep = React.useCallback( async () => {
         let counter = 0;
         let isResolved = false;
         return new Promise((resolve) => {
             const retry = async () => {
                 if (isResolved) return;
-                if (counter === 5) {
+                if (counter === 10) {
                     isResolved = true;
                     resolve("failed");
                     return;
@@ -259,19 +261,18 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                 try {
                     const response = await axios({
                         method: 'GET',
-                        url: BLOCK_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id, node),
+                        url: BATCH_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id),
                     });
 
                     const data = response.data;
 
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
-                        //console.log('Satisfactory response received:', data);
+                        console.log('Satisfactory response received:', data);
                         isResolved = true;
                         resolve(data);
                     } else {
-                        //console.log('Unsatisfactory response:', data);
+                        console.log('Unsatisfactory response:', data);
                         counter += 1;
-                        console.log(counter);
                         setTimeout(retry, 30000);
                     }
                 } catch (error) {
@@ -281,7 +282,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             };
             retry();
         });
-    }
+    }, [pipelineName]);
     const enablePipeline = () => {
         axios({
             method: "PUT",
@@ -343,25 +344,20 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
 
         const savedState = JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`));
         if (savedState) {
+            setCompleted(savedState.completed);
+            setFailed(savedState.failed);
+            setActiveStep(savedState.activeStep);
+            setIsLoading(savedState.isLoading);
             if (savedState.isLoading) {
-                setCompleted(savedState.completed);
-                setFailed(savedState.failed);
-                setActiveStep(savedState.activeStep);
-                setIsLoading(savedState.isLoading);
                 setTimeout(() => {
-                    startPipeline(savedState.lastFinishedStep + 1).then((_) => {});
-                }, 1000);
-            } else {
-                setCompleted(savedState.completed);
-                setFailed(savedState.failed);
-                setActiveStep(savedState.activeStep);
-                setIsLoading(savedState.isLoading);
+                    runPipeline("useEffect").then((_) => {});
+                }, 5000);
             }
         } else {
             const complete = {};
             const fail = {}
 
-            nodesName.forEach((value) => {
+            steps.forEach((value) => {
                 complete[value] = false;
                 fail[value] = false;
             })
@@ -369,7 +365,142 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             setCompleted(complete);
             setFailed(fail);
         }
-    }, [nodesName, pipelineName]);
+    }, [steps, pipelineName]);
+
+    const startPipeline = React.useCallback(async () => {
+        const complete = {};
+        const fail = {}
+
+        steps.forEach((value) => {
+            complete[value] = false;
+            fail[value] = false;
+        })
+
+        setCompleted(complete);
+        setFailed(fail);
+
+        if (nodesName.length < 2) {
+            handleToast("The pipeline does not meet the requirements!", "error");
+        } else {
+            setIsLoading(true);
+            setActiveStep(steps.indexOf("start"));
+            try {
+                await axios({
+                    method: "POST",
+                    url: RUN_PIPELINE,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    data: {
+                        "run_id": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
+                        "token": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).token,
+                        "variables": {}
+                    },
+                    timeout: 10000
+                })
+
+                complete[steps[0]] = true;
+                setCompleted(complete);
+
+                const toSave = {
+                    "completed": complete,
+                    "failed": fail,
+                    "activeStep": 0,
+                    "isLoading": true,
+                }
+
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                return true;
+            } catch (e) {
+                setIsLoading(false);
+                handleToast("Error starting the pipeline!", "error");
+                return false;
+            }
+        }
+    }, [steps, handleToast, pipelineName, nodesName.length]);
+
+    const callStep = React.useCallback(async () => {
+        const result = await runStep();
+
+        setActiveStep(-1);
+        setIsLoading(false);
+
+        const complete = completed;
+        const fail = failed;
+
+        if (result === "completed") {
+            steps.forEach((value) => {
+                complete[value] = true;
+                fail[value] = false;
+            })
+        } else {
+            steps.forEach((value) => {
+                complete[value] = false;
+                fail[value] = true;
+            })
+        }
+
+        setCompleted(complete);
+        setFailed(fail);
+
+        const toSave = {
+            "completed": complete,
+            "failed": fail,
+            "activeStep": -1,
+            "isLoading": false
+        }
+
+        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+    }, [completed, failed, runStep, steps, pipelineName]);
+
+    const runPipeline = React.useCallback(async (source) => {
+        if (source === "button") {
+            const startResult = await startPipeline();
+
+            if (startResult) {
+                setActiveStep(steps.indexOf("running"));
+
+                const complete = completed;
+
+                complete[steps[0]] = true;
+
+                setCompleted(complete);
+
+                const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "activeStep": steps.indexOf("running"), "completed": complete}
+
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+
+                await delay(10000);
+
+                callStep().then((_) => {});
+
+            } else {
+                const complete = completed;
+                const fail = failed;
+
+                steps.forEach((value) => {
+                    complete[value] = false;
+                    fail[value] = true;
+                });
+
+                setActiveStep(-1);
+                setIsLoading(false);
+                setCompleted(complete);
+                setFailed(fail);
+
+                const  toSave = {
+                    "completed": complete,
+                    "failed": fail,
+                    "activeStep": -1,
+                    "isLoading": false
+                }
+
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+            }
+        } else {
+            callStep().then((_) => {});
+        }
+    }, [completed, failed, steps, pipelineName, startPipeline, callStep]);
 
     return (
         <div>
@@ -419,7 +550,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                             borderRadius: 2,
                             backgroundColor: "#36454f",
                         }}>
-                            {!isLoading ? <PlayCircleIcon sx={{color: "white", fontSize: 40, cursor: "pointer"}} onClick={() => startPipeline(0)}/> : <CircularProgress color="inherit" />}
+                            {!isLoading ? <PlayCircleIcon sx={{color: "white", fontSize: 40, cursor: "pointer"}} onClick={() => runPipeline("button")}/> : <CircularProgress color="inherit" />}
                             {!isLoading ? <Typography sx={{color: "white", fontWeight: "bold", fontSize: 25}}>Run
                                 Pipeline</Typography> : <Typography sx={{color: "white", fontWeight: "bold", fontSize: 25}}>Running...</Typography>}
                         </Box>
@@ -440,25 +571,23 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                             </Button>
                         )
                         :
-                        nodesName && (
-                            <Box sx={{ marginTop: 2 }}>
-                                <ThemeProvider theme={theme}>
-                                    <Stepper activeStep={activeStep} alternativeLabel>
-                                        {nodesName.map((label) => {
-                                            const labelProps = {};
-                                            if (failed[label]) {
-                                                labelProps.error = true;
-                                            }
-                                            return (
-                                                <Step key={label}  completed={completed[label]}>
-                                                    <StepLabel {...labelProps}>{CAPS(label)}</StepLabel>
-                                                </Step>
-                                            );
-                                        })}
-                                    </Stepper>
-                                </ThemeProvider>
-                            </Box>
-                        )
+                        <Box sx={{ marginTop: 2 }}>
+                            <ThemeProvider theme={theme}>
+                                <Stepper activeStep={activeStep} alternativeLabel>
+                                    {steps.map((label) => {
+                                        const labelProps = {};
+                                        if (failed[label]) {
+                                            labelProps.error = true;
+                                        }
+                                        return (
+                                            <Step key={label} completed={completed[label]}>
+                                                <StepLabel {...labelProps}>{CAPS(label)}</StepLabel>
+                                            </Step>
+                                        );
+                                    })}
+                                </Stepper>
+                            </ThemeProvider>
+                        </Box>
                     }
                 </Box>:
               <Box sx={{

@@ -27,7 +27,6 @@ import Button from "@mui/material/Button";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
 import ReactFlowPanel from "../components/ReactFlowPanel";
-import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import axios from "axios";
 import {
     BLOCK_MODEL, BLOCK_MODEL_TRANSFORMERS,
@@ -77,8 +76,6 @@ const Orchestrator = () => {
     const [batchExporterOpen, setBatchExporterOpen] = React.useState(false);
     const [batchNullOpen, setBatchNullOpen] = React.useState(false);
     const [batchImputationOpen, setBatchImputationOpen] = React.useState(false);
-    const [blocksPosition, setBlocksPosition] = React.useState([]);
-    const [pipelineCreated, setPipelineCreated] = React.useState([]);
     const [pipelinesBlocksNames, setPipelinesBlocksNames] = React.useState([]);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
@@ -798,11 +795,6 @@ const Orchestrator = () => {
             for (let i of response.data) {
                 const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
                 const type = i.type === "streaming" ? "stream" : "batch";
-                if (i.description === "created") {
-                    setPipelineCreated(prevState => [...prevState, true]);
-                } else {
-                    setPipelineCreated(prevState => [...prevState, false]);
-                }
                 const nodesInStorage = localStorage.getItem(`pipeline-${name}`);
                 if (i.blocks.length > 0) {
                     const loaders = [];
@@ -946,7 +938,6 @@ const Orchestrator = () => {
                 } else {
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     if (!nodesInStorage) {
-                        setBlocksPosition(prevState => [...prevState, 0]);
                         setPipelines((prevState) => ({
                             ...prevState,
                             [name]: {

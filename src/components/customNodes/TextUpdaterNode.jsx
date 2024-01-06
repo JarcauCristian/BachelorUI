@@ -270,8 +270,10 @@ function TextUpdaterNode({ data, isConnectable }) {
             if (data.params[key] === 'file') {
                 fileInput = value;
             } else {
-                if (data.params[key] === 'name') {
+                if (key === 'name') {
                     textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
+                } else {
+                    textEntries[key] = value;
                 }
             }
         }
@@ -279,6 +281,7 @@ function TextUpdaterNode({ data, isConnectable }) {
             data.toast("Please enter values for all the fields in the dialog!", "error");
             return;
         }
+
         localStorage.setItem(`${data.pipeline_name}-${data.name}-variables`, JSON.stringify(textEntries));
 
         if (fileInput) {

@@ -195,6 +195,7 @@ const ReactFlowPanel = (props) => {
 
         if (counter > 0) {
             handleToast("Please add all the variables for all the blocks!", "error");
+            setLoading(false);
             return;
         }
 
