@@ -133,7 +133,7 @@ const Orchestrator = () => {
 
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     setTabsName(prevState => [...prevState, tabName]);
-                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName + " STREAM"} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                     setCounter(counter + 1);
                     setOpen(false);
                 }).catch((error) => {
@@ -166,7 +166,7 @@ const Orchestrator = () => {
 
                     setPipelinesBlocksNames(prevState => [...prevState, []]);
                     setTabsName(prevState => [...prevState, tabName]);
-                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName + " BATCH"} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                     setCounter(counter + 1);
                     setOpen(false);
                 }).catch((error) => {
@@ -1426,9 +1426,9 @@ const Orchestrator = () => {
                                     componentNodes: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]
                                         : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"] : [],
-                                    componentEdges: (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
+                                    componentEdges: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
                                         ? pipelines[tabsName[value]]["stream"]["edges"]
-                                        : pipelines[tabsName[value]]["batch"]["edges"],
+                                        : pipelines[tabsName[value]]["batch"]["edges"] : [],
                                     drawerWidth: drawerWidth,
                                     created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
                                     setPipes: setPipelines,

@@ -167,9 +167,9 @@ const ReactFlowPanel = (props) => {
 
     const createPipeline = () => {
 
-        setTimeout(() => {
+        const timeoutID = setTimeout(() => {
             setLoading(true);
-        }, 1000);
+        }, 500);
 
         let variables = {};
         let counter = 0;
@@ -195,7 +195,12 @@ const ReactFlowPanel = (props) => {
 
         if (counter > 0) {
             handleToast("Please add all the variables for all the blocks!", "error");
-            setLoading(false);
+            clearTimeout(timeoutID);
+            const newTimeoutID = setTimeout(() => {
+                setLoading(false);
+            }, 100);
+
+            clearTimeout(newTimeoutID);
             return;
         }
 
