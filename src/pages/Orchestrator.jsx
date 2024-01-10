@@ -31,7 +31,7 @@ import axios from "axios";
 import {
     BLOCK_MODEL, BLOCK_MODEL_TRANSFORMERS,
     CREATE_PIPELINE,
-    DELETE_PIPELINE,
+    DELETE_PIPELINE, GET_TEMPLATES,
     PIPELINES,
     READ_PIPELINE
 } from "../components/utils/apiEndpoints";
@@ -49,17 +49,19 @@ function a11yProps(index: number) {
 const Orchestrator = () => {
     const [expanded, setExpanded] = React.useState(false);
     const [batchExpanded, setBatchExpanded] = React.useState(false);
+    const [batchLoaderExpanded, setBatchLoaderExpanded] = React.useState(false);
+    const [batchTransformerExpanded, setBatchTransformerExpanded] = React.useState(false);
+    const [batchExporterExpanded, setBatchExporterExpanded] = React.useState(false);
     const [streamExpanded, setStreamExpanded] = React.useState(false);
+    const [streamLoaderExpanded, setStreamLoaderExpanded] = React.useState(false);
+    const [streamTransformerExpanded, setStreamTransformerExpanded] = React.useState(false);
+    const [streamExporterExpanded, setStreamExporterExpanded] = React.useState(false);
     const [value, setValue] = React.useState(0);
     const [tabs, setTabs] = React.useState([]);
     const [open, setOpen] = React.useState(false);
     const [tabName, setTabName] = React.useState("");
-    const [streamingLoaderName, setStreamingLoaderName] = React.useState("");
-    const [streamingTransformerName, setStreamingTransformerName] = React.useState("");
-    const [streamingExporterName, setStreamingExporterName] = React.useState("");
-    const [batchLoaderName, setBatchLoaderName] = React.useState("");
-    const [batchTransformerName, setBatchTransformerName] = React.useState("");
-    const [batchExporterName, setBatchExporterName] = React.useState("");
+    const [streamingName, setStreamingName] = React.useState("");
+    const [batchName, setBatchName] = React.useState("");
     const [counter, setCounter] = React.useState(0);
     const [pipelines, setPipelines] = React.useState({});
     const [toastMessage, setToastMessage] = React.useState("");
@@ -68,17 +70,18 @@ const Orchestrator = () => {
     const [tabsName, setTabsName] = React.useState([]);
     const [pipelineType, setPipelineType] = React.useState("");
     const [loading, setLoading] = React.useState(false);
-    const [streamingLoaderOpen, setStreamingLoaderOpen] = React.useState(false);
-    const [streamingTransformerOpen, setStreamingTransformerOpen] = React.useState(false);
-    const [streamingExporterOpen, setStreamingExporterOpen] = React.useState(false);
-    const [batchLoaderOpen, setBatchLoaderOpen] = React.useState(false);
-    const [batchTransformerOpen, setBatchTransformerOpen] = React.useState(false);
-    const [batchExporterOpen, setBatchExporterOpen] = React.useState(false);
-    const [batchNullOpen, setBatchNullOpen] = React.useState(false);
-    const [batchImputationOpen, setBatchImputationOpen] = React.useState(false);
+    const [streamingOpen, setStreamingOpen] = React.useState(false);
+    const [batchOpen, setBatchOpen] = React.useState(false);
     const [pipelinesBlocksNames, setPipelinesBlocksNames] = React.useState([]);
+    const [batchTemplates, setBatchTemplates] = React.useState([]);
+    const [streamTemplates, setStreamTemplates] = React.useState([]);
+    const [batchBlockName, setBatchBlockName] = React.useState("");
+    const [batchBlockType, setBatchBlockType] = React.useState("");
+    const [streamBlockName, setStreamBlockName] = React.useState("");
+    const [streamBlockType, setStreamBlockType] = React.useState("");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
+    const isDrawerRun = React.useRef(false);
 
     const handleToast = (message, severity)  => {
         setToastMessage(message);
@@ -232,230 +235,96 @@ const Orchestrator = () => {
         setBatchExpanded(isExpanded ? panel : false);
     }
 
+    const handleBatchLoaderChange = (panel) => (event, isExpanded) => {
+        setBatchLoaderExpanded(isExpanded ? panel : false);
+    }
+
+    const handleBatchTransformerChange = (panel) => (event, isExpanded) => {
+        setBatchTransformerExpanded(isExpanded ? panel : false);
+    }
+
+    const handleBatchExporterChange = (panel) => (event, isExpanded) => {
+        setBatchExporterExpanded(isExpanded ? panel : false);
+    }
+
     const handleStreamChange = (panel) => (event, isExpanded) => {
         setStreamExpanded(isExpanded ? panel : false);
     }
 
+    const handleStreamLoaderChange = (panel) => (event, isExpanded) => {
+        setStreamLoaderExpanded(isExpanded ? panel : false);
+    }
+
+    const handleStreamTransformerChange = (panel) => (event, isExpanded) => {
+        setStreamTransformerExpanded(isExpanded ? panel : false);
+    }
+
+    const handleStreamExporterChange = (panel) => (event, isExpanded) => {
+        setStreamExporterExpanded(isExpanded ? panel : false);
+    }
+
     const handleClose = () => {
         if (open) setOpen(false);
-        if (streamingLoaderOpen) setStreamingLoaderOpen(false);
-        if (streamingTransformerOpen) setStreamingTransformerOpen(false);
-        if (streamingExporterOpen) setStreamingExporterOpen(false);
-        if (batchLoaderOpen) setBatchLoaderOpen(false);
-        if (batchTransformerOpen) setBatchTransformerOpen(false);
-        if (batchNullOpen) setBatchNullOpen(false);
-        if (batchImputationOpen) setBatchImputationOpen(false);
-        if (batchExporterOpen) setBatchExporterOpen(false);
+        if (streamingOpen) setStreamingOpen(false);
+        if (batchOpen) setBatchOpen(false);
     }
 
-    const handleStreamingLoader = () => {
+    const handleStreamAdder = (type, name) => {
         if (tabs.length > 0) {
-            axios({
-                method: "GET",
-                url: BLOCK_MODEL("stream", "loader")
-            }).then((response) => {
                 if ("stream" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                        const checking = /^[a-z_]+$/.test(streamingLoaderName);
-                        if (checking && streamingLoaderName.length < 10) {
-                            if (pipelines[tabsName[value]]["stream"]["loader"] === "") {
-                                if (!checkIfBlockNameExists(streamingLoaderName)) {
-                                    const newNode = {
-                                        id: streamingLoaderName,
-                                        type: 'textUpdater',
-                                        position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
-                                        data: {
-                                            params: {},
-                                            type: "loader",
-                                            name: streamingLoaderName,
-                                            pipeline_name: tabsName[value],
-                                            label: CAPS(streamingLoaderName + " Loader"),
-                                            language: "yaml",
-                                            background: "#4877ff",
-                                            content: response.data,
-                                            editable: true,
-                                            created: false
-                                        },
-                                    };
-
-                                    const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
-
-                                    setPipelines((prevPipelines) => ({
-                                        ...prevPipelines,
-                                        [tabsName[value]]: {
-                                            ...prevPipelines[tabsName[value]],
-                                            stream: {
-                                                ...prevPipelines[tabsName[value]].stream,
-                                                loader: newNode,
-                                                exporter: prevPipelines[tabsName[value]].stream.exporter,
-                                                transformers: prevPipelines[tabsName[value]].stream.transformers,
-                                                created: prevPipelines[tabsName[value]].stream.created,
-                                                edges: prevPipelines[tabsName[value]].stream.edges,
-                                                blockPosition: prevPos
-                                            },
-                                        },
-                                    }));
-                                    setStreamingLoaderOpen(false);
-                                } else {
-                                    handleToast("There is already a block with that name!", "error");
-                                }
-                            } else {
-                                handleToast("Only one loader", "warning"); // de modificat
-                            }
-                        } else {
-                            if (!checking) {
-                                handleToast("Only lowercase letters and underscores are allowed!", "error");
-                            } else {
-                                handleToast("Name must be 10 characters maximum!", "error");
-                            }
-                        }
-                    } else {
-                        if (!pipelines[tabsName[value]].stream.created) {
-                            handleToast("Pipeline already created!", "error");
-                        } else {
-                            handleToast("There is non pipeline with that name!", "error");
-                        }
-                        setStreamingLoaderOpen(false);
-                    }
-                } else {
-                    handleToast("Only batch blocks can be added to a batch pipeline!", "error");
-                }
-            }).catch((error) => {
-                handleToast("Error loading block model!", "error");
-                setStreamingLoaderOpen(false);
-            })
-        } else {
-            handleToast("There are no currently opened tabs!", "error");
-            setStreamingLoaderOpen(false);
-        }
-    }
-
-    const handleStreamingTransformer = () => {
-        if (tabs.length > 0) {
-            axios({
-                method: "GET",
-                url: BLOCK_MODEL("stream", "transformer")
-            }).then((response) => {
-                if ("stream" in pipelines[tabsName[value]]) {
-                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                        const checking = /^[a-z_]+$/.test(streamingTransformerName);
-                        if (checking && streamingTransformerName.length < 10) {
-                            if (!checkIfBlockNameExists(streamingTransformerName)) {
-                                const newNode = {
-                                    id: streamingTransformerName,
-                                    type: 'textUpdater',
-                                    position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
-                                    data: {
-                                        params: {},
-                                        type: "transformer",
-                                        name: streamingTransformerName,
-                                        pipeline_name: tabsName[value],
-                                        label: CAPS(streamingTransformerName + " Transformer"),
-                                        language: "python",
-                                        background: "#7d55ec",
-                                        content: response.data,
-                                        editable: true,
-                                        created: false
-                                    },
-                                };
-
-                                const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
-
-                                setPipelines((prevPipelines) => ({
-                                    ...prevPipelines,
-                                    [tabsName[value]]: {
-                                        ...prevPipelines[tabsName[value]],
-                                        stream: {
-                                            ...prevPipelines[tabsName[value]].stream,
-                                            loader: prevPipelines[tabsName[value]].stream.loader,
-                                            transformers: [...prevPipelines[tabsName[value]].stream.transformers, newNode],
-                                            exporter: prevPipelines[tabsName[value]].stream.exporter,
-                                            edges: prevPipelines[tabsName[value]].stream.edges,
-                                            blockPosition: prevPos,
-                                            created: prevPipelines[tabsName[value]].stream.created
-                                        },
-                                    },
-                                }));
-                                setStreamingTransformerOpen(false);
-                            } else {
-                                handleToast("There is already a block with that name!", "error");
-                            }
-                        } else {
-                            if (!checking) {
-                                handleToast("Only lowercase letters and underscores are allowed!", "error");
-                            } else {
-                                handleToast("Name must be 10 characters maximum!", "error");
-                            }
-                        }
-                    } else {
-                        if (pipelines[tabsName[value]].stream.created) {
-                            handleToast("Pipeline already created!", "error");
-                        } else {
-                            handleToast("There is non pipeline with that name!", "error");
-                        }
-                        setStreamingTransformerOpen(false);
-                    }
-                } else {
-                    handleToast("Only batch blocks can be added to a batch pipeline!", "error");
-                }
-            }).catch((error) => {
-                handleToast("Error loading block model!", "error");
-                setStreamingTransformerOpen(false);
-            })
-        } else {
-            handleToast("There are no currently opened tabs!", "error");
-            setStreamingTransformerOpen(false);
-        }
-    }
-
-    const handleStreamingExporter = () => {
-        if (tabs.length > 0) {
-            axios({
-                method: "GET",
-                url: BLOCK_MODEL("stream", "exporter")
-            }).then((response) => {
-                if ("stream" in pipelines[tabsName[value]]) {
-                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                        const checking = /^[a-z_]+$/.test(streamingExporterName);
-                        if (checking && streamingExporterName.length < 10) {
+                        const checking = /^[a-z_]+$/.test(streamingName);
+                        const label = type === "data_loader" ? " Loader" : type === "data_exporter" ? " Exporter" : " Transformer";
+                        const insideType = type === "data_loader" ? "loader" : type === "data_exporter" ? "exporter" : "transformer";
+                        const color = type === "data_loader" ? "#4877ff" : type === "data_exporter" ? "#ffcc19" : "#7d55ec";
+                        const language = ["data_loader", "data_exporter"].includes(type) ? "yaml" : "python"
+                        if (checking && streamingName.length < 10) {
                             if (pipelines[tabsName[value]]["stream"]["exporter"] === "") {
-                                if (!checkIfBlockNameExists(streamingExporterName)) {
-                                    const newNode = {
-                                        id: streamingExporterName,
-                                        type: 'textUpdater',
-                                        position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
-                                        data: {
-                                            params: {},
-                                            type: "exporter",
-                                            name: streamingExporterName,
-                                            pipeline_name: tabsName[value],
-                                            label: CAPS(streamingExporterName + " Exporter"),
-                                            language: "yaml",
-                                            background: "#ffcc19",
-                                            content: response.data,
-                                            editable: true,
-                                            created: false
-                                        },
-                                    };
+                                if (!checkIfBlockNameExists(streamingName)) {
+                                    axios({
+                                        method: "GET",
+                                        url: BLOCK_MODEL(name)
+                                    }).then((response) => {
+                                        const newNode = {
+                                            id: streamingName,
+                                            type: 'textUpdater',
+                                            position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
+                                            data: {
+                                                params: {},
+                                                type: insideType,
+                                                name: streamingName,
+                                                pipeline_name: tabsName[value],
+                                                label: CAPS(streamingName + label),
+                                                language: language,
+                                                background: color,
+                                                content: response.data.content,
+                                                editable: true,
+                                                created: false
+                                            },
+                                        };
 
-                                    const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
+                                        const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
 
-                                    setPipelines((prevPipelines) => ({
-                                        ...prevPipelines,
-                                        [tabsName[value]]: {
-                                            ...prevPipelines[tabsName[value]],
-                                            stream: {
-                                                ...prevPipelines[tabsName[value]].stream,
-                                                loader: prevPipelines[tabsName[value]].stream.loader,
-                                                transformers: prevPipelines[tabsName[value]].stream.transformers,
-                                                exporter: newNode,
-                                                edges: prevPipelines[tabsName[value]].stream.edges,
-                                                blockPosition: prevPos,
-                                                created: prevPipelines[tabsName[value]].stream.created
-                                            }
-                                        },
-                                    }));
-                                    setStreamingExporterOpen(false);
+                                        setPipelines((prevPipelines) => ({
+                                            ...prevPipelines,
+                                            [tabsName[value]]: {
+                                                ...prevPipelines[tabsName[value]],
+                                                stream: {
+                                                    ...prevPipelines[tabsName[value]].stream,
+                                                    loader: insideType === "loader" ? newNode : prevPipelines[tabsName[value]].stream.loader,
+                                                    transformers: insideType === "transformer" ? [...prevPipelines[tabsName[value]].stream.transformers, newNode] : prevPipelines[tabsName[value]].stream.transformers,
+                                                    edges: prevPipelines[tabsName[value]].stream.edges,
+                                                    created: prevPipelines[tabsName[value]].stream.created,
+                                                    exporter: insideType === "exporter" ? newNode : prevPipelines[tabsName[value]].stream.exporter,
+                                                    blockPosition: prevPos
+                                                },
+                                            },
+                                        }));
+                                        setStreamingOpen(false);
+                                    }).catch((_) => {
+                                        setStreamingOpen(false);
+                                        handleToast("Error loading block model!", "error");
+                                    })
                                 } else {
                                     handleToast("There is already a block with that name!", "error");
                                 }
@@ -476,250 +345,77 @@ const Orchestrator = () => {
                         } else {
                             handleToast("There is non pipeline with that name!", "error");
                         }
-                        setStreamingExporterOpen(false);
+                        setStreamingOpen(false);
                     }
                 } else {
                     handleToast("Only batch blocks can be added to a batch pipeline!", "error");
                 }
-            }).catch((error) => {
-                setStreamingExporterOpen(false);
-                handleToast("Error loading block model!", "error");
-            })
         } else {
-            setStreamingExporterOpen(false);
+            setStreamingOpen(false);
             handleToast("There are no currently opened tabs!", "error");
         }
     }
 
-    const handleBatchLoader = () => {
+    const handleBatchAdder = (type, name) => {
         if (tabs.length > 0) {
-            axios({
-                method: "GET",
-                url: BLOCK_MODEL("batch", "loader")
-            }).then((response) => {
                 if ("batch" in pipelines[tabsName[value]]) {
                     if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
-                        const checking = /^[a-z_]+$/.test(batchLoaderName);
-                        if (checking && batchLoaderName.length < 10) {
-                            if (pipelines[tabsName[value]]["batch"]["loader"] === "") {
-                                if (!checkIfBlockNameExists(batchLoaderName)) {
-                                    const newNode = {
-                                        id: batchLoaderName,
-                                        type: 'textUpdater',
-                                        position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
-                                        data: {
-                                            params: response.data.variables,
-                                            type: "loader",
-                                            name: batchLoaderName,
-                                            pipeline_name: tabsName[value],
-                                            label: CAPS(batchLoaderName + " Loader"),
-                                            language: "python",
-                                            background: "#4877ff",
-                                            content: response.data.content,
-                                            editable: true,
-                                            created: false
-                                        },
-                                    };
-
-                                    const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
-
-                                    setPipelines((prevPipelines) => ({
-                                        ...prevPipelines,
-                                        [tabsName[value]]: {
-                                            ...prevPipelines[tabsName[value]],
-                                            batch: {
-                                                ...prevPipelines[tabsName[value]].batch,
-                                                loader: newNode,
-                                                exporter: prevPipelines[tabsName[value]].batch.exporter,
-                                                transformers: prevPipelines[tabsName[value]].batch.transformers,
-                                                edges: prevPipelines[tabsName[value]].batch.edges,
-                                                created: prevPipelines[tabsName[value]].batch.created,
-                                                blockPosition: prevPos
-                                            },
-                                        },
-                                    }));
-                                    setBatchLoaderOpen(false);
-                                } else {
-                                    handleToast("There is already a block with that name!", "error");
-                                }
-                            } else {
-                                handleToast("Only one loader", "warning");
-                            }
-                        } else {
-                            if (!checking) {
-                                handleToast("Only lowercase letters and underscores are allowed!", "error");
-                            } else {
-                                handleToast("Name must be 10 characters maximum!", "error");
-                            }
-                        }
-                    } else {
-                        if (pipelines[tabsName[value]].batch.created) {
-                            handleToast("Pipeline already created!", "error");
-                        } else {
-                            handleToast("There is non pipeline with that name!", "error");
-                        }
-                        setBatchLoaderOpen(false);
-                    }
-                } else {
-                    handleToast("Only stream blocks can be added to a stream pipeline!", "error");
-                }
-            }).catch((_) => {
-                handleToast("Error loading block model!", "error");
-                setBatchLoaderOpen(false);
-            })
-        } else {
-            handleToast("There are no currently opened tabs!", "error");
-            setBatchLoaderOpen(false);
-        }
-    }
-
-    const handleBatchTransformer = (name) => {
-        if (tabs.length > 0) {
-            axios({
-                method: "GET",
-                url: BLOCK_MODEL_TRANSFORMERS("batch", "transformer", name)
-            }).then((response) => {
-                if ("batch" in pipelines[tabsName[value]]) {
-                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
-                        const checking = /^[a-z_]+$/.test(batchTransformerName);
-                        if (checking && batchTransformerName.length < 10) {
-                            if (!checkIfBlockNameExists(batchTransformerName)) {
-                                const newNode = {
-                                    id: batchTransformerName,
-                                    type: 'textUpdater',
-                                    position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
-                                    data: {
-                                        params: response.data.variables,
-                                        type: "transformer",
-                                        name: batchTransformerName,
-                                        pipeline_name: tabsName[value],
-                                        label: CAPS(batchTransformerName + " " + name.split("_").join(" ")),
-                                        language: "python",
-                                        background: "#7d55ec",
-                                        content: response.data.content,
-                                        editable: true,
-                                        created: false
-                                    },
-                                };
-
-                                const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
-
-                                setPipelines((prevPipelines) => ({
-                                    ...prevPipelines,
-                                    [tabsName[value]]: {
-                                        ...prevPipelines[tabsName[value]],
-                                        batch: {
-                                            ...prevPipelines[tabsName[value]].batch,
-                                            loader: prevPipelines[tabsName[value]].batch.loader,
-                                            transformers: [...prevPipelines[tabsName[value]].batch.transformers, newNode],
-                                            exporter: prevPipelines[tabsName[value]].batch.exporter,
-                                            edges: prevPipelines[tabsName[value]].batch.edges,
-                                            blockPosition: prevPos,
-                                            created: prevPipelines[tabsName[value]].batch.created
-                                        },
-                                    },
-                                }));
-                                if (name === "remove_null_rows") {
-                                    setBatchNullOpen(false);
-                                } else {
-                                    setBatchImputationOpen(false);
-                                }
-                            } else {
-                                handleToast("There is already a block with that name!", "error");
-                            }
-                        } else {
-                            if (!checking) {
-                                handleToast("Only lowercase letters and underscores are allowed!", "error");
-                            } else {
-                                handleToast("Name must be 10 characters maximum!", "error");
-                            }
-                        }
-                    } else {
-                        if (pipelines[tabsName[value]].batch.created) {
-                            handleToast("Pipeline already created!", "error");
-                        } else {
-                            handleToast("There is non pipeline with that name!", "error");
-                        }
-                        if (name === "remove_null_rows") {
-                            setBatchNullOpen(false);
-                        } else {
-                            setBatchImputationOpen(false);
-                        }
-                    }
-                } else {
-                    handleToast("Only stream blocks can be added to a stream pipeline!", "error");
-                }
-            }).catch((error) => {
-                handleToast("Error loading block model!", "error");
-                if (name === "remove_null_rows") {
-                    setBatchNullOpen(false);
-                } else {
-                    setBatchImputationOpen(false);
-                }
-            })
-        } else {
-            handleToast("There are no currently opened tabs!", "error");
-            if (name === "remove_null_rows") {
-                setBatchNullOpen(false);
-            } else {
-                setBatchImputationOpen(false);
-            }
-        }
-    }
-
-    const handleBatchExporter = () => {
-        if (tabs.length > 0) {
-            axios({
-                method: "GET",
-                url: BLOCK_MODEL("batch", "exporter")
-            }).then((response) => {
-                if ("batch" in pipelines[tabsName[value]]) {
-                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].batch.created) {
-                        const checking = /^[a-z_]+$/.test(batchExporterName);
-                        if (checking && batchExporterName.length < 10) {
-                                if (pipelines[tabsName[value]]["batch"]["exporter"] === "") {
-                                    if (!checkIfBlockNameExists(batchExporterName)) {
-                                        const newNode = {
-                                            id: batchExporterName,
-                                            type: 'textUpdater',
-                                            position: { x: pipelines[tabsName[value]].batch.blockPosition, y: 0 },
-                                            data: {
-                                                params: response.data.variables,
-                                                type: "exporter",
-                                                name: batchExporterName,
-                                                pipeline_name: tabsName[value],
-                                                label: CAPS(batchExporterName + " Exporter"),
-                                                language: "python",
-                                                background: "#ffcc19",
-                                                content: response.data.content,
-                                                editable: true,
-                                                created: false
-                                            },
-                                        };
-
-                                        const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
-
-                                        setPipelines((prevPipelines) => ({
-                                            ...prevPipelines,
-                                            [tabsName[value]]: {
-                                                ...prevPipelines[tabsName[value]],
-                                                batch: {
-                                                    ...prevPipelines[tabsName[value]].batch,
-                                                    loader: prevPipelines[tabsName[value]].batch.loader,
-                                                    transformers: prevPipelines[tabsName[value]].batch.transformers,
-                                                    edges: prevPipelines[tabsName[value]].batch.edges,
-                                                    created: prevPipelines[tabsName[value]].batch.created,
-                                                    exporter: newNode,
-                                                    blockPosition: prevPos
+                        const checking = /^[a-z_]+$/.test(batchName);
+                        const label = type === "data_loader" ? " Loader" : type === "data_exporter" ? " Exporter" : " Transformer";
+                        const insideType = type === "data_loader" ? "loader" : type === "data_exporter" ? "exporter" : "transformer";
+                        const color = type === "data_loader" ? "#4877ff" : type === "data_exporter" ? "#ffcc19" : "#7d55ec";
+                        if (checking && batchName.length < 10) {
+                                if (((insideType === "loader" || insideType === "exporter") && pipelines[tabsName[value]]["batch"][insideType] === "") || insideType === "transformer") {
+                                    if (!checkIfBlockNameExists(batchName)) {
+                                        axios({
+                                            method: "GET",
+                                            url: BLOCK_MODEL(name)
+                                        }).then((response) => {
+                                            const newNode = {
+                                                id: batchName,
+                                                type: 'textUpdater',
+                                                position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
+                                                data: {
+                                                    params: response.data.variables,
+                                                    type: insideType,
+                                                    name: batchName,
+                                                    pipeline_name: tabsName[value],
+                                                    label: CAPS(batchName + label),
+                                                    language: "python",
+                                                    background: color,
+                                                    content: response.data.content,
+                                                    editable: true,
+                                                    created: false
                                                 },
-                                            },
-                                        }));
-                                        setBatchExporterOpen(false);
+                                            };
+
+                                            const prevPos = pipelines[tabsName[value]].batch.blockPosition + 300;
+
+                                            setPipelines((prevPipelines) => ({
+                                                ...prevPipelines,
+                                                [tabsName[value]]: {
+                                                    ...prevPipelines[tabsName[value]],
+                                                    batch: {
+                                                        ...prevPipelines[tabsName[value]].batch,
+                                                        loader: insideType === "loader" ? newNode : prevPipelines[tabsName[value]].batch.loader,
+                                                        transformers: insideType === "transformer" ? [...prevPipelines[tabsName[value]].batch.transformers, newNode] : prevPipelines[tabsName[value]].batch.transformers,
+                                                        edges: prevPipelines[tabsName[value]].batch.edges,
+                                                        created: prevPipelines[tabsName[value]].batch.created,
+                                                        exporter: insideType === "exporter" ? newNode : prevPipelines[tabsName[value]].batch.exporter,
+                                                        blockPosition: prevPos
+                                                    },
+                                                },
+                                            }));
+                                            setBatchOpen(false);
+                                        }).catch((_) => {
+                                            setBatchOpen(false);
+                                            handleToast("Error loading block model!", "error");
+                                        })
                                     } else {
                                         handleToast("There is already a block with that name!", "error");
                                     }
                                 } else {
-                                    handleToast("Only one exporter", "warning"); // de modificat
+                                    handleToast(`Only one ${insideType.charAt(0).toUpperCase() + insideType.slice(1)} per pipeline`, "warning");
                                 }
 
                         } else {
@@ -735,17 +431,13 @@ const Orchestrator = () => {
                         } else {
                             handleToast("There is non pipeline with that name!", "error");
                         }
-                        setBatchExporterOpen(false);
+                        setBatchOpen(false);
                     }
                 }  else {
                     handleToast("Only stream blocks can be added to a stream pipeline!", "error");
                 }
-            }).catch((error) => {
-                setBatchExporterOpen(false);
-                handleToast("Error loading block model!", "error");
-            })
         } else {
-            setBatchExporterOpen(false);
+            setBatchOpen(false);
             handleToast("There are no currently opened tabs!", "error");
         }
     }
@@ -781,6 +473,74 @@ const Orchestrator = () => {
             }
         }
     }
+
+    React.useEffect(() => {
+        if (isDrawerRun.current) return;
+
+        isDrawerRun.current = true;
+
+        axios({
+            method: "GET",
+            url: GET_TEMPLATES("batch")
+        }).then((response) => {
+            const batchTemp = {
+                "loaders": [],
+                "transformers": [],
+                "exporters": []
+            };
+
+            for (let i of response.data) {
+                switch (i.type) {
+                    case "data_loader":
+                        batchTemp.loaders.push(i);
+                        break;
+                    case "transformer":
+                        batchTemp.transformers.push(i);
+                        break;
+                    case "data_exporter":
+                        batchTemp.exporters.push(i);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            setBatchTemplates(batchTemp);
+        }).catch((_) => {
+            handleToast("Could not get batch templates!", "error");
+        })
+
+        axios({
+            method: "GET",
+            url: GET_TEMPLATES("stream")
+        }).then((response) => {
+            const streamTemp = {
+                "loaders": [],
+                "transformers": [],
+                "exporters": []
+            };
+
+            for (let i of response.data) {
+                switch (i.type) {
+                    case "data_loader":
+                        streamTemp.loaders.push(i);
+                        break;
+                    case "transformer":
+                        streamTemp.transformers.push(i);
+                        break;
+                    case "data_exporter":
+                        streamTemp.exporters.push(i);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            setStreamTemplates(streamTemp);
+        }).catch((_) => {
+            handleToast("Could not get stream templates!", "error");
+        })
+    })
 
     React.useEffect(() => {
         if (isRun.current) return;
@@ -952,126 +712,6 @@ const Orchestrator = () => {
                             }
                         }))
                     } else {
-                        // let maxX = -1;
-                        // let maxIndex = 0;
-                        // const nodeType = "stream" in JSON.parse(nodesInStorage) ? "stream" : "batch";
-                        // let modifiedNodes = {[nodeType]: {}};
-                        // let position = 0;
-                        // if ("stream" in JSON.parse(nodesInStorage)) {
-                        //     Object.entries(JSON.parse(nodesInStorage).stream).forEach(([key, value]) => {
-                        //         if (key !== "edges") {
-                        //             if (key === "transformers") {
-                        //                 for (let i = 0; i < value.length; i++) {
-                        //                     if (value[i].position.x > maxX) {
-                        //                         maxX = value[i].position.x;
-                        //                         maxIndex = [key, i];
-                        //                     }
-                        //                 }
-                        //             } else if ((key === "loader" || key === "exporter") && value !== ""){
-                        //                 if (value.position.x > maxX) {
-                        //                     maxX = value.position.x;
-                        //                     maxIndex = key;
-                        //                 }
-                        //             }
-                        //         }
-                        //     });
-                        //     if (maxX !== -1) {
-                        //         if (maxIndex.length > 1 && typeof(maxIndex) === "object") {
-                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x]);
-                        //             position = JSON.parse(nodesInStorage).stream[maxIndex[0]][maxIndex[1]].position.x;
-                        //         } else {
-                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).stream[maxIndex].position.x]);
-                        //             position = JSON.parse(nodesInStorage).stream[maxIndex].position.x;
-                        //         }
-                        //     } else {
-                        //         setBlocksPosition(prevState => [...prevState, 0]);
-                        //     }
-                        // } else {
-                        //     Object.entries(JSON.parse(nodesInStorage).batch).forEach(([key, value]) => {
-                        //         if (key === "transformers") {
-                        //             for (let i = 0; i < value.length; i++) {
-                        //                 if (value[i].position.x > maxX) {
-                        //                     maxX = value[i].position.x;
-                        //                     maxIndex = key;
-                        //                 }
-                        //             }
-                        //         } else if ((key === "loader" || key === "exporter") && value !== ""){
-                        //             if (value.position.x > maxX) {
-                        //                 maxX = value.position.x;
-                        //                 maxIndex = key;
-                        //             }
-                        //         }
-                        //     });
-                        //     if (maxX !== -1) {
-                        //         if (maxIndex.length > 1  && typeof(maxIndex) === "object") {
-                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x]);
-                        //             position = JSON.parse(nodesInStorage).batch[maxIndex[0]][maxIndex[1]].position.x;
-                        //         } else {
-                        //             setBlocksPosition(prevState => [...prevState, JSON.parse(nodesInStorage).batch[maxIndex].position.x]);
-                        //             position = JSON.parse(nodesInStorage).batch[maxIndex].position.x
-                        //         }
-                        //     } else {
-                        //         setBlocksPosition(prevState => [...prevState, 0]);
-                        //     }
-                        // }
-                        //
-                        // Object.entries(JSON.parse(nodesInStorage)[nodeType]).forEach(([key, value]) => {
-                        //     if (!["edges", "created", "blockPosition"].includes(key)) {
-                        //         if (key === "transformers") {
-                        //             const newTransformers = [];
-                        //             for (let i of value) {
-                        //                 const isContentInStorage = localStorage.getItem(`${name}-${i.id}-block-content`);
-                        //
-                        //                 if (isContentInStorage) {
-                        //                     const newNode = {};
-                        //                     Object.entries(i).forEach(([k, v]) => {
-                        //                         if (k === "data"){
-                        //                             newNode[k] = {...v, content: isContentInStorage};
-                        //                         } else {
-                        //                             newNode[k] = v;
-                        //                         }
-                        //                     })
-                        //                     newTransformers.push(newNode);
-                        //                 } else {
-                        //                     newTransformers.push(i);
-                        //                 }
-                        //             }
-                        //             modifiedNodes[nodeType]["transformers"] = newTransformers;
-                        //         } else {
-                        //             const isContentInStorage = localStorage.getItem(`${name}-${value.id}-block-content`);
-                        //
-                        //             if (isContentInStorage) {
-                        //                 const newNode = {};
-                        //                 Object.entries(value).forEach(([key, value]) => {
-                        //                     if (key === "data"){
-                        //                         newNode[key] = {...value, content: isContentInStorage};
-                        //                     } else {
-                        //                         newNode[key] = value;
-                        //                     }
-                        //                 })
-                        //                 if (key === "loader") {
-                        //                     modifiedNodes[nodeType]["loader"] = newNode;
-                        //                 } else {
-                        //                     modifiedNodes[nodeType]["exporter"] = newNode;
-                        //                 }
-                        //             } else {
-                        //                 if (key === "loader") {
-                        //                     modifiedNodes[nodeType]["loader"] = value;
-                        //                 } else {
-                        //                     modifiedNodes[nodeType]["exporter"] = value;
-                        //                 }
-                        //             }
-                        //         }
-                        //     } else {
-                        //         if (key === "blockPosition") {
-                        //             modifiedNodes[nodeType]["blockPosition"] = position
-                        //         } else if (key === "created") {
-                        //             modifiedNodes[nodeType]["created"] = false
-                        //         } else if (key === "edges") {
-                        //             modifiedNodes[nodeType]["edges"] = value;
-                        //         }
-                        //     }
-                        // })
                         setPipelines((prevState) => ({
                             ...prevState,
                             [name]: {
@@ -1187,80 +827,25 @@ const Orchestrator = () => {
                     </FormControl>
                 </Box>
             </Dialog>
-            <Dialog open={streamingLoaderOpen} onClose={handleClose}>
+            <Dialog open={streamingOpen} onClose={handleClose}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         BLOCK NAME
                     </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setStreamingLoaderName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleStreamingLoader}>
-                        Add Loader
+                    <TextField variant="outlined" onChange={(event) => setStreamingName(event.target.value)} label="Block Name"/>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleStreamAdder(streamBlockType, streamBlockName)}>
+                        Add Block
                     </Button>
                 </Box>
             </Dialog>
-            <Dialog open={streamingTransformerOpen} onClose={handleClose}>
+            <Dialog open={batchOpen} onClose={handleClose}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         BLOCK NAME
                     </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setStreamingTransformerName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleStreamingTransformer}>
-                        Add Transformer
-                    </Button>
-                </Box>
-            </Dialog>
-            <Dialog open={streamingExporterOpen} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
-                    <DialogTitle sx={{ fontWeight: "bold" }}>
-                        BLOCK NAME
-                    </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setStreamingExporterName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleStreamingExporter}>
-                        Add Exporter
-                    </Button>
-                </Box>
-            </Dialog>
-            <Dialog open={batchLoaderOpen} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
-                    <DialogTitle sx={{ fontWeight: "bold" }}>
-                        BLOCK NAME
-                    </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setBatchLoaderName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleBatchLoader}>
-                        Add Loader
-                    </Button>
-                </Box>
-            </Dialog>
-            <Dialog open={batchNullOpen} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
-                    <DialogTitle sx={{ fontWeight: "bold" }}>
-                        BLOCK NAME
-                    </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setBatchTransformerName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleBatchTransformer("remove_null_rows")}>
-                        Add Transformer
-                    </Button>
-                </Box>
-            </Dialog>
-            <Dialog open={batchImputationOpen} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
-                    <DialogTitle sx={{ fontWeight: "bold" }}>
-                        BLOCK NAME
-                    </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setBatchTransformerName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleBatchTransformer("data_imputation")}>
-                        Add Transformer
-                    </Button>
-                </Box>
-            </Dialog>
-            <Dialog open={batchExporterOpen} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
-                    <DialogTitle sx={{ fontWeight: "bold" }}>
-                        BLOCK NAME
-                    </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setBatchExporterName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleBatchExporter}>
-                        Add Exporter
+                    <TextField variant="outlined" onChange={(event) => setBatchName(event.target.value)} label="Block Name"/>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => {handleBatchAdder(batchBlockType, batchBlockName)}}>
+                        Add Block
                     </Button>
                 </Box>
             </Dialog>
@@ -1287,60 +872,99 @@ const Orchestrator = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                             <Box>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel1'} onChange={handleBatchChange('batch_panel1')}>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                    >
-                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Data Loader".toUpperCase()}
-                                        </Typography>
+                                <Accordion expanded={batchExpanded.toString() === 'loaders'} onChange={handleBatchChange('loaders')}><AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel1bh-content"
+                                    id="panel1bh-header"
+                                >
+                                    <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                        {"loaders".toUpperCase()}
+                                    </Typography>
                                     </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchLoaderOpen(true)}>
-                                            Add
-                                        </Button>
+                                    <AccordionDetails>
+                                        {batchTemplates.loaders && (
+                                            batchTemplates.loaders.map((value, index) => {
+                                                return (
+                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={batchLoaderExpanded.toString() === `batch_panel${index}`} onChange={handleBatchLoaderChange(`batch_panel${index}`)}>
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                        >
+                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                {value.name.split("_").join(" ").toUpperCase()}
+                                                            </Typography>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
+                                                                Add
+                                                            </Button>
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                )})
+                                        )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel2'} onChange={handleBatchChange('batch_panel2')}>
+                                <Accordion expanded={batchExpanded.toString() === 'transformers'} onChange={handleBatchChange('transformers')}>
                                     <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1bh-content"
+                                        id="panel1bh-header"
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"remove null rows".toUpperCase()}
+                                            {"transformers".toUpperCase()}
                                         </Typography>
                                     </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchNullOpen(true)}>
-                                            Add
-                                        </Button>
+                                    <AccordionDetails>
+                                        {batchTemplates.transformers && (
+                                            batchTemplates.transformers.map((value, index) => {
+                                                return (
+                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={batchTransformerExpanded.toString() === `batch_panel${index}`} onChange={handleBatchTransformerChange(`batch_panel${index}`)}>
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                        >
+                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                {value.name.split("_").join(" ").toUpperCase()}
+                                                            </Typography>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
+                                                                Add
+                                                            </Button>
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                )})
+                                        )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel3'} onChange={handleBatchChange('batch_panel3')}>
+                                <Accordion expanded={batchExpanded.toString() === 'exporters'} onChange={handleBatchChange('exporters')}>
                                     <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1bh-content"
+                                        id="panel1bh-header"
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Data Imputation".toUpperCase()}
+                                            {"exporters".toUpperCase()}
                                         </Typography>
                                     </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchImputationOpen(true)}>
-                                            Add
-                                        </Button>
-                                    </AccordionDetails>
-                                </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExpanded.toString() === 'batch_panel4'} onChange={handleBatchChange('batch_panel4')}>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                    >
-                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Data Exporter".toUpperCase()}
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setBatchExporterOpen(true)}>
-                                            Add
-                                        </Button>
+                                    <AccordionDetails>
+                                        {batchTemplates.exporters && (
+                                            batchTemplates.exporters.map((value, index) => {
+                                                return (
+                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={batchExporterExpanded.toString() === `batch_panel${index}`} onChange={handleBatchExporterChange(`batch_panel${index}`)}>
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                        >
+                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                {value.name.split("_").join(" ").toUpperCase()}
+                                                            </Typography>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
+                                                                Add
+                                                            </Button>
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                )})
+                                        )}
                                     </AccordionDetails>
                                 </Accordion>
                             </Box>
@@ -1358,46 +982,99 @@ const Orchestrator = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                             <Box>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded.toString() === 'stream_panel1'} onChange={handleStreamChange('stream_panel1')}>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                    >
-                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Data Loader".toUpperCase()}
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setStreamingLoaderOpen(true)}>
-                                            Add
-                                        </Button>
+                                <Accordion expanded={streamExpanded.toString() === 'loaders'} onChange={handleStreamChange('loaders')}><AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel1bh-content"
+                                    id="panel1bh-header"
+                                >
+                                    <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                        {"loaders".toUpperCase()}
+                                    </Typography>
+                                </AccordionSummary>
+                                    <AccordionDetails>
+                                        {streamTemplates.loaders && (
+                                            streamTemplates.loaders.map((value, index) => {
+                                                return (
+                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={streamLoaderExpanded.toString() === `stream_panel${index}`} onChange={handleStreamLoaderChange(`stream_panel${index}`)}>
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                        >
+                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                {value.name.split("_").join(" ").toUpperCase()}
+                                                            </Typography>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setStreamingOpen(true); setStreamBlockName(value.name); setStreamBlockType(value.type)}}>
+                                                                Add
+                                                            </Button>
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                )})
+                                        )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded.toString() === 'stream_panel2'} onChange={handleStreamChange('stream_panel2')}>
+                                <Accordion expanded={streamExpanded.toString() === 'transformers'} onChange={handleStreamChange('transformers')}>
                                     <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1bh-content"
+                                        id="panel1bh-header"
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Transformers".toUpperCase()}
+                                            {"transformers".toUpperCase()}
                                         </Typography>
                                     </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setStreamingTransformerOpen(true)}>
-                                            Add
-                                        </Button>
+                                    <AccordionDetails>
+                                        {streamTemplates.transformers && (
+                                            streamTemplates.transformers.map((value, index) => {
+                                                return (
+                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={streamTransformerExpanded.toString() === `stream_panel${index}`} onChange={handleStreamTransformerChange(`stream_panel${index}`)}>
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                        >
+                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                {value.name.split("_").join(" ").toUpperCase()}
+                                                            </Typography>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setStreamingOpen(true); setStreamBlockName(value.name); setStreamBlockType(value.type)}}>
+                                                                Add
+                                                            </Button>
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                )})
+                                        )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={streamExpanded.toString() === 'stream_panel3'} onChange={handleStreamChange('stream_panel3')}>
+                                <Accordion expanded={streamExpanded.toString() === 'exporters'} onChange={handleStreamChange('exporters')}>
                                     <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1bh-content"
+                                        id="panel1bh-header"
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"Data Exporter".toUpperCase()}
+                                            {"exporters".toUpperCase()}
                                         </Typography>
                                     </AccordionSummary>
-                                    <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => setStreamingExporterOpen(true)}>
-                                            Add
-                                        </Button>
+                                    <AccordionDetails>
+                                        {streamTemplates.exporters && (
+                                            streamTemplates.exporters.map((value, index) => {
+                                                return (
+                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={streamExporterExpanded.toString() === `stream_panel${index}`} onChange={handleStreamExporterChange(`stream_panel${index}`)}>
+                                                        <AccordionSummary
+                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                        >
+                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                {value.name.split("_").join(" ").toUpperCase()}
+                                                            </Typography>
+                                                        </AccordionSummary>
+                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setStreamingOpen(true); setStreamBlockName(value.name); setStreamBlockType(value.type)}}>
+                                                                Add
+                                                            </Button>
+                                                        </AccordionDetails>
+                                                    </Accordion>
+                                                )})
+                                        )}
                                     </AccordionDetails>
                                 </Accordion>
                             </Box>
@@ -1432,9 +1109,9 @@ const Orchestrator = () => {
                                     drawerWidth: drawerWidth,
                                     created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
                                     setPipes: setPipelines,
-                                    pipeline_name: tabsName[value] !== undefined ? tabsName[value] : "",
-                                    type: tabsName[value] !== undefined ? Object.keys(pipelines[tabsName[value]])[0] : "",
-                                    orderBlockNames: pipelinesBlocksNames[value] !== undefined ? pipelinesBlocksNames[value] : ""
+                                    pipeline_name: value !== undefined ? tabsName[value] !== undefined ? tabsName[value] : "" : "",
+                                    type: value !== undefined ? tabsName[value] !== undefined ? Object.keys(pipelines[tabsName[value]])[0] : "" : "",
+                                    orderBlockNames: value !== undefined ? pipelinesBlocksNames[value] !== undefined ? pipelinesBlocksNames[value] : "" : ""
                                 }}
                             />
                         )
