@@ -14,7 +14,7 @@ function Neo4jNode({ data, isConnectable }) {
             border: '2px solid #2b4b6f',
             borderRadius: '8px',
             padding: '10px',
-            background: '#36454F',
+            background: data.type === "base" ? '#4877ff' : data.type === "category" ? '#7d55ec' : '#ffcc19',
             color: 'white',
             width: '100px',
         }}>
@@ -28,7 +28,7 @@ function Neo4jNode({ data, isConnectable }) {
                     {data.name.toUpperCase()}
                 </Typography>
             }
-            {data.type !== "leaf" && (<Handle type="source" position={Position.Bottom} style={{ backgroundColor: "#C0C0C0" }} isConnectable={isConnectable} />)}
+            {data.type !== "dataset" && (<Handle type="source" position={Position.Bottom} style={{ backgroundColor: "#FCCB06" }} isConnectable={isConnectable} />)}
         </div>
     );
 }

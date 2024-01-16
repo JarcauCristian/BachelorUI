@@ -271,7 +271,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                 fileInput = value;
             } else {
                 if (key === 'name') {
-                    textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
+                    textEntries[key] = Cookies.get("userID").split("-").join("_") + + "/" + value;
                 } else {
                     textEntries[key] = value;
                 }
@@ -289,7 +289,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
             formData.append("file", fileInput);
             formData.append("tags", JSON.stringify({}));
-            formData.append("name",  Cookies.get("userID").split("-").join("_") + "/" + textEntries["initial_name"]);
+            formData.append("name",  Cookies.get("userID").split("-").join("_") + "/" + data.pipeline_name + "/" + textEntries["initial_name"]);
             formData.append("temporary", true);
 
             axios({

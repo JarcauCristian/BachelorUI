@@ -40,7 +40,6 @@ const DatasetGraph = () => {
             let initialNodes = [];
             let initialEdges = [];
             let positions = {}
-            let offset = 0;
 
             const setPosition = (nodes, currentNode, x, y) => {
                 positions[currentNode.name] = [x, y];
@@ -48,22 +47,58 @@ const DatasetGraph = () => {
                 currentNode["under_nodes"].forEach((downNode, index) => {
                     const newX = index === 0 ? x : x + (index % 2 === 0 ? offset : -offset);
                     const newY = y + 300;
-                    offset += index % 2 === 0 ? 300 : 0;
+                    offset += index % 2 === 0 ? currentNode.label === "category" ? 100 : 300 : 0;
                     setPosition(nodes, nodes.find(node => node.name === downNode), newX, newY);
                 });
             }
 
             let first_node;
+            let offset = 100;
+            const yOffset = 150;
+            const categoryNodes = [];
+            const datasetNodes = [];
+
             for (let node of response.data) {
-                if (node["upper_node"] === null) {
+                if (node["label"] === "base") {
+                    positions[node["name"]] = [0, 0];
                     first_node = node;
+                } else if (node["label"] === "category") {
+                    categoryNodes.push(node);
+                } else if (node["label"] === "dataset") {
+                    datasetNodes.push(node);
                 }
             }
 
-            setPosition(response.data, first_node, 0, 0);
+            for (let i = 0; i < categoryNodes.length; i++) {
+                if (i % 2 === 0 && i > 0) {
+                    offset += 300;
+                }
+                positions[categoryNodes[i]["name"]] = [i === 0 ? offset : (i % 2 === 0 ? offset : -offset), yOffset];
+            }
+
+            offset = 150;
+
+            for (let i = 0; i < datasetNodes.length; i+=2) {
+                offset += yOffset;
+                if (datasetNodes.length === 1) {
+                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
+                } else if (datasetNodes.length === 2) {
+                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
+                    positions[datasetNodes[i + 1]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] + 100, offset];
+                } else if (datasetNodes.length - i === 2) {
+                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
+                    positions[datasetNodes[i + 1]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] + 100, offset];
+                } else if (datasetNodes.length - i === 1) {
+                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
+                } else {
+                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
+                    positions[datasetNodes[i + 1]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] + 100, offset];
+                    positions[datasetNodes[i + 2]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] - 100, offset];
+                }
+            }
 
             for (let node of response.data) {
-                const type = node["upper_node"] === null ? "base" : node["under_nodes"].length === 0 ? "leaf" : "middle";
+                const type = node["label"];
                 initialNodes.push({
                     id: node.name,
                     type: 'neo4j',
@@ -71,7 +106,6 @@ const DatasetGraph = () => {
                     data: {
                         type: type,
                         name: node.name,
-                        handleCount: node["under_nodes"].length,
                         hasInformation: node["hasInformation"]
                     },
                     draggable: false

@@ -13,6 +13,7 @@ import Models from "./pages/Models";
 import Model from "./pages/Model";
 import Orchestrator from "./pages/Orchestrator";
 import DatasetGraph from "./pages/DatasetGraph";
+import Datasets from "./pages/Datasets";
 
 function App() {
 
@@ -27,10 +28,10 @@ function App() {
                     </Route>
               : isLogin && userRole === "data-producer" ?
                     <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
-                        <Route index element={<LandingPage role={userRole} />}/>
-                        <Route path="orchestration" element={<Orchestrator token={token}/>}/>
-                        <Route path="datasets" element={<Orchestrator token={token}/>}/>
-                        <Route path="models" element={<Orchestrator token={token}/>}/>
+                        <Route index element={<LandingPage role={userRole}/>}/>
+                        <Route path="orchestration" element={<Orchestrator/>}/>
+                        <Route path="datasets" element={<Datasets/>}/>
+                        <Route path="models" element={<Orchestrator/>}/>
                     </Route>
                     : isLogin && userRole === "data-scientist" ?
                         <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>

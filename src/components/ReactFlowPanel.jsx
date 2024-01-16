@@ -428,7 +428,7 @@ const ReactFlowPanel = (props) => {
             hidden={value !== index}
             id={`simple-tabpanel-${index}`}
             aria-labelledby={`simple-tab-${index}`}
-            style={{ width: "88vw", height: "93vh", paddingRight: other.drawerWidth + 10 }}>
+            style={{ width: "88vw", height: "93vh" }}>
             <Snackbar
                 open={open}
                 autoHideDuration={2000}

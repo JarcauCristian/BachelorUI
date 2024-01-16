@@ -13,7 +13,7 @@ import {
     DialogTitle,
     FormControl,
     FormControlLabel,
-    FormLabel,
+    FormLabel, List,
     Radio,
     RadioGroup,
     Snackbar,
@@ -30,15 +30,16 @@ import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
 import {
     BLOCK_MODEL, BLOCK_MODEL_TRANSFORMERS,
-    CREATE_PIPELINE,
+    CREATE_PIPELINE, DELETE_FILES,
     DELETE_PIPELINE, GET_TEMPLATES,
     PIPELINES,
     READ_PIPELINE
 } from "../components/utils/apiEndpoints";
 import {CAPS} from "../components/utils/utliFunctions";
 import Cookies from "js-cookie";
+import ListItemText from "@mui/material/ListItemText";
 
-const drawerWidth = 240;
+const drawerWidth = 300;
 function a11yProps(index: number) {
     return {
         id: `simple-tab-${index}`,
@@ -47,20 +48,17 @@ function a11yProps(index: number) {
 }
 
 const Orchestrator = () => {
-    const [expanded, setExpanded] = React.useState(false);
-    const [batchExpanded, setBatchExpanded] = React.useState(false);
+    const [expanded, setExpanded] = React.useState(true);
+    const [loaderExpanded, setLoaderExpanded] = React.useState(false);
+    const [transformerExpanded, setTransformerExpanded] = React.useState(false);
+    const [exporterExpanded, setExporterExpanded] = React.useState(false);
     const [batchLoaderExpanded, setBatchLoaderExpanded] = React.useState(false);
     const [batchTransformerExpanded, setBatchTransformerExpanded] = React.useState(false);
     const [batchExporterExpanded, setBatchExporterExpanded] = React.useState(false);
-    const [streamExpanded, setStreamExpanded] = React.useState(false);
-    const [streamLoaderExpanded, setStreamLoaderExpanded] = React.useState(false);
-    const [streamTransformerExpanded, setStreamTransformerExpanded] = React.useState(false);
-    const [streamExporterExpanded, setStreamExporterExpanded] = React.useState(false);
     const [value, setValue] = React.useState(0);
     const [tabs, setTabs] = React.useState([]);
     const [open, setOpen] = React.useState(false);
     const [tabName, setTabName] = React.useState("");
-    const [streamingName, setStreamingName] = React.useState("");
     const [batchName, setBatchName] = React.useState("");
     const [counter, setCounter] = React.useState(0);
     const [pipelines, setPipelines] = React.useState({});
@@ -68,17 +66,13 @@ const Orchestrator = () => {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [toastOpen, setToastOpen] = React.useState(false);
     const [tabsName, setTabsName] = React.useState([]);
-    const [pipelineType, setPipelineType] = React.useState("");
     const [loading, setLoading] = React.useState(false);
     const [streamingOpen, setStreamingOpen] = React.useState(false);
     const [batchOpen, setBatchOpen] = React.useState(false);
     const [pipelinesBlocksNames, setPipelinesBlocksNames] = React.useState([]);
     const [batchTemplates, setBatchTemplates] = React.useState([]);
-    const [streamTemplates, setStreamTemplates] = React.useState([]);
     const [batchBlockName, setBatchBlockName] = React.useState("");
     const [batchBlockType, setBatchBlockType] = React.useState("");
-    const [streamBlockName, setStreamBlockName] = React.useState("");
-    const [streamBlockType, setStreamBlockType] = React.useState("");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
     const isDrawerRun = React.useRef(false);
@@ -110,73 +104,38 @@ const Orchestrator = () => {
         }
         const checking = /^[a-z_]+$/.test(tabName);
         if (checking && tabName.length <= 10) {
-            if (pipelineType === "stream") {
-                const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
-                const type = "streaming"
-                axios({
-                    method: "POST",
-                    url: CREATE_PIPELINE(name, type)
-                }).then((_) => {
-                    setPipelines((prevState) => {
-                        return {
-                            ...prevState,
-                            [tabName]: {
-                                ...prevState[tabName],
-                                stream: {
-                                    loader: "",
-                                    transformers: [],
-                                    exporter: "",
-                                    edges: [],
-                                    created: false,
-                                    blockPosition: 0
-                                },
-                            }
-                        };
-                    });
+            const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
+            const type = "python"
+            axios({
+                method: "POST",
+                url: CREATE_PIPELINE(name, type)
+            }).then((_) => {
+                setPipelines((prevState) => {
+                    return {
+                        ...prevState,
+                        [tabName]: {
+                            ...prevState[tabName],
+                            batch: {
+                                loader: "",
+                                transformers: [],
+                                exporter: "",
+                                edges: [],
+                                created: false,
+                                blockPosition: 0
+                            },
+                        }
+                    };
+                });
 
-                    setPipelinesBlocksNames(prevState => [...prevState, []]);
-                    setTabsName(prevState => [...prevState, tabName]);
-                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
-                    setCounter(counter + 1);
-                    setOpen(false);
-                }).catch((error) => {
-                    handleToast("Error creating pipeline!", "error")
-                    setOpen(false);
-                })
-            } else {
-                const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
-                const type = "python"
-                axios({
-                    method: "POST",
-                    url: CREATE_PIPELINE(name, type)
-                }).then((_) => {
-                    setPipelines((prevState) => {
-                        return {
-                            ...prevState,
-                            [tabName]: {
-                                ...prevState[tabName],
-                                batch: {
-                                    loader: "",
-                                    transformers: [],
-                                    exporter: "",
-                                    edges: [],
-                                    created: false,
-                                    blockPosition: 0
-                                },
-                            }
-                        };
-                    });
-
-                    setPipelinesBlocksNames(prevState => [...prevState, []]);
-                    setTabsName(prevState => [...prevState, tabName]);
-                    setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
-                    setCounter(counter + 1);
-                    setOpen(false);
-                }).catch((error) => {
-                    handleToast("Error creating pipeline!", "error")
-                    setOpen(false);
-                })
-            }
+                setPipelinesBlocksNames(prevState => [...prevState, []]);
+                setTabsName(prevState => [...prevState, tabName]);
+                setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
+                setCounter(counter + 1);
+                setOpen(false);
+            }).catch((_) => {
+                handleToast("Error creating pipeline!", "error")
+                setOpen(false);
+            })
         } else {
             if (!checking) {
                 handleToast("Only lowercase letters and underscores are allowed!", "error");
@@ -216,23 +175,38 @@ const Orchestrator = () => {
                 updatedComponents.splice(index, 1);
                 return updatedComponents;
             })
-            const allKeys = Object.keys(localStorage);
 
-            allKeys.forEach(key => {
-                if(key.includes(tabName)) {
-                    localStorage.removeItem(key);
+            for (let i = 0; i < localStorage.length; i++) {
+                if (localStorage.key(i).includes(tabName)) {
+                    localStorage.removeItem(localStorage.key(i));
                 }
-            });
+            }
         }).catch((_) => {
             handleToast("Error deleting pipeline!", "error");
         })
+
+        axios({
+            method: "DELETE",
+            url: DELETE_FILES(Cookies.get("userID").split("-").join("_") + "/" + tabName,  "true"),
+            headers: {
+                "Authorization": `Bearer ${Cookies.get("token")}`
+            }
+        }).catch((_) => {})
     }
-    const handleMainChange = (panel) => (event, isExpanded) => {
-            setExpanded(isExpanded ? panel : false);
+    const handleMainChange = ()=> {
+            setExpanded(!expanded);
     };
 
-    const handleBatchChange = (panel) => (event, isExpanded) => {
-        setBatchExpanded(isExpanded ? panel : false);
+    const handleLoaderChange = () => {
+        setLoaderExpanded(!loaderExpanded);
+    }
+
+    const handleTransformersChange = () => {
+        setTransformerExpanded(!transformerExpanded);
+    }
+
+    const handleExporterChange = () => {
+        setExporterExpanded(!exporterExpanded);
     }
 
     const handleBatchLoaderChange = (panel) => (event, isExpanded) => {
@@ -247,113 +221,10 @@ const Orchestrator = () => {
         setBatchExporterExpanded(isExpanded ? panel : false);
     }
 
-    const handleStreamChange = (panel) => (event, isExpanded) => {
-        setStreamExpanded(isExpanded ? panel : false);
-    }
-
-    const handleStreamLoaderChange = (panel) => (event, isExpanded) => {
-        setStreamLoaderExpanded(isExpanded ? panel : false);
-    }
-
-    const handleStreamTransformerChange = (panel) => (event, isExpanded) => {
-        setStreamTransformerExpanded(isExpanded ? panel : false);
-    }
-
-    const handleStreamExporterChange = (panel) => (event, isExpanded) => {
-        setStreamExporterExpanded(isExpanded ? panel : false);
-    }
-
     const handleClose = () => {
         if (open) setOpen(false);
         if (streamingOpen) setStreamingOpen(false);
         if (batchOpen) setBatchOpen(false);
-    }
-
-    const handleStreamAdder = (type, name) => {
-        if (tabs.length > 0) {
-                if ("stream" in pipelines[tabsName[value]]) {
-                    if (tabsName[value] in pipelines && !pipelines[tabsName[value]].stream.created) {
-                        const checking = /^[a-z_]+$/.test(streamingName);
-                        const label = type === "data_loader" ? " Loader" : type === "data_exporter" ? " Exporter" : " Transformer";
-                        const insideType = type === "data_loader" ? "loader" : type === "data_exporter" ? "exporter" : "transformer";
-                        const color = type === "data_loader" ? "#4877ff" : type === "data_exporter" ? "#ffcc19" : "#7d55ec";
-                        const language = ["data_loader", "data_exporter"].includes(type) ? "yaml" : "python"
-                        if (checking && streamingName.length < 10) {
-                            if (pipelines[tabsName[value]]["stream"]["exporter"] === "") {
-                                if (!checkIfBlockNameExists(streamingName)) {
-                                    axios({
-                                        method: "GET",
-                                        url: BLOCK_MODEL(name)
-                                    }).then((response) => {
-                                        const newNode = {
-                                            id: streamingName,
-                                            type: 'textUpdater',
-                                            position: {x: pipelines[tabsName[value]].stream.blockPosition, y: 0},
-                                            data: {
-                                                params: {},
-                                                type: insideType,
-                                                name: streamingName,
-                                                pipeline_name: tabsName[value],
-                                                label: CAPS(streamingName + label),
-                                                language: language,
-                                                background: color,
-                                                content: response.data.content,
-                                                editable: true,
-                                                created: false
-                                            },
-                                        };
-
-                                        const prevPos = pipelines[tabsName[value]].stream.blockPosition + 300;
-
-                                        setPipelines((prevPipelines) => ({
-                                            ...prevPipelines,
-                                            [tabsName[value]]: {
-                                                ...prevPipelines[tabsName[value]],
-                                                stream: {
-                                                    ...prevPipelines[tabsName[value]].stream,
-                                                    loader: insideType === "loader" ? newNode : prevPipelines[tabsName[value]].stream.loader,
-                                                    transformers: insideType === "transformer" ? [...prevPipelines[tabsName[value]].stream.transformers, newNode] : prevPipelines[tabsName[value]].stream.transformers,
-                                                    edges: prevPipelines[tabsName[value]].stream.edges,
-                                                    created: prevPipelines[tabsName[value]].stream.created,
-                                                    exporter: insideType === "exporter" ? newNode : prevPipelines[tabsName[value]].stream.exporter,
-                                                    blockPosition: prevPos
-                                                },
-                                            },
-                                        }));
-                                        setStreamingOpen(false);
-                                    }).catch((_) => {
-                                        setStreamingOpen(false);
-                                        handleToast("Error loading block model!", "error");
-                                    })
-                                } else {
-                                    handleToast("There is already a block with that name!", "error");
-                                }
-                            } else {
-                                handleToast("Only one exporter", "warning"); // de modificat
-                            }
-
-                        } else {
-                            if (!checking) {
-                                handleToast("Only lowercase letters and underscores are allowed!", "error");
-                            } else {
-                                handleToast("Name must be 10 characters maximum!", "error");
-                            }
-                        }
-                    } else {
-                        if (pipelines[tabsName[value]].stream.created) {
-                            handleToast("Pipeline already created!", "error");
-                        } else {
-                            handleToast("There is non pipeline with that name!", "error");
-                        }
-                        setStreamingOpen(false);
-                    }
-                } else {
-                    handleToast("Only batch blocks can be added to a batch pipeline!", "error");
-                }
-        } else {
-            setStreamingOpen(false);
-            handleToast("There are no currently opened tabs!", "error");
-        }
     }
 
     const handleBatchAdder = (type, name) => {
@@ -508,37 +379,6 @@ const Orchestrator = () => {
             setBatchTemplates(batchTemp);
         }).catch((_) => {
             handleToast("Could not get batch templates!", "error");
-        })
-
-        axios({
-            method: "GET",
-            url: GET_TEMPLATES("stream")
-        }).then((response) => {
-            const streamTemp = {
-                "loaders": [],
-                "transformers": [],
-                "exporters": []
-            };
-
-            for (let i of response.data) {
-                switch (i.type) {
-                    case "data_loader":
-                        streamTemp.loaders.push(i);
-                        break;
-                    case "transformer":
-                        streamTemp.transformers.push(i);
-                        break;
-                    case "data_exporter":
-                        streamTemp.exporters.push(i);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            setStreamTemplates(streamTemp);
-        }).catch((_) => {
-            handleToast("Could not get stream templates!", "error");
         })
     })
 
@@ -786,7 +626,7 @@ const Orchestrator = () => {
     }, [pipelinesBlocksNames, tabsName, value]);
 
     return (
-        <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: tabs.length > 0 ? "space-between" : "center", backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
             <Snackbar
                 open={toastOpen}
                 autoHideDuration={2000}
@@ -803,39 +643,16 @@ const Orchestrator = () => {
                 <CircularProgress color="inherit" />
             </Backdrop>
             <Dialog open={open} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: tabs.length > 0 ? "space-evenly" : "", padding: 5 }}>
                 <DialogTitle sx={{ fontWeight: "bold" }}>
                     PIPELINE DETAILS
                 </DialogTitle>
                     <FormControl>
-                        <FormLabel id="demo-controlled-radio-buttons-group" sx={{ fontWeight: "bold" }}>PIPELINE TYPE</FormLabel>
-                        <RadioGroup
-                            row
-                            required
-                            aria-labelledby="demo-controlled-radio-buttons-group"
-                            name="controlled-radio-buttons-group"
-                            value={pipelineType}
-                            onChange={(event) => setPipelineType(event.target.value)}
-                        >
-                            <FormControlLabel value="stream" control={<Radio />} label="Streaming" />
-                            <FormControlLabel value="batch" control={<Radio />} label="Batch" />
-                        </RadioGroup>
                         <TextField required variant="outlined" onChange={(event) => setTabName(event.target.value)} label="Pipeline Name"/>
                         <Button variant="filled" sx={{ marginTop: 2, backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleTabAdd}>
                             Add Tab
                         </Button>
                     </FormControl>
-                </Box>
-            </Dialog>
-            <Dialog open={streamingOpen} onClose={handleClose}>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
-                    <DialogTitle sx={{ fontWeight: "bold" }}>
-                        BLOCK NAME
-                    </DialogTitle>
-                    <TextField variant="outlined" onChange={(event) => setStreamingName(event.target.value)} label="Block Name"/>
-                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => handleStreamAdder(streamBlockType, streamBlockName)}>
-                        Add Block
-                    </Button>
                 </Box>
             </Dialog>
             <Dialog open={batchOpen} onClose={handleClose}>
@@ -860,54 +677,60 @@ const Orchestrator = () => {
             >
                 <Toolbar />
                 <Box sx={{ overflow: "auto" }}>
-                    <Accordion expanded={expanded.toString() === 'panel1'} onChange={handleMainChange('panel1')}>
+                    <Accordion expanded={expanded}>
                         <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
+                            expandIcon={<ExpandMoreIcon onClick={handleMainChange} />}
                             aria-controls="panel1bh-content"
                             id="panel1bh-header"
                         >
                             <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                {"Batch Blocks".toUpperCase()}
+                                {"Blocks".toUpperCase()}
                             </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
                             <Box>
-                                <Accordion expanded={batchExpanded.toString() === 'loaders'} onChange={handleBatchChange('loaders')}><AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel1bh-content"
-                                    id="panel1bh-header"
-                                >
-                                    <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                        {"loaders".toUpperCase()}
-                                    </Typography>
+                                <Accordion sx={{ backgroundColor: "#4877ff" }} expanded={loaderExpanded} >
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon />}
+                                        aria-controls="panel1bh-content"
+                                        id="panel1bh-header"
+                                        onClick={handleLoaderChange}
+                                    >
+                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                            {"loaders".toUpperCase()}
+                                        </Typography>
                                     </AccordionSummary>
                                     <AccordionDetails>
                                         {batchTemplates.loaders && (
                                             batchTemplates.loaders.map((value, index) => {
                                                 return (
-                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={batchLoaderExpanded.toString() === `batch_panel${index}`} onChange={handleBatchLoaderChange(`batch_panel${index}`)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                                        >
-                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                                                {value.name.split("_").join(" ").toUpperCase()}
-                                                            </Typography>
-                                                        </AccordionSummary>
-                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
-                                                                Add
-                                                            </Button>
-                                                        </AccordionDetails>
-                                                    </Accordion>
+                                                    <List key={index}>
+                                                        <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchLoaderExpanded.toString() === `batch_panel${index}`} onChange={handleBatchLoaderChange(`batch_panel${index}`)}>
+                                                            <AccordionSummary
+                                                                expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                            >
+                                                                <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                    {value.name.split("_").join(" ").toUpperCase()}
+                                                                </Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                                                <ListItemText primary={value.description} />
+                                                                <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
+                                                                    Add
+                                                                </Button>
+                                                            </AccordionDetails>
+                                                        </Accordion>
+                                                    </List>
                                                 )})
                                         )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion expanded={batchExpanded.toString() === 'transformers'} onChange={handleBatchChange('transformers')}>
+                                <Accordion sx={{ backgroundColor: "#7d55ec" }} expanded={transformerExpanded} >
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon />}
                                         aria-controls="panel1bh-content"
                                         id="panel1bh-header"
+                                        onClick={handleTransformersChange}
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
                                             {"transformers".toUpperCase()}
@@ -917,29 +740,33 @@ const Orchestrator = () => {
                                         {batchTemplates.transformers && (
                                             batchTemplates.transformers.map((value, index) => {
                                                 return (
-                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={batchTransformerExpanded.toString() === `batch_panel${index}`} onChange={handleBatchTransformerChange(`batch_panel${index}`)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                                        >
-                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                                                {value.name.split("_").join(" ").toUpperCase()}
-                                                            </Typography>
-                                                        </AccordionSummary>
-                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
-                                                                Add
-                                                            </Button>
-                                                        </AccordionDetails>
-                                                    </Accordion>
+                                                    <List key={index}>
+                                                        <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchTransformerExpanded.toString() === `batch_panel${index}`} onChange={handleBatchTransformerChange(`batch_panel${index}`)}>
+                                                            <AccordionSummary
+                                                                expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                            >
+                                                                <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                    {value.name.split("_").join(" ").toUpperCase()}
+                                                                </Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                                                <ListItemText primary={value.description} />
+                                                                <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
+                                                                    Add
+                                                                </Button>
+                                                            </AccordionDetails>
+                                                        </Accordion>
+                                                    </List>
                                                 )})
                                         )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion expanded={batchExpanded.toString() === 'exporters'} onChange={handleBatchChange('exporters')}>
+                                <Accordion sx={{ backgroundColor: "#ffcc19" }} expanded={exporterExpanded}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon />}
                                         aria-controls="panel1bh-content"
                                         id="panel1bh-header"
+                                        onClick={handleExporterChange}
                                     >
                                         <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
                                             {"exporters".toUpperCase()}
@@ -949,130 +776,23 @@ const Orchestrator = () => {
                                         {batchTemplates.exporters && (
                                             batchTemplates.exporters.map((value, index) => {
                                                 return (
-                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={batchExporterExpanded.toString() === `batch_panel${index}`} onChange={handleBatchExporterChange(`batch_panel${index}`)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                                        >
-                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                                                {value.name.split("_").join(" ").toUpperCase()}
-                                                            </Typography>
-                                                        </AccordionSummary>
-                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
-                                                                Add
-                                                            </Button>
-                                                        </AccordionDetails>
-                                                    </Accordion>
-                                                )})
-                                        )}
-                                    </AccordionDetails>
-                                </Accordion>
-                            </Box>
-                        </AccordionDetails>
-                    </Accordion>
-                    <Accordion expanded={expanded.toString() === 'panel2'} onChange={handleMainChange('panel2')}>
-                        <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls="panel2bh-content"
-                            id="panel2bh-header"
-                        >
-                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                {"Streaming Blocks".toUpperCase()}
-                            </Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Box>
-                                <Accordion expanded={streamExpanded.toString() === 'loaders'} onChange={handleStreamChange('loaders')}><AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel1bh-content"
-                                    id="panel1bh-header"
-                                >
-                                    <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                        {"loaders".toUpperCase()}
-                                    </Typography>
-                                </AccordionSummary>
-                                    <AccordionDetails>
-                                        {streamTemplates.loaders && (
-                                            streamTemplates.loaders.map((value, index) => {
-                                                return (
-                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={streamLoaderExpanded.toString() === `stream_panel${index}`} onChange={handleStreamLoaderChange(`stream_panel${index}`)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                                        >
-                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                                                {value.name.split("_").join(" ").toUpperCase()}
-                                                            </Typography>
-                                                        </AccordionSummary>
-                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setStreamingOpen(true); setStreamBlockName(value.name); setStreamBlockType(value.type)}}>
-                                                                Add
-                                                            </Button>
-                                                        </AccordionDetails>
-                                                    </Accordion>
-                                                )})
-                                        )}
-                                    </AccordionDetails>
-                                </Accordion>
-                                <Accordion expanded={streamExpanded.toString() === 'transformers'} onChange={handleStreamChange('transformers')}>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon />}
-                                        aria-controls="panel1bh-content"
-                                        id="panel1bh-header"
-                                    >
-                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"transformers".toUpperCase()}
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        {streamTemplates.transformers && (
-                                            streamTemplates.transformers.map((value, index) => {
-                                                return (
-                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={streamTransformerExpanded.toString() === `stream_panel${index}`} onChange={handleStreamTransformerChange(`stream_panel${index}`)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                                        >
-                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                                                {value.name.split("_").join(" ").toUpperCase()}
-                                                            </Typography>
-                                                        </AccordionSummary>
-                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setStreamingOpen(true); setStreamBlockName(value.name); setStreamBlockType(value.type)}}>
-                                                                Add
-                                                            </Button>
-                                                        </AccordionDetails>
-                                                    </Accordion>
-                                                )})
-                                        )}
-                                    </AccordionDetails>
-                                </Accordion>
-                                <Accordion expanded={streamExpanded.toString() === 'exporters'} onChange={handleStreamChange('exporters')}>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon />}
-                                        aria-controls="panel1bh-content"
-                                        id="panel1bh-header"
-                                    >
-                                        <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                            {"exporters".toUpperCase()}
-                                        </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        {streamTemplates.exporters && (
-                                            streamTemplates.exporters.map((value, index) => {
-                                                return (
-                                                    <Accordion key={index} sx={{ backgroundColor: "black", color: "white" }} expanded={streamExporterExpanded.toString() === `stream_panel${index}`} onChange={handleStreamExporterChange(`stream_panel${index}`)}>
-                                                        <AccordionSummary
-                                                            expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
-                                                        >
-                                                            <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
-                                                                {value.name.split("_").join(" ").toUpperCase()}
-                                                            </Typography>
-                                                        </AccordionSummary>
-                                                        <AccordionDetails sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                                                            <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setStreamingOpen(true); setStreamBlockName(value.name); setStreamBlockType(value.type)}}>
-                                                                Add
-                                                            </Button>
-                                                        </AccordionDetails>
-                                                    </Accordion>
+                                                    <List key={index}>
+                                                        <Accordion sx={{ backgroundColor: "black", color: "white" }} expanded={batchExporterExpanded.toString() === `batch_panel${index}`} onChange={handleBatchExporterChange(`batch_panel${index}`)}>
+                                                            <AccordionSummary
+                                                                expandIcon={<ExpandMoreIcon sx={{ color: "white"}} />}
+                                                            >
+                                                                <Typography sx={{ width: '100%', flexShrink: 0, fontWeight: "bold" }}>
+                                                                    {value.name.split("_").join(" ").toUpperCase()}
+                                                                </Typography>
+                                                            </AccordionSummary>
+                                                            <AccordionDetails sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                                                <ListItemText primary={value.description} />
+                                                                <Button variant="filled" sx={{ backgroundColor: "white", color: "black", '&:hover': { backgroundColor: "#36454F", color: "white" } }} onClick={() => {setBatchOpen(true); setBatchBlockName(value.name); setBatchBlockType(value.type)}}>
+                                                                    Add
+                                                                </Button>
+                                                            </AccordionDetails>
+                                                        </Accordion>
+                                                    </List>
                                                 )})
                                         )}
                                     </AccordionDetails>
@@ -1082,8 +802,8 @@ const Orchestrator = () => {
                     </Accordion>
                 </Box>
             </Drawer>
-            <Box sx={{ marginLeft: 30 }}>
-                <Box sx={{ borderBottom: 2, borderColor: 'black', marginTop: -82.2 }}>
+            <Box sx={{ marginTop: tabs.length > 0 ? -1 : -122 }}>
+                <Box sx={{ borderBottom: 2, borderColor: 'black' }}>
                     <Tabs value={value} onChange={handleChange}>
                         {tabs.map((entry, index) => (
                             React.cloneElement(entry, { key: index })
@@ -1100,14 +820,12 @@ const Orchestrator = () => {
                                 index={index}
                                 value={value}
                                 {...{
-                                    componentNodes: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
-                                        ? pipelines[tabsName[value]]["stream"]
-                                        : pipelines[tabsName[value]] && pipelines[tabsName[value]]["batch"] : [],
-                                    componentEdges: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "stream" in pipelines[tabsName[value]])
-                                        ? pipelines[tabsName[value]]["stream"]["edges"]
-                                        : pipelines[tabsName[value]]["batch"]["edges"] : [],
+                                    componentNodes: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "batch" in pipelines[tabsName[value]])
+                                        ? pipelines[tabsName[value]]["batch"] : [] : [],
+                                    componentEdges: pipelines[tabsName[value]] !== undefined ? (Object.keys(pipelines[tabsName[value]]).length > 0 && "batch" in pipelines[tabsName[value]])
+                                        ? pipelines[tabsName[value]]["batch"]["edges"] : [] : [],
                                     drawerWidth: drawerWidth,
-                                    created: pipelines[tabsName[value]] !== undefined ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null,
+                                    created: pipelines[tabsName[value]] !== undefined ? pipelines[tabsName[value]].batch.created : null,
                                     setPipes: setPipelines,
                                     pipeline_name: value !== undefined ? tabsName[value] !== undefined ? tabsName[value] : "" : "",
                                     type: value !== undefined ? tabsName[value] !== undefined ? Object.keys(pipelines[tabsName[value]])[0] : "" : "",

@@ -34,6 +34,12 @@ export const UPLOAD_TEMP_FILE = "http://62.72.21.79:10000/upload";
 
 export const GET_ALL_NODES = `${neo4jUrl}/all`;
 
+export const GET_ALL_DATASETS = (user) => `${neo4jUrl}/datasets?user=${user}`;
+
 export const GET_TEMPLATES = (pipeline_type) => `${baseUrl}/pipeline/templates?pipeline_type=${pipeline_type}`;
 
 export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_id=${id}`;
+
+export const DELETE_FILES = (path, temporary) => `http://62.72.21.79:10000/delete_path?path=${path}&temp=${temporary}`
+
+export const GET_DATASET = (path) => `http://62.72.21.79:10000/get/object?path=${path}`

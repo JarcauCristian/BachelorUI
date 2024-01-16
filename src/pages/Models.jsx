@@ -53,14 +53,14 @@ const Models = () => {
 
     const handleFilterApplication = () => {
         if (modelIDFilter !== '' || creationDate !== '') {
-            const filteredNotebooks = models.filter((model) => {
+            const filteredModels = models.filter((model) => {
                 const matchesID = modelIDFilter ? model.model_id === modelIDFilter : true;
                 const matchesCreationDate = creationDate ? new Date(model.created_at) <= new Date(creationDate) : true;
 
                 return matchesID && matchesCreationDate;
             });
 
-            setFilterModels(filteredNotebooks);
+            setFilterModels(filteredModels);
         } else if (modelIDFilter === '' && creationDate === '') {
             handleToast("Please use at least one of the filters!", "error");
         }
@@ -115,9 +115,9 @@ const Models = () => {
                         <CardContent>
                             <Stack spacing={4} direction="row">
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model ID</Typography>
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model Name</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Last Accessed</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Score</Typography>
                             </Stack>
                         </CardContent>
@@ -150,7 +150,7 @@ const Models = () => {
                         ))
                         :
                         <Typography variant="h3" sx={{ color: "black"}}>
-                            No active notebooks were found!
+                            No models were found!
                         </Typography>
                     }
                 </div>

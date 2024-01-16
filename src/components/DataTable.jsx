@@ -1,19 +1,12 @@
 import React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
-import Typography from "@mui/material/Typography";
-const DataTable = ({data, name, ids}) => {
+const DataTable = ({data}) => {
     return (
-        <div>
-            <Typography variant="h4" sx={{ color: "white" }}>{name.toUpperCase()}</Typography>
+        <div style={{ padding: 20 }}>
             <DataGrid
                 rows={data.map((row, index) => {
-                    if (ids !== null){
-                        row["ID"] = ids[index];
-                    } else {
-                        row["ID"] = index;
-                    }
-
+                    row["ID"] = index;
                     return row;
                 })}
                 columns={Object.keys(data[0]).map((key) => {
@@ -27,7 +20,7 @@ const DataTable = ({data, name, ids}) => {
                 getRowId={(row) => row.ID}
                 component={Paper}
                 pageSizeOptions={[5, 10]}
-                sx={{ backgroundColor: "white", color: "black"}}
+                sx={{ backgroundColor: "white", color: "black" }}
             />
         </div>
     );
