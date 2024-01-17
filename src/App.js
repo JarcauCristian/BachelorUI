@@ -30,7 +30,7 @@ function App() {
                     <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
                         <Route index element={<LandingPage role={userRole}/>}/>
                         <Route path="orchestration" element={<Orchestrator/>}/>
-                        <Route path="datasets" element={<Datasets/>}/>
+                        <Route path="my_datasets" element={<Datasets/>}/>
                         <Route path="models" element={<Orchestrator/>}/>
                     </Route>
                     : isLogin && userRole === "data-scientist" ?

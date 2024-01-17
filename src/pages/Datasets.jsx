@@ -4,7 +4,7 @@ import {
     Backdrop,
     CardActions,
     CircularProgress,
-    Dialog, DialogTitle,
+    Dialog, DialogContent, DialogTitle,
     Divider,
     Snackbar,
     Stack,
@@ -55,6 +55,7 @@ const Datasets = () => {
 
     const clearFilters = () => {
         setDatasetName("");
+        setFilterDatasets(datasets);
     };
 
     const handleFilterApplication = () => {
@@ -75,7 +76,7 @@ const Datasets = () => {
             url: GET_DATASET(dataset.url)
         }).then((response) => {
             const parseCsvString = (csvString) => {
-                const [headers, ...rows] = csvString.split('\n').map((line) => line.split(','));
+                const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
                 return rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]])));
             };
 
@@ -151,11 +152,18 @@ const Datasets = () => {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-            <Dialog style={{ padding: '10px' }} open={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <DialogTitle>
-                    {name.toUpperCase()}
-                </DialogTitle>
-                <DataTable data={csvData}/>
+            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth
+                    maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                {name && (
+                    <DialogTitle>
+                        {name.toUpperCase()}
+                    </DialogTitle>
+                )}
+                <DialogContent sx={{ maxWidth: 1000 }}>
+                    {csvData && columnsDescriptions && (
+                        <DataTable data={csvData} descriptions={columnsDescriptions} />
+                    )}
+                </DialogContent>
             </Dialog>
             <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>

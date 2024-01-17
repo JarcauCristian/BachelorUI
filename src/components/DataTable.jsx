@@ -1,27 +1,72 @@
 import React from 'react';
-import { DataGrid } from '@mui/x-data-grid';
 import Paper from '@mui/material/Paper';
-const DataTable = ({data}) => {
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
+} from "@mui/material";
+import Typography from "@mui/material/Typography";
+const DataTable = ({data, descriptions}) => {
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+    const columns = Object.keys(data[0]).map((key) => ({
+        field: key,
+        headerName: typeof key === 'string' ? key.charAt(0).toUpperCase() + key.slice(1) : key,
+        description: descriptions[key]
+    }));
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const paginatedData = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+
     return (
         <div style={{ padding: 20 }}>
-            <DataGrid
-                rows={data.map((row, index) => {
-                    row["ID"] = index;
-                    return row;
-                })}
-                columns={Object.keys(data[0]).map((key) => {
-                    return  { field: key, headerName: typeof key === "string" ? key.charAt(0).toUpperCase() + key.slice(1) : key, width: 90 };
-                })}
-                initialState={{
-                    pagination: {
-                        paginationModel: { page: 0, pageSize: 5 },
-                    },
-                }}
-                getRowId={(row) => row.ID}
-                component={Paper}
-                pageSizeOptions={[5, 10]}
-                sx={{ backgroundColor: "white", color: "black" }}
-            />
+            <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }} aria-label="customized table">
+                    <TableHead>
+                        <TableRow>
+                            {columns.map((column) => (
+                                <TableCell key={column.field} align="center">
+                                    <Typography variant="subtitle2">{column.headerName}</Typography>
+                                    <Typography variant="body2" color="textSecondary">{column.description}</Typography>
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {paginatedData.map((row, index) => (
+                            <TableRow key={index}>
+                                {columns.map((column) => (
+                                    <TableCell key={column.field} align="center">
+                                        {row[column.field]}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={data.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+            </TableContainer>
         </div>
     );
 }

@@ -53,7 +53,7 @@ const DatasetGraph = () => {
             }
 
             let first_node;
-            let offset = 100;
+            let offset = 0;
             const yOffset = 150;
             const categoryNodes = [];
             const datasetNodes = [];
@@ -70,7 +70,7 @@ const DatasetGraph = () => {
             }
 
             for (let i = 0; i < categoryNodes.length; i++) {
-                if (i % 2 === 0 && i > 0) {
+                if (i % 2 === 1 && i > 0) {
                     offset += 300;
                 }
                 positions[categoryNodes[i]["name"]] = [i === 0 ? offset : (i % 2 === 0 ? offset : -offset), yOffset];

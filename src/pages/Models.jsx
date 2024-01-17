@@ -33,7 +33,7 @@ const Models = () => {
 
         setLoading(true);
         axios({
-            method: 'get',
+            method: "GET",
             url: 'http://localhost:8000/models',
             timeout: 1000*10,
             headers: {
