@@ -1,16 +1,15 @@
 import * as React from 'react'
 import axios from 'axios'
-import {Form, useParams} from "react-router-dom";
+import {useParams} from "react-router-dom";
 import {
     Accordion, AccordionDetails,
     AccordionSummary,
     Alert,
     Backdrop,
-    CardHeader,
     CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
     Divider, FormControl, FormGroup, FormLabel, Input,
     List, Slide,
-    Snackbar, TextField
+    Snackbar, Tooltip,
 } from "@mui/material";
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
@@ -18,7 +17,8 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Button from "@mui/material/Button";
-import Cookies from "js-cookie";
+import {GET_MODEL, GET_MODEL_DETAILS} from "../components/utils/apiEndpoints";
+import {format} from "date-fns";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -127,20 +127,20 @@ const Model = () => {
         setLoading(true);
         axios({
             method: 'GET',
-            url: "http://localhost:8000/model_details?model_id=" + modelID,
+            url: GET_MODEL_DETAILS(modelID),
             headers: {
                 'Content-Type': "application/json",
             }
         }).then((response) => {
             setModelData(response.data);
-        }).catch((error) => {
+        }).catch((_) => {
             handleToast("Failed to load model Data!", "error");
             setLoading(false);
         })
 
         axios({
             method: 'GET',
-            url: "http://localhost:8000/model?model_id=" + modelID,
+            url: GET_MODEL(modelID),
             headers: {
                 'Content-Type': "application/json",
             }
@@ -148,11 +148,11 @@ const Model = () => {
             setLoading(false);
             setModelDetails(response.data);
             setModelDescription(JSON.parse(response.data.description));
-        }).catch((error) => {
+        }).catch((_) => {
             handleToast("Failed to load model Details!", "error");
             setLoading(false);
         })
-    })
+    }, [])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -165,7 +165,7 @@ const Model = () => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'white', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
@@ -209,9 +209,11 @@ const Model = () => {
                                     <Typography sx={{ fontWeight: "bold" }}>MODEL ID</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Typography>
-                                        {modelDetails.model_id.toUpperCase()}
-                                    </Typography>
+                                    <Tooltip title={modelDetails.model_id.toUpperCase()}>
+                                        <Typography>
+                                            {modelDetails.model_id.length > 28 ? modelDetails.model_id.toUpperCase().slice(0, 28) + "..." : modelDetails.model_id.toUpperCase()}
+                                        </Typography>
+                                    </Tooltip>
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
@@ -223,9 +225,11 @@ const Model = () => {
                                     <Typography sx={{ fontWeight: "bold" }}>MODEL NAME</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Typography>
-                                        {modelDetails.model_name.toUpperCase()}
-                                    </Typography>
+                                    <Tooltip title={modelDetails.model_name.toUpperCase()}>
+                                        <Typography>
+                                            {modelDetails.model_name.length > 28 ? modelDetails.model_name.toUpperCase().slice(0, 28) + "..." : modelDetails.model_name.toUpperCase()}
+                                        </Typography>
+                                    </Tooltip>
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
@@ -238,7 +242,7 @@ const Model = () => {
                                 </AccordionSummary>
                                 <AccordionDetails>
                                     <Typography>
-                                        {modelDetails.created_at.toUpperCase()}
+                                        {format(new Date(modelDetails["created_at"]), "yyyy-dd-MM")}
                                     </Typography>
                                 </AccordionDetails>
                             </Accordion>

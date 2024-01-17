@@ -12,10 +12,7 @@ import {
     Dialog,
     DialogTitle,
     FormControl,
-    FormControlLabel,
-    FormLabel, List,
-    Radio,
-    RadioGroup,
+    List,
     Snackbar,
     Tab,
     Tabs,
@@ -29,7 +26,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ReactFlowPanel from "../components/ReactFlowPanel";
 import axios from "axios";
 import {
-    BLOCK_MODEL, BLOCK_MODEL_TRANSFORMERS,
+    BLOCK_MODEL,
     CREATE_PIPELINE, DELETE_FILES,
     DELETE_PIPELINE, GET_TEMPLATES,
     PIPELINES,

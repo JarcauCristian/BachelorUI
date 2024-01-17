@@ -1,6 +1,7 @@
 
 const baseUrl = "http://localhost:8000";
 const neo4jUrl = "http://localhost:7000";
+const modelsUrl = "http://localhost:6060";
 
 export const BLOCK_MODEL = (block_name) => `${baseUrl}/block/model?block_name=${block_name}`;
 export const BLOCK_MODEL_TRANSFORMERS = (pipeline_type, block_type, type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}&transformer_type=${type}`;
@@ -43,3 +44,11 @@ export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_i
 export const DELETE_FILES = (path, temporary) => `http://62.72.21.79:10000/delete_path?path=${path}&temp=${temporary}`
 
 export const GET_DATASET = (path) => `http://62.72.21.79:10000/get/object?path=${path}`
+
+export const GET_MODELS_USER = (user_id) => `${modelsUrl}/model/user?user_id${user_id}`;
+
+export const GET_MODELS= `${modelsUrl}/model/all`;
+
+export const GET_MODEL_DETAILS = (model_id) => `${modelsUrl}/model_details?model_id=${model_id}`;
+
+export const GET_MODEL = (model_id) => `${modelsUrl}/model?model_id=${model_id}`;

@@ -1,7 +1,17 @@
 import * as React from 'react';
 import axios from "axios";
-import Cookies from "js-cookie";
-import {Alert, Backdrop, CardActions, CircularProgress, Divider, Snackbar, Stack, TextField} from "@mui/material";
+import { format } from 'date-fns';
+import {
+    Alert,
+    Backdrop,
+    CardActions,
+    CircularProgress,
+    Dialog, DialogContent, DialogTitle, Paper,
+    Snackbar,
+    Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    TextField,
+    Tooltip
+} from "@mui/material";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
@@ -12,14 +22,17 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DemoContainer} from "@mui/x-date-pickers/internals/demo";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {useNavigate} from "react-router-dom";
+import {GET_MODELS, GET_MODELS_USER} from "../components/utils/apiEndpoints";
 
-const Models = () => {
+const Models = ({user_id}) => {
     const [models, setModels] = React.useState([]);
     const [filterModels, setFilterModels] = React.useState([]);
     const isRun = React.useRef(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [open, setOpen] = React.useState(false);
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [dialogContent, setDialogContent] = React.useState(false);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [loading, setLoading] = React.useState(false);
     const [modelIDFilter, setModelIDFilter] = React.useState("");
@@ -31,10 +44,12 @@ const Models = () => {
 
         isRun.current = true;
 
+        const url = user_id ? GET_MODELS_USER(user_id) : GET_MODELS;
+
         setLoading(true);
         axios({
             method: "GET",
-            url: 'http://localhost:8000/models',
+            url: url,
             timeout: 1000*10,
             headers: {
                 'Content-Type': "application/json",
@@ -43,13 +58,12 @@ const Models = () => {
             setLoading(false);
             setModels(response.data);
             setFilterModels(response.data);
-            console.log(response.data);
-        }).catch((error) => {
+        }).catch((_) => {
             setModels([]);
             setLoading(false);
             handleToast("Failed to load models!", "error");
         })
-    });
+    }, []);
 
     const handleFilterApplication = () => {
         if (modelIDFilter !== '' || creationDate !== '') {
@@ -85,11 +99,22 @@ const Models = () => {
     }
 
     const clearFilters = () => {
+        setCreationDate("");
+        setModelIDFilter("");
         setFilterModels(models);
     };
 
     const handleEnter = (model_id) => {
         navigate(`/models/${model_id}`);
+    }
+
+    const handleDialogClose = () => {
+        setDialogOpen(false);
+    }
+
+    const handleDialogOpen = (content) => {
+        setDialogContent(JSON.parse(content));
+        setDialogOpen(true);
     }
 
     return (
@@ -109,12 +134,44 @@ const Models = () => {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
+            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
+                <DialogTitle>CSV Data Information</DialogTitle>
+                <DialogContent>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Column Name</TableCell>
+                                    <TableCell>Data Type</TableCell>
+                                    <TableCell>Range</TableCell>
+                                    <TableCell>Categories</TableCell>
+                                    <TableCell>Unique Values</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            {dialogContent &&
+                                <TableBody>
+                                    {Object.keys(dialogContent["column_dtypes"]).map((column) => (
+                                        <TableRow key={column}>
+                                            <TableCell>{column}</TableCell>
+                                            <TableCell>{dialogContent["column_dtypes"][column]}</TableCell>
+                                            <TableCell>{Array.isArray(dialogContent["column_ranges"][column]) ? `${dialogContent["column_ranges"][column][0]} - ${dialogContent["column_ranges"][column][1]}` : '-'}</TableCell>
+                                            <TableCell>{Array.isArray(dialogContent["column_categories"][column]) ? dialogContent["column_categories"][column].join(', ') : '-'}</TableCell>
+                                            <TableCell>{dialogContent["column_unique_values"][column] || '-'}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            }
+                        </Table>
+                    </TableContainer>
+                </DialogContent>
+            </Dialog>
             <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
                     <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                         <CardContent>
                             <Stack spacing={4} direction="row">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model ID</Typography>
+                                {user_id && <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model ID</Typography>}
+                                {!user_id && <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>User ID</Typography>}
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model Name</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
@@ -127,21 +184,34 @@ const Models = () => {
                     </Card>
                     {filterModels.length !== 0 ?
                         filterModels.map((model) => (
-                            <Card key={model.model_id} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
+                            <Card key={model["model_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
                                 <CardContent>
                                     <Stack spacing={4} direction="row">
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model.model_id}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model.model_name}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model.description}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model.created_at}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model.score}</Typography>
+                                        {user_id && <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_id"]}</Typography>}
+                                        {!user_id &&
+                                            <Tooltip title={model["user_id"]}>
+                                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["user_id"].length > 15 ? model["user_id"].slice(0, 15) + "..." : model["user_id"]}</Typography>
+                                            </Tooltip>
+                                        }
+                                        <Tooltip title={model["model_name"]}>
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_name"].length > 10 ? model["model_name"].slice(0, 10) + "..." : model["model_name"]}</Typography>
+                                        </Tooltip>
+                                        <Button
+                                            variant="outlined"
+                                            sx={{ color: "White", borderColor: "white", '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
+                                            onClick={() => handleDialogOpen(model.description)}
+                                        >
+                                            Check Dataset
+                                        </Button>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{format(new Date(model["created_at"]), "yyyy-dd-MM")}</Typography>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["score"]}</Typography>
                                     </Stack>
                                 </CardContent>
                                 <CardActions>
                                     <Button
                                         variant="outlined"
-                                        sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { bgcolor: 'grey', borderColor: "white" }}}
-                                        onClick={() => handleEnter(model.model_id)}
+                                        sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
+                                        onClick={() => handleEnter(model["model_id"])}
                                     >
                                         Check Model
                                     </Button>
@@ -228,7 +298,7 @@ const Models = () => {
                     </LocalizationProvider>
                     <Button
                         variant="contained"
-                        sx={{ mt: 2, py: 1.5, bgcolor: 'white', color: 'black', '&:hover': { bgcolor: 'grey' } }}
+                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                         onClick={handleFilterApplication}
                         fullWidth
                     >
@@ -236,7 +306,7 @@ const Models = () => {
                     </Button>
                     <Button
                         variant="contained"
-                        sx={{ mt: 2, py: 1.5, bgcolor: 'white', color: 'black', '&:hover': { bgcolor: 'grey' } }}
+                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                         onClick={clearFilters}
                         fullWidth
                     >

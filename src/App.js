@@ -31,15 +31,16 @@ function App() {
                         <Route index element={<LandingPage role={userRole}/>}/>
                         <Route path="orchestration" element={<Orchestrator/>}/>
                         <Route path="my_datasets" element={<Datasets/>}/>
-                        <Route path="models" element={<Orchestrator/>}/>
+                        <Route path="models" element={<Models />}/>
+                        <Route path="/models/:modelID" element={<Model />} />
                     </Route>
                     : isLogin && userRole === "data-scientist" ?
                         <Route path="/" element={<Layout logout={keycloakInstance} role={userRole} username={username}/>}>
                             <Route index element={<LandingPage role={userRole} />}/>
-                            <Route path="datasets" element={<DatasetGraph token={token}/>}/>
-                            <Route path="notebooks" element={<Notebooks token={token}/>}/>
+                            <Route path="datasets" element={<DatasetGraph/>}/>
+                            <Route path="notebooks" element={<Notebooks/>}/>
                             <Route path="/notebooks/:notebookID" element={<Notebook />} />
-                            <Route path="models" element={<Models token={token}/>}/>
+                            <Route path="models" element={<Models user_id={userID}/>}/>
                             <Route path="/models/:modelID" element={<Model />} />
                         </Route> :
                 ""}
