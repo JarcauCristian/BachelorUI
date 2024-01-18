@@ -2,6 +2,7 @@
 const baseUrl = "http://localhost:8000";
 const neo4jUrl = "http://localhost:7000";
 const modelsUrl = "http://localhost:6060";
+const notebooksUrl = "http://main-api-service:49152";
 
 export const BLOCK_MODEL = (block_name) => `${baseUrl}/block/model?block_name=${block_name}`;
 export const BLOCK_MODEL_TRANSFORMERS = (pipeline_type, block_type, type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}&transformer_type=${type}`;
@@ -37,11 +38,15 @@ export const GET_ALL_NODES = `${neo4jUrl}/all`;
 
 export const GET_ALL_DATASETS = (user) => `${neo4jUrl}/datasets?user=${user}`;
 
+export const GET_DATASET_NEO = (name) => `${neo4jUrl}/dataset?name=${name}`;
+
 export const GET_TEMPLATES = (pipeline_type) => `${baseUrl}/pipeline/templates?pipeline_type=${pipeline_type}`;
 
 export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_id=${id}`;
 
 export const DELETE_FILES = (path, temporary) => `http://62.72.21.79:10000/delete_path?path=${path}&temp=${temporary}`
+
+export const CREATE_NOTEBOOK = `${notebooksUrl}/create_notebook_instance`;
 
 export const GET_DATASET = (path) => `http://62.72.21.79:10000/get/object?path=${path}`
 

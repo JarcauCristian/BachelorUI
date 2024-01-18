@@ -41,17 +41,6 @@ const DatasetGraph = () => {
             let initialEdges = [];
             let positions = {}
 
-            const setPosition = (nodes, currentNode, x, y) => {
-                positions[currentNode.name] = [x, y];
-
-                currentNode["under_nodes"].forEach((downNode, index) => {
-                    const newX = index === 0 ? x : x + (index % 2 === 0 ? offset : -offset);
-                    const newY = y + 300;
-                    offset += index % 2 === 0 ? currentNode.label === "category" ? 100 : 300 : 0;
-                    setPosition(nodes, nodes.find(node => node.name === downNode), newX, newY);
-                });
-            }
-
             let first_node;
             let offset = 0;
             const yOffset = 150;
@@ -106,7 +95,9 @@ const DatasetGraph = () => {
                     data: {
                         type: type,
                         name: node.name,
-                        hasInformation: node["hasInformation"]
+                        hasInformation: node["hasInformation"],
+                        toast: handleToast,
+                        load: setLoading
                     },
                     draggable: false
                 })

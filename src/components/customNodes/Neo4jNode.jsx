@@ -1,13 +1,39 @@
 import * as React from 'react';
+import axios from 'axios';
 import { Handle, Position } from 'reactflow';
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import {Tooltip} from "@mui/material";
+import {Dialog, DialogActions, DialogTitle, Tooltip} from "@mui/material";
+import {GET_DATASET_NEO} from "../utils/apiEndpoints";
 
 function Neo4jNode({ data, isConnectable }) {
+    const [datasetInformation, setDatasetInformation] = React.useState(null);
+    const [open, setOpen] = React.useState(false);
 
     const handleClick = () => {
-        alert(`Type: ${data.type}`);
+        data.load(true);
+        axios({
+            method: "GET",
+            url: GET_DATASET_NEO(data.name)
+        }).then((response) => {
+            console.log(response.data);
+            setDatasetInformation(response.data);
+            data.load(false);
+        }).catch((_) => {
+            data.load(false);
+            data.toast("Could not get the dataset information.", "error");
+        })
+    }
+
+    const handleClose = () => {
+        setOpen(false);
+    }
+
+    const createNotebook = () => {
+        axios({
+            method: "POST",
+            url:
+        })
     }
 
     return (
@@ -23,6 +49,16 @@ function Neo4jNode({ data, isConnectable }) {
             alignItems: "center",
             justifyContent: "center"
         }}>
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>
+                    DATASET INFORMATION
+                </DialogTitle>
+                <DialogActions>
+                    <Button onClick={handleClick} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
+                        start notebook
+                    </Button>
+                </DialogActions>
+            </Dialog>
             {data.type !== "base" && (<Handle type="target" position={Position.Top} style={{ backgroundColor: "black" }} isConnectable={isConnectable} />)}
             {data.hasInformation ?
                 <Tooltip title={data.name.toUpperCase()}>
