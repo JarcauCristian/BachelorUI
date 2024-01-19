@@ -122,6 +122,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 function TextUpdaterNode({ data, isConnectable }) {
     const isRun = React.useRef(false);
+    const isVariablesRun = React.useRef(false);
     const [blockContent, setBlockContent] = React.useState(data.content);
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [variableDialogOpen, setVariableDialogOpen] = React.useState(false);
@@ -187,7 +188,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                         key={key}
                         name={key}
                         fullWidth
-                        label={key + " Leave empty if the select category are sufficient."}
+                        label={key + " Leave empty if you pick from the categories."}
                         type={type === 'int' ? 'number' : 'text'}
                         value={values[key]}
                         onChange={handleInputChange}
@@ -208,6 +209,19 @@ function TextUpdaterNode({ data, isConnectable }) {
                     />
                 );
             }
+        } else if (type === "secret") {
+            return (
+                <TextField
+                    key={key}
+                    name={key}
+                    fullWidth
+                    label={key}
+                    type={'password'}
+                    value={values[key]}
+                    onChange={handleInputChange}
+                    sx={{ mb: 2 }}
+                />
+            );
         } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
             return (
                 <FormControl key={key} fullWidth sx={{ mb: 2 }}>
@@ -260,6 +274,26 @@ function TextUpdaterNode({ data, isConnectable }) {
         return condition;
     };
 
+    React.useEffect(() => {
+        if (isVariablesRun.current) return;
+
+        isVariablesRun.current = true;
+
+        const inter = JSON.parse(localStorage.getItem(`${data.pipeline_name}-${data.name}-variables`));
+        const aux = {}
+
+        if (inter) {
+            Object.entries(inter).forEach(([key, value]) => {
+                if (key === "name") {
+                    aux[key] = value.split("/").pop();
+                } else {
+                    aux[key] = value;
+                }
+            });
+            setValues(aux);
+        }
+    }, [])
+
 
     const handleSubmit = () => {
         const textEntries = {};
@@ -272,6 +306,15 @@ function TextUpdaterNode({ data, isConnectable }) {
             } else {
                 if (key === 'name') {
                     textEntries[key] = Cookies.get("userID").split("-").join("_") + + "/" + value;
+                } else if (key === 'password') {
+                    data.hasSecret(true);
+                    data.addSecret(prevState => [
+                        ...prevState,
+                        {
+                            name: key,
+                            value: value
+                        }
+                    ])
                 } else {
                     textEntries[key] = value;
                 }

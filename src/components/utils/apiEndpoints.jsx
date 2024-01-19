@@ -32,6 +32,8 @@ export const PIPELINE_TRIGGER_STATUS = (name) => `${baseUrl}/pipeline/trigger/st
 
 export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
 
+export const PIPELINE_SECRET = `${baseUrl}/pipeline/secret`;
+
 export const UPLOAD_TEMP_FILE = "http://62.72.21.79:10000/upload";
 
 export const GET_ALL_NODES = `${neo4jUrl}/all`;

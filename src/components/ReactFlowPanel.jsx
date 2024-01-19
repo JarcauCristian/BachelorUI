@@ -5,7 +5,7 @@ import ReactFlow, {
     applyEdgeChanges,
     applyNodeChanges,
     Background,
-    Controls, getConnectedEdges, getIncomers, getOutgoers,
+    Controls,
     MiniMap,
     updateEdge, useEdgesState, useNodesState
 } from "reactflow";
@@ -22,7 +22,13 @@ import {
     TextField
 } from "@mui/material";
 import axios from "axios";
-import {CREATE_BLOCK, CREATE_PIPELINE_TRIGGER, MODIFY_DESCRIPTION, PIPELINE_VARIABLES} from "./utils/apiEndpoints";
+import {
+    CREATE_BLOCK,
+    CREATE_PIPELINE_TRIGGER,
+    MODIFY_DESCRIPTION,
+    PIPELINE_SECRET,
+    PIPELINE_VARIABLES
+} from "./utils/apiEndpoints";
 import Cookies from "js-cookie";
 import PipelineSteps from "./PipelineSteps";
 import Button from "@mui/material/Button";
@@ -48,6 +54,8 @@ const ReactFlowPanel = (props) => {
     const [runInterval, setRunInterval] = React.useState("hourly");
     const [dateTime, setDateTime] = React.useState(new Date());
     const [localUpdate, setLocalUpdate] = React.useState(false);
+    const [secrets, setSecrets] = React.useState([]);
+    const [hasSecrets, setHasSecrets] = React.useState(false);
     const isRun = React.useRef(0);
 
     const handleToast = (message, severity) => {
@@ -191,6 +199,29 @@ const ReactFlowPanel = (props) => {
                     }
                 }
             }
+        }
+
+        if (hasSecrets && secrets.length === 0) {
+            handleToast("Please add all the secrets for all the blocks!", "error");
+            clearTimeout(timeoutID);
+            const newTimeoutID = setTimeout(() => {
+                setLoading(false);
+            }, 100);
+
+            clearTimeout(newTimeoutID);
+            return;
+        }
+
+        if (secrets.length > 0) {
+            secrets.forEach((entry) => {
+                axios({
+                    method: "POST",
+                    url: PIPELINE_SECRET,
+                    data: entry
+                }).catch((_) => {
+                   handleToast("Could not create secret: " + entry.name, "error");
+                });
+            })
         }
 
         if (counter > 0) {
@@ -503,7 +534,7 @@ const ReactFlowPanel = (props) => {
                 <ReactFlow key={index}
                            nodes={nodes.map((node) => ({
                                ...node,
-                               data: {...node.data, onDelete: deleteNode, toast: handleToast}
+                               data: {...node.data, onDelete: deleteNode, toast: handleToast, addSecret: setSecrets, hasSecret: setHasSecrets}
                            }))}
                            edges={other.created ? other.componentEdges : edges}
                            onNodesChange={onNodesChange}

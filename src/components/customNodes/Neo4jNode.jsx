@@ -29,12 +29,12 @@ function Neo4jNode({ data, isConnectable }) {
         setOpen(false);
     }
 
-    const createNotebook = () => {
-        axios({
-            method: "POST",
-            url:
-        })
-    }
+    // const createNotebook = () => {
+    //     axios({
+    //         method: "POST",
+    //         url:
+    //     })
+    // }
 
     return (
         <div className="neo4j-node" style={{
