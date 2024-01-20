@@ -43,7 +43,6 @@ function a11yProps(index: number) {
         'aria-controls': `simple-tabpanel-${index}`,
     };
 }
-
 const Orchestrator = () => {
     const [expanded, setExpanded] = React.useState(true);
     const [loaderExpanded, setLoaderExpanded] = React.useState(false);
@@ -79,7 +78,7 @@ const Orchestrator = () => {
         setToastSeverity(severity);
         setToastOpen(true);
     }
-
+    
     const handleBackdropClose = () => {
         setLoading(false);
     }
@@ -623,7 +622,7 @@ const Orchestrator = () => {
     }, [pipelinesBlocksNames, tabsName, value]);
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: tabs.length > 0 ? "space-between" : "center", backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: tabs.length > 0 ? "center" : "", justifyContent: tabs.length > 0 ? "space-between" : "", backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
             <Snackbar
                 open={toastOpen}
                 autoHideDuration={2000}
@@ -799,7 +798,7 @@ const Orchestrator = () => {
                     </Accordion>
                 </Box>
             </Drawer>
-            <Box sx={{ marginTop: tabs.length > 0 ? -1 : -122 }}>
+            <Box>
                 <Box sx={{ borderBottom: 2, borderColor: 'black' }}>
                     <Tabs value={value} onChange={handleChange}>
                         {tabs.map((entry, index) => (

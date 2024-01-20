@@ -12,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import {Alert, Backdrop, CircularProgress, Snackbar} from "@mui/material";
 import axios from "axios";
 import {GET_ALL_NODES} from "../components/utils/apiEndpoints";
-import {CAPS} from "../components/utils/utliFunctions";
 
 
 const DatasetGraph = () => {

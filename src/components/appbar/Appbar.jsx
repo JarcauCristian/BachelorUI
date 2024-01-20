@@ -123,7 +123,7 @@ function ResponsiveAppBar({logout, role, username}) {
   }, []);
 
   return (
-    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ height: 84, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Button sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}

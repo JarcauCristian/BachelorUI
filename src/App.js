@@ -39,7 +39,7 @@ function App() {
                             <Route index element={<LandingPage role={userRole} />}/>
                             <Route path="datasets" element={<DatasetGraph/>}/>
                             <Route path="notebooks" element={<Notebooks/>}/>
-                            <Route path="/notebooks/:notebookID" element={<Notebook />} />
+                            <Route path="/notebooks/:notebookID/:port/:type" element={<Notebook />} />
                             <Route path="models" element={<Models user_id={userID}/>}/>
                             <Route path="/models/:modelID" element={<Model />} />
                         </Route> :

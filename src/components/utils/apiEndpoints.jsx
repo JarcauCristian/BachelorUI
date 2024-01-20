@@ -1,6 +1,6 @@
 
 const baseUrl = "http://localhost:8000";
-const neo4jUrl = "http://localhost:7000";
+const neo4jUrl = "http://localhost:8000";
 const modelsUrl = "http://localhost:6060";
 const notebooksUrl = "http://main-api-service:49152";
 
@@ -49,6 +49,12 @@ export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_i
 export const DELETE_FILES = (path, temporary) => `http://62.72.21.79:10000/delete_path?path=${path}&temp=${temporary}`
 
 export const CREATE_NOTEBOOK = `${notebooksUrl}/create_notebook_instance`;
+
+export const UPDATE_ACCESS = (uid) => `${notebooksUrl}/update_access?uid=${uid}`;
+
+export const DELETE_NOTEBOOK = (uid) => `${notebooksUrl}/delete_notebook?uid=${uid}`;
+
+export const USER_NOTEBOOKS_DETAILS = (user_id) => `${notebooksUrl}/get_notebook_details?user_id=${user_id}`;
 
 export const GET_DATASET = (path) => `http://62.72.21.79:10000/get/object?path=${path}`
 

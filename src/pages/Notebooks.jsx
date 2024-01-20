@@ -19,9 +19,10 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {useNavigate} from "react-router-dom";
 import Cookies from "js-cookie";
+import {DELETE_NOTEBOOK, UPDATE_ACCESS, USER_NOTEBOOKS_DETAILS} from "../components/utils/apiEndpoints";
 
 
-const Notebooks = ({token}) => {
+const Notebooks = () => {
     const isRun = React.useRef(false);
     const [notebooks, setNotebooks] = React.useState([]);
     const [filterNotebooks, setFilterNotebooks] = React.useState([]);
@@ -70,18 +71,32 @@ const Notebooks = ({token}) => {
 
     const clearFilters = () => {
         setFilterNotebooks(notebooks);
+        setCreationDate("");
+        setExpirationDate("");
+        setNotebookIDFilter("");
     };
 
     const handleEnter = (notebook_id) => {
+
+        let port;
+        let type;
+
+        notebooks.forEach((value) => {
+            if (value.notebook_id === notebook_id) {
+                port = value.port;
+                type = value.type;
+            }
+        })
+
         axios({
-            method: 'post',
-            url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/update_access?uid=' + notebook_id,
+            method: 'POST',
+            url: UPDATE_ACCESS(notebook_id),
             headers: {
                 'Content-Type': "application/json",
                 'Authorization': "Bearer " + Cookies.get("token")
             }
         }).then(() => {
-            navigate(`/notebooks/${notebook_id}`);
+            navigate(`/notebooks/${notebook_id}/${port}/${type}`);
         }).catch(() => {
             handleToast("Error updating access!", "error");
         })
@@ -90,7 +105,7 @@ const Notebooks = ({token}) => {
     const handleDelete = (notebook_id) => {
         axios({
             method: 'delete',
-            url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/delete_notebook?uid=' + notebook_id,
+            url: DELETE_NOTEBOOK(notebook_id),
             headers: {
                 'Content-Type': "application/json",
                 'Authorization': 'Bearer ' + Cookies.get("token")
@@ -98,9 +113,10 @@ const Notebooks = ({token}) => {
         }).then(() => {
             handleToast("Notebook Deleted Successfully", "success");
 
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            const aux = notebooks.filter((obj) => obj.notebook_id !== notebook_id);
+
+            setNotebooks(aux);
+            setFilterNotebooks(aux);
         }).catch(() => {
             handleToast("Error Deleting Notebook", "error");
         })
@@ -111,11 +127,11 @@ const Notebooks = ({token}) => {
         if (isRun.current) return;
 
         isRun.current = true;
-        const user_id = window.sessionStorage.getItem("user_id")
+        const user_id = Cookies.get("userID").split("-").join("_");
         setLoading(true);
         axios({
-            method: 'get',
-            url: 'https://equipped-woodcock-needlessly.ngrok-free.app/main_api/get_notebook_details?user_id=' + user_id,
+            method: 'GET',
+            url: USER_NOTEBOOKS_DETAILS(user_id),
             timeout: 1000*10,
             headers: {
                 'Content-Type': "application/json",
@@ -125,14 +141,12 @@ const Notebooks = ({token}) => {
             setNotebooks(response.data);
             setFilterNotebooks(response.data);
             setLoading(false);
-        }).catch((error) => {
-            console.log("Here");
+        }).catch((_) => {
             handleToast("Error getting Notebooks!", "error");
             setLoading(false);
         }).finally(() => {
             setLoading(false);
         })
-
     },[])
 
     return (
@@ -162,6 +176,7 @@ const Notebooks = ({token}) => {
                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Expiration Time</Typography>
                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Last Accessed</Typography>
+                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Type</Typography>
                         </Stack>
                     </CardContent>
                     <CardActions>
@@ -180,6 +195,7 @@ const Notebooks = ({token}) => {
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.creation_time}</Typography>
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.expiration_time}</Typography>
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.last_accessed}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.type}</Typography>
                                 </Stack>
                             </CardContent>
                             <CardActions>
