@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai1-service
+  namespace: cjarcau
+spec:
+  selector:
+    app: ai1
+  ports:
+    - name: api
+      protocol: TCP
+      port: 3000
+      nodePort: 31491
+      targetPort: 3000
+  type: LoadBalancer

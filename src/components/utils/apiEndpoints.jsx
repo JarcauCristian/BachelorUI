@@ -1,8 +1,9 @@
 
-const baseUrl = "http://localhost:8000";
-const neo4jUrl = "http://localhost:8000";
-const modelsUrl = "http://localhost:6060";
-const notebooksUrl = "http://main-api-service:49152";
+const baseUrl = "https://ingress.sedimark.work/mage";
+const neo4jUrl = "https://ingress.sedimark.work/neo4j";
+const modelsUrl = "https://ingress.sedimark.work/models";
+const notebooksUrl = "https://ingress.sedimark.work/notebook_manager";
+const balancerUrl = "https://ingress.sedimark.work/balancer";
 
 export const BLOCK_MODEL = (block_name) => `${baseUrl}/block/model?block_name=${block_name}`;
 export const BLOCK_MODEL_TRANSFORMERS = (pipeline_type, block_type, type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}&transformer_type=${type}`;
@@ -34,7 +35,7 @@ export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
 
 export const PIPELINE_SECRET = `${baseUrl}/pipeline/secret`;
 
-export const UPLOAD_TEMP_FILE = "http://62.72.21.79:10000/upload";
+export const UPLOAD_TEMP_FILE = `${balancerUrl}/upload`;
 
 export const GET_ALL_NODES = `${neo4jUrl}/all`;
 
@@ -46,7 +47,7 @@ export const GET_TEMPLATES = (pipeline_type) => `${baseUrl}/pipeline/templates?p
 
 export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_id=${id}`;
 
-export const DELETE_FILES = (path, temporary) => `http://62.72.21.79:10000/delete_path?path=${path}&temp=${temporary}`
+export const DELETE_FILES = (path, temporary) => `${balancerUrl}/delete_path?path=${path}&temp=${temporary}`
 
 export const CREATE_NOTEBOOK = `${notebooksUrl}/create_notebook_instance`;
 
@@ -56,11 +57,11 @@ export const DELETE_NOTEBOOK = (uid) => `${notebooksUrl}/delete_notebook?uid=${u
 
 export const USER_NOTEBOOKS_DETAILS = (user_id) => `${notebooksUrl}/get_notebook_details?user_id=${user_id}`;
 
-export const GET_DATASET = (path) => `http://62.72.21.79:10000/get/object?path=${path}`
+export const GET_DATASET = (path) => `${balancerUrl}/get/object?path=${path}`
 
 export const GET_MODELS_USER = (user_id) => `${modelsUrl}/model/user?user_id${user_id}`;
 
-export const GET_MODELS= `${modelsUrl}/model/all`;
+export const GET_MODELS = `${modelsUrl}/model/all`;
 
 export const GET_MODEL_DETAILS = (model_id) => `${modelsUrl}/model_details?model_id=${model_id}`;
 
