@@ -104,7 +104,7 @@ function Neo4jNode({ data, isConnectable }) {
             }
         }).then((response) => {
             data.load(false);
-            navigate(`/notebooks/${response.data.notebook_id}/${response.data.port}/${notebookType.toLowerCase()}`);
+            navigate(`/notebooks/${response.data.notebook_id}`);
         }).catch((_) => {
             data.load(false);
             data.toast("Could not create the notebook!", "error");

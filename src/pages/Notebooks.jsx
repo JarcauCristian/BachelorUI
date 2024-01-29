@@ -57,7 +57,7 @@ const Notebooks = () => {
         setOpen(true);
     }
 
-    const handleClose = (event, reason) => {
+    const handleClose = (_, reason) => {
         if (reason === 'clickaway') {
             return;
         }
@@ -77,17 +77,6 @@ const Notebooks = () => {
     };
 
     const handleEnter = (notebook_id) => {
-
-        let port;
-        let type;
-
-        notebooks.forEach((value) => {
-            if (value.notebook_id === notebook_id) {
-                port = value.port;
-                type = value.type;
-            }
-        })
-
         axios({
             method: 'POST',
             url: UPDATE_ACCESS(notebook_id),
@@ -96,7 +85,7 @@ const Notebooks = () => {
                 'Authorization': "Bearer " + Cookies.get("token")
             }
         }).then(() => {
-            navigate(`/notebooks/${notebook_id}/${port}/${type}`);
+            navigate(`/notebooks/${notebook_id}`);
         }).catch(() => {
             handleToast("Error updating access!", "error");
         })
