@@ -1,3 +1,4 @@
+// Make special string to upper case.
 export const CAPS = (str) => {
     if (str.includes("_")) {
         const new_string = [];

@@ -14,6 +14,8 @@ import useAppBarHeight from "../utils/appBarHeight";
 import Chip from '@mui/material/Chip';
 import {useNavigate} from "react-router-dom";
 
+
+// Function to get the width of the window
 function getWindowDimensions() {
   const { innerWidth: width } = window;
   return width;
@@ -31,6 +33,7 @@ function ResponsiveAppBar({logout, role, username}) {
   const [pages, setPages] = React.useState([]);
 
 
+  // First use effect for setting up the app bar.
   useEffect(() => {
     if (isRun.current) return;
 
@@ -49,14 +52,19 @@ function ResponsiveAppBar({logout, role, username}) {
     }
   }, [appBarRef]);
 
+
+  // Logout function
   const handleLogout = () => {
     logout.logout();
   };
 
+  // Navigate Home.
   const goToHome = () => {
     navigate("");
   }
 
+
+  // Functions for menu and logo control
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -73,6 +81,7 @@ function ResponsiveAppBar({logout, role, username}) {
       setLogoHover(false);
   }
 
+  // Hover over one item form an array
   const handleMouseEnter = (index) => {
     let newArray = [];
     for (var i = 0; i < hoverEffect.length; i++) {
@@ -85,6 +94,7 @@ function ResponsiveAppBar({logout, role, username}) {
     setHoverEffect(newArray);
   };
 
+  // Hover out of one item from an array
   const handleMouseLeave = (index) => {
     let newArray = [];
     for (var i = 0; i < hoverEffect.length; i++) {
@@ -105,6 +115,7 @@ function ResponsiveAppBar({logout, role, username}) {
   }
 
 
+  // Redirect function based on item clicked.
   const handleRedirect = (whereTo) => {
     if (whereTo.toLowerCase() === "home") {
       navigate(`/`);

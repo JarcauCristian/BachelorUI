@@ -58,10 +58,16 @@ const Models = ({user_id}) => {
             setLoading(false);
             setModels(response.data);
             setFilterModels(response.data);
-        }).catch((_) => {
+        }).catch((error) => {
             setModels([]);
             setLoading(false);
-            handleToast("Failed to load models!", "error");
+            if (error.response) {
+                if (error.response.status === 404) {
+                    handleToast("No models found!", "error");
+                } else {
+                    handleToast("Failed to load models!", "error");
+                }
+              }
         })
     }, []);
 

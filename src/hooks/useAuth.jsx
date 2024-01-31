@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Keycloak from "keycloak-js";
 import Cookies from 'js-cookie';
 
-const roles = ['data-scientist', 'data-producer']
+const roles = ['data-scientist', 'data-producer'] // The roles in the platform
 
 const useAuth = () => {
     const isRun = useRef(false);
