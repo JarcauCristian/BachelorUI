@@ -1,16 +1,11 @@
 import * as React from 'react';
 import Box from "@mui/material/Box";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
-import StopCircleIcon from '@mui/icons-material/StopCircle';
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
-import { intervalToDuration, formatDuration } from 'date-fns';
 import {
     CircularProgress,
     createTheme,
-    Dialog,
-    DialogTitle,
-    Divider,
     Step,
     StepLabel,
     Stepper,
@@ -19,15 +14,11 @@ import {
 import {CAPS} from "./utils/utliFunctions";
 import {
     BATCH_STATUS,
-    BLOCK_STATUS,
-    CHANGE_PIPELINE_STATUS,
     PIPELINE_RUN_DATA,
-    PIPELINE_STATUS, PIPELINE_TRIGGER_STATUS,
     RUN_PIPELINE
 } from "./utils/apiEndpoints";
 import axios from "axios";
 import Cookies from "js-cookie";
-import Button from "@mui/material/Button";
 
 const theme = createTheme({
     components: {
@@ -191,7 +182,9 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                     data: {
                         "run_id": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
                         "token": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).token,
-                        "variables": {}
+                        "variables": {
+                            "KEYCLOAK_TOKEN": Cookies.get("token")
+                        }
                     },
                     timeout: 10000
                 })

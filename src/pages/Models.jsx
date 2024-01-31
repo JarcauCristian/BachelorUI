@@ -22,6 +22,7 @@ import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DemoContainer} from "@mui/x-date-pickers/internals/demo";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {useNavigate} from "react-router-dom";
+import Cookies from "js-cookie";
 import {GET_MODELS, GET_MODELS_USER} from "../components/utils/apiEndpoints";
 
 const Models = ({user_id}) => {
@@ -53,6 +54,7 @@ const Models = ({user_id}) => {
             timeout: 1000*10,
             headers: {
                 'Content-Type': "application/json",
+                "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
             setLoading(false);

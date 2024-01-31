@@ -33,7 +33,10 @@ function Neo4jNode({ data, isConnectable }) {
         data.load(true);
         axios({
             method: "GET",
-            url: GET_DATASET_NEO(data.name)
+            url: GET_DATASET_NEO(data.name),
+            headers: {
+                "Authorization": "Bearer " + Cookies.get("token")
+            }
         }).then((response) => {
             const getFromStorage = JSON.parse(localStorage.getItem(`${response.data.name}-${response.data.user}-dataset-info`));
 
@@ -59,7 +62,10 @@ function Neo4jNode({ data, isConnectable }) {
 
                 axios({
                     method: "GET",
-                    url: GET_DATASET(response.data.url)
+                    url: GET_DATASET(response.data.url),
+                    headers: {
+                        "Authorization": "Bearer " + Cookies.get("token")
+                    }
                 }).then((resp) => {
                     const parseCsvString = (csvString) => {
                         const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));

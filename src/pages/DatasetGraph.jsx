@@ -11,6 +11,7 @@ import ReactFlow, {
 import Typography from "@mui/material/Typography";
 import {Alert, Backdrop, CircularProgress, Snackbar} from "@mui/material";
 import axios from "axios";
+import Cookies from "js-cookie";
 import {GET_ALL_NODES} from "../components/utils/apiEndpoints";
 
 
@@ -34,7 +35,10 @@ const DatasetGraph = () => {
 
         axios({
             method: "GET",
-            url: GET_ALL_NODES
+            url: GET_ALL_NODES,
+            headers: {
+                "Authorization": "Bearer " + Cookies.get("token")
+            }
         }).then((response) => {
             let initialNodes = [];
             let initialEdges = [];

@@ -17,7 +17,8 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Button from "@mui/material/Button";
-import {GET_MODEL, GET_MODEL_DETAILS} from "../components/utils/apiEndpoints";
+import Cookies from "js-cookie";
+import {GET_MODEL, GET_MODEL_DETAILS, UPDATE_MODEL_SCORE} from "../components/utils/apiEndpoints";
 import {format} from "date-fns";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -47,7 +48,7 @@ const Model = () => {
 
 
     const handleChange =
-        (panel: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
+        (panel) => (_, newExpanded) => {
             setExpanded(newExpanded ? panel : false);
     };
 
@@ -72,10 +73,11 @@ const Model = () => {
         formData.append("file", file)
         axios({
             method: "POST",
-            url: "http://localhost:8000/prediction?model_id=" + modelID,
+            url: PREDICTION(modelID),
             data: formData,
             headers: {
-                "Content-Type": "multipart/form-data"
+                "Content-Type": "multipart/form-data",
+                "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
             setPredictions(response.data);
@@ -98,10 +100,17 @@ const Model = () => {
         } else {
             axios({
                 method: "POST",
-                url: `http://localhost:8000/update_score?model_id=${modelID}&score=${score}`
-            }).then((response) => {
+                url: UPDATE_MODEL_SCORE,
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token")
+                },
+                data: {
+                    model_id: modelID,
+                    score: score
+                }
+            }).then((_) => {
                 handleToast("Score Updated Successfully", "success");
-            }).catch((error) => {
+            }).catch((_) => {
                 handleToast("Problem Updating Score", "error");
             })
         }
@@ -130,6 +139,7 @@ const Model = () => {
             url: GET_MODEL_DETAILS(modelID),
             headers: {
                 'Content-Type': "application/json",
+                "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
             setModelData(response.data);
@@ -143,6 +153,7 @@ const Model = () => {
             url: GET_MODEL(modelID),
             headers: {
                 'Content-Type': "application/json",
+                "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
             setLoading(false);
