@@ -59,7 +59,7 @@ export const USER_NOTEBOOKS_DETAILS = (user_id) => `${notebooksUrl}/get_notebook
 
 export const GET_DATASET = (path) => `${balancerUrl}/get/object?path=${path}`
 
-export const GET_MODELS_USER = (user_id) => `${modelsUrl}/model/user?user_id${user_id}`;
+export const GET_MODELS_USER = (user_id) => `${modelsUrl}/model/user?user_id=${user_id}`;
 
 export const GET_MODELS = `${modelsUrl}/model/all`;
 

@@ -124,7 +124,10 @@ const Datasets = () => {
         setLoading(true);
         axios({
             method: "GET",
-            url: GET_ALL_DATASETS(Cookies.get("userID").split("-").join("_"))
+            url: GET_ALL_DATASETS(Cookies.get("userID").split("-").join("_")),
+            headers: {
+                "Authorization": "Bearer " + Cookies.get("token") 
+            }
         }).then((response) => {
             setDatasets(response.data);
             setFilterDatasets(response.data);

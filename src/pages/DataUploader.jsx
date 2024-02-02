@@ -3,7 +3,6 @@ import '../styles/data_uploader.css';
 import Box from "@mui/material/Box";
 import {Autocomplete, TextField} from "@mui/material";
 import {useEffect} from "react";
-import CsvUploader from "../components/connectors/CsvUploader";
 import Typography from "@mui/material/Typography";
 
 function getWindowDimensions() {
@@ -41,7 +40,6 @@ const DataUploader = ({token}) => {
                               setValue(newValue);
                           }}
             />
-            <CsvUploader token={token} display={value} windowWidth={windowWidth}/>
         </Box>
             </>
     );

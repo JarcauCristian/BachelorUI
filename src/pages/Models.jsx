@@ -65,7 +65,7 @@ const Models = ({user_id}) => {
             setLoading(false);
             if (error.response) {
                 if (error.response.status === 404) {
-                    handleToast("No models found!", "error");
+                    handleToast("No models found!", "warning");
                 } else {
                     handleToast("Failed to load models!", "error");
                 }
