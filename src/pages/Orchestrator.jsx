@@ -37,7 +37,7 @@ import Cookies from "js-cookie";
 import ListItemText from "@mui/material/ListItemText";
 
 const drawerWidth = 300;
-function a11yProps(index: number) {
+function a11yProps(index) {
     return {
         id: `simple-tab-${index}`,
         'aria-controls': `simple-tabpanel-${index}`,
@@ -140,7 +140,7 @@ const Orchestrator = () => {
             }
         }
     }
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    const handleChange = (_, newValue) => {
         setValue(newValue);
     };
 
@@ -236,7 +236,10 @@ const Orchestrator = () => {
                                     if (!checkIfBlockNameExists(batchName)) {
                                         axios({
                                             method: "GET",
-                                            url: BLOCK_MODEL(name)
+                                            url: BLOCK_MODEL(name),
+                                            headers: {
+                                                "Authorization": "Bearer " + Cookies.get("token")
+                                            }
                                         }).then((response) => {
                                             const newNode = {
                                                 id: batchName,

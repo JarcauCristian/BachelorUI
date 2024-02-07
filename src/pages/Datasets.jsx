@@ -121,12 +121,16 @@ const Datasets = () => {
 
         isRun.current = true;
 
+        console.log("UserID: ", Cookies.get("userID").split("-").join("_"));
+        console.log("Token: ", Cookies.get("token"));
+
         setLoading(true);
         axios({
             method: "GET",
             url: GET_ALL_DATASETS(Cookies.get("userID").split("-").join("_")),
             headers: {
-                "Authorization": "Bearer " + Cookies.get("token") 
+                'Content-Type': "application/json",
+                "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
             setDatasets(response.data);

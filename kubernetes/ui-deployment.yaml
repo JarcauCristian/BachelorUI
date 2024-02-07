@@ -6,7 +6,7 @@ metadata:
   labels:
     app: ai1
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ai1
@@ -17,14 +17,7 @@ spec:
     spec:
       containers:
       - name: ai1
-        image: scr4pp/ai1:arm5
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
+        image: scr4pp/ai1:arm7
         ports:
         - name: api
           containerPort: 3000
