@@ -241,8 +241,8 @@ function TextUpdaterNode({ data, isConnectable }) {
                     'Authorization': `Bearer ${Cookies.get("token")}`,
                     'Content-Type': 'multipart/form-data',
                 }
-            }).catch((error) => {
-                console.error(error);
+            }).catch((_) => {
+                data.toast("Error uploading file!", "error")
             })
         }
 

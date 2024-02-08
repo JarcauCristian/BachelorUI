@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useNavigate } from "react";
+import { useState, useEffect, useRef } from "react";
 import Keycloak from "keycloak-js";
 import Cookies from 'js-cookie';
 
@@ -13,8 +13,7 @@ const useAuth = () => {
     const [userID, setUserID] = useState(null);
     const [username, setUsername] = useState(null);
     const [keycloakInstance, setKeycloakInstance] = useState(null);
-    const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env
-    const navigate = useNavigate()
+    const {REACT_APP_KEYCLOAK_URL, REACT_APP_KEYCLOAK_REALM, REACT_APP_KEYCLOAK_CLIENT} = process.env;
 
     useEffect(() => {
         if (isRun.current) return;
@@ -49,7 +48,6 @@ const useAuth = () => {
                 console.error("Error:", error);
             })
             setKeycloakInstance(client);
-            navigate("/");
             setInterval(() => {
                 client.updateToken(1).then((refreshed) => {
                     if (refreshed) {
