@@ -16,7 +16,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import axios from "axios";
-import {GET_ALL_DATASETS, GET_DATASET} from "../components/utils/apiEndpoints";
+import {GET_ALL_DATASETS, GET_DATASET, UPDATE_DATASET} from "../components/utils/apiEndpoints";
 import Cookies from "js-cookie";
 import DataTable from "../components/DataTable";
 
@@ -71,10 +71,25 @@ const Datasets = () => {
     }
 
     const handleEnter = (dataset) => {
+        setLoading(true);
+        axios({
+            method: "PUT",
+            url: UPDATE_DATASET,
+            headers: {
+                "Authorization": "Bearer " + Cookies.get("token"),
+                "Content-Type": "application/json"
+            },
+            data: {
+                "name": dataset.name,
+                "user": Cookies.get("userID").split("-").join("_")
+            }
+        })
+
         axios({
             method: "GET",
             url: GET_DATASET(dataset.url)
         }).then((response) => {
+            setLoading(false);
             const parseCsvString = (csvString) => {
                 const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
                 return rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]])));
@@ -85,7 +100,7 @@ const Datasets = () => {
             const descriptions = {}
 
             for (let [key, value] of Object.entries(dataset)) {
-                if (!["name", "description", "user", "url"].includes(key)) {
+                if (!["name", "description", "user", "url", "last_accessed"].includes(key)) {
                     descriptions[key] = value;
                 }
             }
@@ -93,11 +108,27 @@ const Datasets = () => {
             setColumnsDescriptions(descriptions);
             setName(dataset.name);
             setDialogOpen(true);
-        }).catch((_) => {})
+        }).catch((_) => {
+            setLoading(false);
+        })
     }
 
     const handleDownload = (dataset) => {
         setLoading(true);
+
+        axios({
+            method: "PUT",
+            url: UPDATE_DATASET,
+            headers: {
+                "Authorization": "Bearer " + Cookies.get("token"),
+                "Content-Type": "application/json"
+            },
+            data: {
+                "name": dataset.name,
+                "user": Cookies.get("userID").split("-").join("_")
+            }
+        })
+
         axios({
             method: "GET",
             url: GET_DATASET(dataset.url)
@@ -120,9 +151,6 @@ const Datasets = () => {
         if (isRun.current) return;
 
         isRun.current = true;
-
-        console.log("UserID: ", Cookies.get("userID").split("-").join("_"));
-        console.log("Token: ", Cookies.get("token"));
 
         setLoading(true);
         axios({

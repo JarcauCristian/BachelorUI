@@ -45,6 +45,8 @@ export const UPLOAD_TEMP_FILE = `${balancerUrl}/upload`;
 
 export const GET_ALL_NODES = `${neo4jUrl}/all`;
 
+export const UPDATE_DATASET = `${neo4jUrl}/dataset/update`;
+
 export const GET_ALL_DATASETS = (user) => `${neo4jUrl}/datasets?user=${user}`;
 
 export const GET_DATASET_NEO = (name) => `${neo4jUrl}/dataset?name=${name}`;

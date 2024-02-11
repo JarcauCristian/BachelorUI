@@ -31,6 +31,20 @@ function Neo4jNode({ data, isConnectable }) {
 
     const handleClick = () => {
         data.load(true);
+
+        axios({
+            method: "PUT",
+            url: UPDATE_DATASET,
+            headers: {
+                "Authorization": "Bearer " + Cookies.get("token"),
+                "Content-Type": "application/json"
+            },
+            data: {
+                "name": data.name,
+                "user": Cookies.get("userID").split("-").join("_")
+            }
+        })
+        
         axios({
             method: "GET",
             url: GET_DATASET_NEO(data.name),
@@ -103,7 +117,8 @@ function Neo4jNode({ data, isConnectable }) {
                 "user_id": Cookies.get("userID").split("-").join("_"),
                 "description": description,
                 "dataset_url": datasetInformation.url,
-                "type": notebookType.toLowerCase()
+                "type": notebookType.toLowerCase(),
+                "dataset_name": data.name
             },
             headers: {
                 "Authorization": "Bearer " + Cookies.get("token")

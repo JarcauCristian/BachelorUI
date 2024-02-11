@@ -213,6 +213,8 @@ function TextUpdaterNode({ data, isConnectable }) {
                             value: value
                         }
                     ])
+                } else if (key === 'new_category' && !value) {
+                    continue;
                 } else {
                     textEntries[key] = value;
                 }
@@ -241,12 +243,13 @@ function TextUpdaterNode({ data, isConnectable }) {
                     'Authorization': `Bearer ${Cookies.get("token")}`,
                     'Content-Type': 'multipart/form-data',
                 }
+            }).then((_) => {
+                data.toast("Variables set successfully!", "success");
             }).catch((_) => {
-                data.toast("Error uploading file!", "error")
+                data.toast("Error uploading file!", "error");
             })
         }
 
-        data.toast("Variables set successfully!", "success");
         handleVariableDialogClose();
     }
 
