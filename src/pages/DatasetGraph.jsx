@@ -98,6 +98,7 @@ const DatasetGraph = () => {
                     data: {
                         type: type,
                         name: node.name,
+                        user: node.user,
                         hasInformation: node["hasInformation"],
                         toast: handleToast,
                         load: setLoading

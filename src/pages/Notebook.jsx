@@ -11,7 +11,7 @@ const Notebook = () => {
                 title="Notebook Frame"
                 width="100%"
                 height="100%"
-                sandbox="allow-scripts allow-same-origin allow-forms"
+                sandbox="allow-scripts allow-forms"
                 allowFullScreen>
             </iframe>
         </div>

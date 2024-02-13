@@ -13,7 +13,7 @@ import {
     TextField,
     Tooltip
 } from "@mui/material";
-import {CREATE_NOTEBOOK, GET_DATASET, GET_DATASET_NEO} from "../utils/apiEndpoints";
+import {CREATE_NOTEBOOK, GET_DATASET, GET_DATASET_NEO, UPDATE_DATASET} from "../utils/apiEndpoints";
 import DataTable from "../DataTable";
 import MenuItem from "@mui/material/MenuItem";
 import Cookies from "js-cookie";
@@ -41,7 +41,7 @@ function Neo4jNode({ data, isConnectable }) {
             },
             data: {
                 "name": data.name,
-                "user": Cookies.get("userID").split("-").join("_")
+                "user": data.user
             }
         })
         
@@ -117,15 +117,18 @@ function Neo4jNode({ data, isConnectable }) {
                 "user_id": Cookies.get("userID").split("-").join("_"),
                 "description": description,
                 "dataset_url": datasetInformation.url,
-                "type": notebookType.toLowerCase(),
-                "dataset_name": data.name
+                "notebook_type": notebookType.toLowerCase(),
+                "dataset_name": data.name,
+                "dataset_user": data.user
             },
             headers: {
                 "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
-            data.load(false);
-            navigate(`/notebooks/${response.data.notebook_id}`);
+            setTimeout(() => {
+                data.load(false);
+                navigate(`/notebooks/${response.data.notebook_id}`);
+            }, 15000);
         }).catch((_) => {
             data.load(false);
             data.toast("Could not create the notebook!", "error");

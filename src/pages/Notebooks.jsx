@@ -78,7 +78,7 @@ const Notebooks = () => {
 
     const handleEnter = (notebook_id) => {
         axios({
-            method: 'POST',
+            method: 'PUT',
             url: UPDATE_ACCESS(notebook_id),
             headers: {
                 'Content-Type': "application/json",
