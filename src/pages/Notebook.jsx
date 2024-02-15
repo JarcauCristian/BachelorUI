@@ -7,11 +7,11 @@ const Notebook = () => {
     return (
         <div style={{ width: "100vw", height: "100vh", marginTop: 82 }}>
             <iframe
-                src={`https:/ingress.sedimark.work/${notebookID}/notebooks/ModelCreation.ipynb`}
+                src={`https://ingress.sedimark.work/${notebookID}/notebooks/ModelCreation.ipynb`}
                 title="Notebook Frame"
                 width="100%"
                 height="100%"
-                sandbox="allow-scripts allow-forms"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 allowFullScreen>
             </iframe>
         </div>

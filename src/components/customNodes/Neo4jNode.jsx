@@ -18,15 +18,21 @@ import DataTable from "../DataTable";
 import MenuItem from "@mui/material/MenuItem";
 import Cookies from "js-cookie";
 import {useNavigate} from "react-router-dom";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 function Neo4jNode({ data, isConnectable }) {
     const [datasetInformation, setDatasetInformation] = React.useState(null);
     const [csvData, setCsvData] = React.useState(null);
     const [columnsDescriptions, setColumnsDescriptions] = React.useState(null);
     const [open, setOpen] = React.useState(false);
+    const [passwordOpen, setPasswordOpen] = React.useState(false);
     const [isStartNotebook, setIsStartNotebook] = React.useState(false);
     const [description, setDescription] = React.useState(null);
     const [notebookType, setNotebookType] = React.useState("Sklearn");
+    const [notebookID, setNotebookID] = React.useState("");
+    const [password, setPassword] = React.useState("");
+    const [isHovered, setIsHovered] = React.useState(false);
+    const dummyPassword = "*********";
     const navigate = useNavigate();
 
     const handleClick = () => {
@@ -92,6 +98,8 @@ function Neo4jNode({ data, isConnectable }) {
                         "csvData": parseCsvString(resp.data)
                     }));
                     setOpen(true);
+                }).catch((e) => {
+                    console.log(e);
                 })
             }
         }).catch((_) => {
@@ -101,7 +109,17 @@ function Neo4jNode({ data, isConnectable }) {
     }
 
     const handleClose = () => {
-        setOpen(false);
+        if (open) setOpen(false);
+        if (passwordOpen) setPasswordOpen(false);
+    }
+
+    const handlePasswordClick = () => {
+        setPasswordOpen(false);
+        data.load(true);
+        setTimeout(() => {
+            data.load(false);
+            navigate(`/notebooks/${notebookID}`);
+        }, 15000)
     }
 
     const handleStart = () => {
@@ -125,10 +143,11 @@ function Neo4jNode({ data, isConnectable }) {
                 "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
-            setTimeout(() => {
-                data.load(false);
-                navigate(`/notebooks/${response.data.notebook_id}`);
-            }, 15000);
+            data.load(false);
+            setOpen(false);
+            setPassword(response.data.password);
+            setNotebookID(response.data.notebook_id);
+            setPasswordOpen(true);
         }).catch((_) => {
             data.load(false);
             data.toast("Could not create the notebook!", "error");
@@ -198,6 +217,25 @@ function Neo4jNode({ data, isConnectable }) {
                             start notebook
                         </Button>
                     )}
+                </DialogActions>
+            </Dialog>
+            <Dialog open={passwordOpen} onClose={handleClose} fullWidth maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <DialogTitle>
+                    NOTEBOOK CREDENTIALS (Copy and store your password, after this dialog is closed the password will be lost forever!)
+                </DialogTitle>
+                <DialogContent sx={{ maxWidth: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <Typography variant="p" sx={{ fontWeight: "bold" }}>
+                        USERNAME: ai1
+                    </Typography>
+                    <Typography variant="p" sx={{ fontWeight: "bold" }} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+                        PASSWORD: {isHovered ? password : dummyPassword}
+                    </Typography>
+                    <ContentCopyIcon sx={{ cursor: "pointer" }} onClick={() => {navigator.clipboard.writeText(password); data.toast("Password Copied to Clipboard!", "success")}} />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handlePasswordClick} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
+                        go to notebook
+                    </Button>
                 </DialogActions>
             </Dialog>
             {data.type !== "base" && (<Handle type="target" position={Position.Top} style={{ backgroundColor: "black" }} isConnectable={isConnectable} />)}
