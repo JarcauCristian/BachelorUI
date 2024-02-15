@@ -36,6 +36,7 @@ import MenuItem from "@mui/material/MenuItem";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
+import RunHistory from './RunHistory';
 
 
 const ReactFlowPanel = (props) => {
@@ -529,6 +530,9 @@ const ReactFlowPanel = (props) => {
             </Dialog>
             {value === index && (
                 <PipelineSteps createPipeline={createPipeline} pipelineType={other.type} handleToast={handleToast} openDialog={handleOpenDialog} pipelineCreated={other.created} loading={loading} nodesName={other.orderBlockNames} pipelineName={other.pipeline_name}/>
+            )}
+            {value === index && (
+                <RunHistory handleToast={handleToast} pipelineCreated={other.created}/>
             )}
             {value === index && (
                 <ReactFlow key={index}

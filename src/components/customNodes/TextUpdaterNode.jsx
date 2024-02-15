@@ -203,7 +203,9 @@ function TextUpdaterNode({ data, isConnectable }) {
                 fileInput = value;
             } else {
                 if (key === 'name') {
-                    textEntries[key] = Cookies.get("userID").split("-").join("_") + + "/" + value;
+                    textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
+                }else if (key === 'initial_name') {
+                    textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + data.pipeline_name + "/" + value;
                 } else if (key === 'password') {
                     data.hasSecret(true);
                     data.addSecret(prevState => [
