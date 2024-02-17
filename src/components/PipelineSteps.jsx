@@ -58,7 +58,7 @@ const theme = createTheme({
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const steps = ["start", "running", "finished"];
 
-const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pipelineName, handleToast, pipelineType, openDialog}) => {
+const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pipelineName, toast, pipelineType, openDialog}) => {
 
     const [activeStep, setActiveStep] = React.useState(-1);
     const [completed, setCompleted] = React.useState({});
@@ -82,11 +82,11 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                 }).then((response) => {
                     localStorage.setItem(`${pipelineName}-runData`, JSON.stringify(response.data));
                 }).catch((_) => {
-                    handleToast("Error loading pipeline run data!", "error");
+                    toast("Error loading pipeline run data!", "error");
                 })
             }
         }
-    }, [pipelineType, pipelineCreated, nodesName, failed, completed, setCompleted, setFailed, pipelineName, handleToast])
+    }, [pipelineType, pipelineCreated, nodesName, failed, completed, setCompleted, setFailed, pipelineName, toast])
 
     const runStep = React.useCallback( async () => {
         let counter = 0;
@@ -168,7 +168,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         setFailed(fail);
 
         if (nodesName.length < 2) {
-            handleToast("The pipeline does not meet the requirements!", "error");
+            toast("The pipeline does not meet the requirements!", "error");
         } else {
             setIsLoading(true);
             setActiveStep(steps.indexOf("start"));
@@ -203,11 +203,11 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                 return true;
             } catch (e) {
                 setIsLoading(false);
-                handleToast("Error starting the pipeline!", "error");
+                toast("Error starting the pipeline!", "error");
                 return false;
             }
         }
-    }, [steps, handleToast, pipelineName, nodesName.length]);
+    }, [steps, toast, pipelineName, nodesName.length]);
 
     const callStep = React.useCallback(async () => {
         const result = await runStep();

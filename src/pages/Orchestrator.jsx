@@ -35,6 +35,7 @@ import {
 import {CAPS} from "../components/utils/utliFunctions";
 import Cookies from "js-cookie";
 import ListItemText from "@mui/material/ListItemText";
+import Transition from '../components/utils/transition';
 
 const drawerWidth = 300;
 function a11yProps(index) {
@@ -641,7 +642,7 @@ const Orchestrator = () => {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-            <Dialog open={open} onClose={handleClose}>
+            <Dialog open={open} onClose={handleClose} TransitionComponent={Transition} keepMounted>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: tabs.length > 0 ? "space-evenly" : "", padding: 5 }}>
                 <DialogTitle sx={{ fontWeight: "bold" }}>
                     PIPELINE DETAILS
@@ -654,7 +655,7 @@ const Orchestrator = () => {
                     </FormControl>
                 </Box>
             </Dialog>
-            <Dialog open={batchOpen} onClose={handleClose}>
+            <Dialog open={batchOpen} onClose={handleClose} TransitionComponent={Transition} keepMounted>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         BLOCK NAME

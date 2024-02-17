@@ -16,6 +16,7 @@ import ListItemText from "@mui/material/ListItemText";
 import PersonIcon from '@mui/icons-material/Person';
 import {useNavigate} from "react-router-dom";
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
+import Transition from '../components/utils/transition';
 
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
@@ -177,7 +178,7 @@ const LandingPage = ({role, userID}) => {
             >
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
-            <Dialog open={!hasRole}>
+            <Dialog open={!hasRole} TransitionComponent={Transition} keepMounted>
                 <DialogTitle>Choose Your Role!</DialogTitle>
                 <List sx={{ pt: 0 }}>
                     {roles.map((rl) => (

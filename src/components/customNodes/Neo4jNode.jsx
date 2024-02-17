@@ -18,6 +18,7 @@ import DataTable from "../DataTable";
 import MenuItem from "@mui/material/MenuItem";
 import Cookies from "js-cookie";
 import {useNavigate} from "react-router-dom";
+import Transition from '../utils/transition';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 function Neo4jNode({ data, isConnectable }) {
@@ -167,7 +168,13 @@ function Neo4jNode({ data, isConnectable }) {
             alignItems: "center",
             justifyContent: "center"
         }}>
-            <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <Dialog
+            TransitionComponent={Transition}
+            keepMounted
+            open={open} 
+            onClose={handleClose} 
+            fullWidth maxWidth="xl" 
+            sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>
                     DATASET INFORMATION
                 </DialogTitle>
@@ -219,7 +226,12 @@ function Neo4jNode({ data, isConnectable }) {
                     )}
                 </DialogActions>
             </Dialog>
-            <Dialog open={passwordOpen} onClose={handleClose} fullWidth maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <Dialog 
+            open={passwordOpen} 
+            onClose={handleClose}
+            TransitionComponent={Transition}
+            keepMounted
+            fullWidth maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>
                     NOTEBOOK CREDENTIALS (Copy and store your password, after this dialog is closed the password will be lost forever!)
                 </DialogTitle>

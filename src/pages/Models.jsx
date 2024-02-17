@@ -6,7 +6,7 @@ import {
     Backdrop,
     CardActions,
     CircularProgress,
-    Dialog, DialogContent, DialogTitle, Paper,
+    Dialog, DialogContent, DialogActions, DialogTitle, Paper,
     Snackbar,
     Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     TextField,
@@ -24,6 +24,7 @@ import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {useNavigate} from "react-router-dom";
 import Cookies from "js-cookie";
 import {GET_MODELS, GET_MODELS_USER} from "../components/utils/apiEndpoints";
+import Transition from '../components/utils/transition';
 
 const Models = ({user_id}) => {
     const [models, setModels] = React.useState([]);
@@ -142,7 +143,7 @@ const Models = ({user_id}) => {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md">
+            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md" TransitionComponent={Transition} keepMounted>
                 <DialogTitle>CSV Data Information</DialogTitle>
                 <DialogContent>
                     <TableContainer component={Paper}>
@@ -172,6 +173,9 @@ const Models = ({user_id}) => {
                         </Table>
                     </TableContainer>
                 </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDialogOpen(false)}>Close</Button>
+                </DialogActions>
             </Dialog>
             <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>

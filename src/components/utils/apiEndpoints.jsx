@@ -41,6 +41,8 @@ export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
 
 export const PIPELINE_SECRET = `${baseUrl}/pipeline/secret`;
 
+export const PIPELINE_HISTORY = (pipeline_name, limit) => `${baseUrl}/pipeline/history?pipeline_name=${pipeline_name}&limit=${limit}`;
+
 export const UPLOAD_TEMP_FILE = `${balancerUrl}/upload`;
 
 export const GET_ALL_NODES = `${neo4jUrl}/all`;

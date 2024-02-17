@@ -20,10 +20,7 @@ import Button from "@mui/material/Button";
 import Cookies from "js-cookie";
 import {GET_MODEL, GET_MODEL_DETAILS, UPDATE_MODEL_SCORE, PREDICTION} from "../components/utils/apiEndpoints";
 import {format} from "date-fns";
-
-const Transition = React.forwardRef(function Transition(props, ref) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
+import Transition from '../components/utils/transition';
 
 const Model = () => {
     const {modelID} = useParams();

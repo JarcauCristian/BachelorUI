@@ -15,6 +15,7 @@ import Editor from "@monaco-editor/react";
 import axios from "axios";
 import {UPLOAD_TEMP_FILE} from "../utils/apiEndpoints";
 import Cookies from "js-cookie";
+import Transition from "../utils/transition";
 import MenuItem from "@mui/material/MenuItem";
 
 
@@ -264,10 +265,10 @@ function TextUpdaterNode({ data, isConnectable }) {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-            <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="xl">
+            <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="xl" TransitionComponent={Transition} keepMounted>
                 <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage={data.language} defaultValue={blockContent} onChange={handleEditorChange}/>
             </Dialog>
-            <Dialog open={variableDialogOpen} onClose={handleVariableDialogClose} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <Dialog TransitionComponent={Transition} keepMounted open={variableDialogOpen} onClose={handleVariableDialogClose} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>ENTER VARIABLES</DialogTitle>
                 <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                     {data.params &&

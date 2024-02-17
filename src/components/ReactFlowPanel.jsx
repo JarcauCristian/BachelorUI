@@ -36,6 +36,7 @@ import MenuItem from "@mui/material/MenuItem";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DateTimePicker} from "@mui/x-date-pickers";
 import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
+import Transition from './utils/transition';
 import RunHistory from './RunHistory';
 
 
@@ -277,8 +278,8 @@ const ReactFlowPanel = (props) => {
         }
 
         for (let node of nodes) {
-            const downStreamBlocks: string = [];
-            const upStreamBlocks: string = [];
+            const downStreamBlocks = [];
+            const upStreamBlocks = [];
 
             for (let edge of edges) {
                 if (edge.source === node.id) {
@@ -469,7 +470,7 @@ const ReactFlowPanel = (props) => {
             >
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
-            <Dialog open={streamDialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+            <Dialog open={streamDialogOpen} onClose={handleDialogClose} maxWidth="sm" fullWidth TransitionComponent={Transition} keepMounted>
                 <Box
                     sx={{
                         display: "flex",
@@ -529,10 +530,10 @@ const ReactFlowPanel = (props) => {
                 </Box>
             </Dialog>
             {value === index && (
-                <PipelineSteps createPipeline={createPipeline} pipelineType={other.type} handleToast={handleToast} openDialog={handleOpenDialog} pipelineCreated={other.created} loading={loading} nodesName={other.orderBlockNames} pipelineName={other.pipeline_name}/>
+                <PipelineSteps createPipeline={createPipeline} pipelineType={other.type} toast={handleToast} openDialog={handleOpenDialog} pipelineCreated={other.created} loading={loading} nodesName={other.orderBlockNames} pipelineName={other.pipeline_name}/>
             )}
             {value === index && (
-                <RunHistory handleToast={handleToast} pipelineCreated={other.created}/>
+                <RunHistory pipelineCreated={other.created} pipelineName={other.pipeline_name}/>
             )}
             {value === index && (
                 <ReactFlow key={index}

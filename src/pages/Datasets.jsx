@@ -4,7 +4,7 @@ import {
     Backdrop,
     CardActions,
     CircularProgress,
-    Dialog, DialogContent, DialogTitle,
+    Dialog, DialogContent, DialogTitle, DialogActions,
     Divider,
     Snackbar,
     Stack,
@@ -19,6 +19,7 @@ import axios from "axios";
 import {GET_ALL_DATASETS, GET_DATASET, UPDATE_DATASET} from "../components/utils/apiEndpoints";
 import Cookies from "js-cookie";
 import DataTable from "../components/DataTable";
+import Transition from '../components/utils/transition';
 
 const Datasets = () => {
     const isRun = React.useRef(false);
@@ -187,7 +188,7 @@ const Datasets = () => {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth
+            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth TransitionComponent={Transition} keepMounted
                     maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 {name && (
                     <DialogTitle>
@@ -199,6 +200,9 @@ const Datasets = () => {
                         <DataTable data={csvData} descriptions={columnsDescriptions} />
                     )}
                 </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpen(false)}>Close</Button>
+                </DialogActions>
             </Dialog>
             <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
