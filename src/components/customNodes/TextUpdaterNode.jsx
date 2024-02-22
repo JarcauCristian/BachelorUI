@@ -8,7 +8,14 @@ import {
     Dialog, DialogActions,
     DialogContent,
     DialogTitle, FormControl, InputLabel, Select,
-    TextField
+    TextField,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Editor from "@monaco-editor/react";
@@ -30,7 +37,6 @@ function TextUpdaterNode({ data, isConnectable }) {
         acc[curr] = data.params[curr] === "file" ? null : '';
         return acc;
     }, {}));
-    const [columns, setColumns] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
 
     const handleBackdropClose = () => {
@@ -70,7 +76,11 @@ function TextUpdaterNode({ data, isConnectable }) {
                   const result = parse(content, { preview: 1 });
                   if (result.data.length > 0) {
                     const columnNames = result.data[0];
-                    setValues({...values, "columnNames": columnNames});
+                    const columnDescriptions = {}
+                    for (let entry of columnNames) {
+                        columnDescriptions[entry] = "";
+                    }
+                    setValues({...values, "columnNames": columnNames, "column_descriptions": columnDescriptions});
                   }
                 };
                 reader.readAsText(newValue);
@@ -79,23 +89,73 @@ function TextUpdaterNode({ data, isConnectable }) {
         setValues({ ...values, [name]: newValue });
     };
 
+    const handleTableInputChage = (e) => {
+        const { name, value } = e.target;
+
+        setValues(prevValues => ({
+            ...prevValues,
+            "column_descriptions": {
+              ...prevValues.column_descriptions,
+              [name]: value
+            }
+          }));
+    }
+
     const renderInputField = (key, type) => {
         if (type === 'file') {
             return (
-                <TextField
-                    key={key}
-                    name={key}
-                    type="file"
-                    fullWidth
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    inputProps={{
-                        accept: ".csv",
-                    }}
-                    onChange={handleInputChange}
-                    sx={{ mb: 2 }}
-                />
+                <Box key={key} name={key} fullWidth sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <TextField
+                        key={key}
+                        name={key}
+                        type="file"
+                        fullWidth
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                        inputProps={{
+                            accept: ".csv",
+                        }}
+                        onChange={handleInputChange}
+                        sx={{ mb: 2 }}
+                    />
+                    {"columnNames" in values && (
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }}>
+                                <TableHead>
+                                    <TableRow>
+                                        {values["columnNames"].map((column, index) => (
+                                            <TableCell key={index} align="center">
+                                                {column}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    <TableRow>
+                                        {values["columnNames"].map((column, index) => {
+                                            return (
+                                                <TableCell key={index}>
+                                                    <TextField
+                                                        fullWidth
+                                                        name={column}
+                                                        type="text"
+                                                        value={values["column_descriptions"][column] || ''}
+                                                        onChange={handleTableInputChage}
+                                                        label="Description"
+                                                        variant="outlined"
+                                                        size="small"
+                                                    />
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+
+                </Box>
             );
         } else if (type === 'int' || type === 'str') {
             if (key === "new category") {
@@ -182,8 +242,20 @@ function TextUpdaterNode({ data, isConnectable }) {
         let condition = true;
         for (let [key, value] of Object.entries(values)) {
             if (key !== "new category" && (value === '' || value === null)) {
-                condition = false;
-                break;
+                if (key !== "column_descriptions") {
+                    condition = false;
+                    break;
+                } else {
+                    for (let [key, value] of Object.entries(values["column_descriptions"])) {
+                        if (value === '' || value === null) {
+                            condition = false;
+                            break;
+                        }
+                    }
+                    if (!condition) {
+		    	break;
+		    }
+                }
             }
         }
 
@@ -235,7 +307,9 @@ function TextUpdaterNode({ data, isConnectable }) {
                     ])
                 } else if (key === 'new_category' && !value) {
                     continue;
-                } else {
+                } else if (key === 'column_descriptions') {
+	            textEntries[key] = JSON.stringify(value);
+                } {
                     textEntries[key] = value;
                 }
             }
