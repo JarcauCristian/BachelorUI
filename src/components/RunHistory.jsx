@@ -117,8 +117,9 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                             <MenuItem value={100}>100</MenuItem>
                         </Select>
                     </FormControl>
+                    <CircularProgress sx={{ color: "black", display: loading ? "block" : "none" }}/>
                     {historyData && (
-                        <TableContainer component={Paper} sx={{ dispaly: loading ? "none" : "block" }}>
+                        <TableContainer component={Paper} sx={{ display: loading ? "none" : "block" }}>
                             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
@@ -146,7 +147,6 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                             </Table>
                         </TableContainer>
                     )}
-                    <CircularProgress sx={{ marginLeft: "50%", color: "black", display: loading ? "block" : "none" }}/>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpen(false)}>Close</Button>

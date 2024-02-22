@@ -13,6 +13,7 @@ import {
 import Button from "@mui/material/Button";
 import Editor from "@monaco-editor/react";
 import axios from "axios";
+import { parse } from 'papaparse';
 import {UPLOAD_TEMP_FILE} from "../utils/apiEndpoints";
 import Cookies from "js-cookie";
 import Transition from "../utils/transition";
@@ -29,6 +30,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         acc[curr] = data.params[curr] === "file" ? null : '';
         return acc;
     }, {}));
+    const [columns, setColumns] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
 
     const handleBackdropClose = () => {
@@ -59,6 +61,21 @@ function TextUpdaterNode({ data, isConnectable }) {
         const { name, value, files } = e.target;
 
         const newValue = files ? files[0] : value;
+
+        if (files) {
+            if (newValue.type === "text/csv") {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  const content = e.target.result;
+                  const result = parse(content, { preview: 1 });
+                  if (result.data.length > 0) {
+                    const columnNames = result.data[0];
+                    setValues({...values, "columnNames": columnNames});
+                  }
+                };
+                reader.readAsText(newValue);
+            }
+        }
         setValues({ ...values, [name]: newValue });
     };
 
