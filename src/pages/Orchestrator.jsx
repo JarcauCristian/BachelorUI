@@ -243,7 +243,7 @@ const Orchestrator = () => {
                                             }
                                         }).then((response) => {
                                             const newNode = {
-                                                id: batchName,
+                                                id: tabsName[value] + "_" + batchName,
                                                 type: 'textUpdater',
                                                 position: {x: pipelines[tabsName[value]].batch.blockPosition, y: 0},
                                                 data: {

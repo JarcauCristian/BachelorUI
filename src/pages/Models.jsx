@@ -39,6 +39,7 @@ const Models = ({user_id}) => {
     const [loading, setLoading] = React.useState(false);
     const [modelIDFilter, setModelIDFilter] = React.useState("");
     const [creationDate, setCreationDate] = React.useState("");
+    const [checked, setChecked] = React.useState(false);
     const navigate = useNavigate();
 
     React.useEffect(() => {
@@ -75,17 +76,33 @@ const Models = ({user_id}) => {
     }, []);
 
     const handleFilterApplication = () => {
-        if (modelIDFilter !== '' || creationDate !== '') {
-            const filteredModels = models.filter((model) => {
-                const matchesID = modelIDFilter ? model.model_id === modelIDFilter : true;
-                const matchesCreationDate = creationDate ? new Date(model.created_at) <= new Date(creationDate) : true;
-
-                return matchesID && matchesCreationDate;
-            });
-
-            setFilterModels(filteredModels);
-        } else if (modelIDFilter === '' && creationDate === '') {
-            handleToast("Please use at least one of the filters!", "error");
+        if (user_id) {
+            if (modelIDFilter !== '' || creationDate !== '') {
+                const filteredModels = models.filter((model) => {
+                    const matchesID = modelIDFilter ? model.model_id === modelIDFilter : true;
+                    const matchesCreationDate = creationDate ? new Date(model.created_at) <= new Date(creationDate) : true;
+    
+                    return matchesID && matchesCreationDate;
+                });
+    
+                setFilterModels(filteredModels);
+            } else if (modelIDFilter === '' && creationDate === '') {
+                handleToast("Please use at least one of the filters!", "error");
+            }
+        } else {
+            if (modelIDFilter !== '' || creationDate !== '' || checked) {
+                const filteredModels = models.filter((model) => {
+                    const matchesID = modelIDFilter ? model.model_id === modelIDFilter : true;
+                    const matchesCreationDate = creationDate ? new Date(model.created_at) <= new Date(creationDate) : true;
+                    const matchesUserID = checked ? model.dataset_user === Cookies.get("userID").split("-").join("_") : true;
+    
+                    return matchesID && matchesCreationDate && matchesUserID;
+                });
+    
+                setFilterModels(filteredModels);
+            } else if (modelIDFilter === '' && creationDate === '' && !checked) {
+                handleToast("Please use at least one of the filters!", "error");
+            }
         }
     }
 
@@ -286,6 +303,9 @@ const Models = ({user_id}) => {
                         }}
                         fullWidth
                     />
+                    {!user_id && (
+                        <FormControlLabel control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} inputProps={{ 'aria-label': 'controlled' }} />} label="Models Based on My Datasets" />
+                    )}
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DemoContainer components={['DatePicker']}>
                             <DatePicker label="Created On or Before"

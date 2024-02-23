@@ -14,8 +14,8 @@ import {
     TableCell,
     TableContainer,
     TableHead,
-    TablePagination,
     TableRow,
+    Box
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Editor from "@monaco-editor/react";
@@ -25,6 +25,7 @@ import {UPLOAD_TEMP_FILE} from "../utils/apiEndpoints";
 import Cookies from "js-cookie";
 import Transition from "../utils/transition";
 import MenuItem from "@mui/material/MenuItem";
+import Paper from '@mui/material/Paper';
 
 
 function TextUpdaterNode({ data, isConnectable }) {
@@ -120,39 +121,21 @@ function TextUpdaterNode({ data, isConnectable }) {
                         sx={{ mb: 2 }}
                     />
                     {"columnNames" in values && (
-                        <TableContainer component={Paper}>
-                            <Table sx={{ minWidth: 650 }}>
-                                <TableHead>
-                                    <TableRow>
-                                        {values["columnNames"].map((column, index) => (
-                                            <TableCell key={index} align="center">
-                                                {column}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    <TableRow>
-                                        {values["columnNames"].map((column, index) => {
-                                            return (
-                                                <TableCell key={index}>
-                                                    <TextField
-                                                        fullWidth
-                                                        name={column}
-                                                        type="text"
-                                                        value={values["column_descriptions"][column] || ''}
-                                                        onChange={handleTableInputChage}
-                                                        label="Description"
-                                                        variant="outlined"
-                                                        size="small"
-                                                    />
-                                                </TableCell>
-                                            );
-                                        })}
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        values["columnNames"].map((column, index) => {
+                            return (
+                                <TextField
+                                    fullWidth
+                                    key={index}
+                                    name={column}
+                                    type="text"
+                                    value={values["column_descriptions"][column] || ''}
+                                    onChange={handleTableInputChage}
+                                    label={`Column ${column} Description`}
+                                    variant="outlined"
+                                    sx={{ mb: 2 }}
+                                />
+                            );
+                        })
                     )}
 
                 </Box>
@@ -253,8 +236,8 @@ function TextUpdaterNode({ data, isConnectable }) {
                         }
                     }
                     if (!condition) {
-		    	break;
-		    }
+		    	        break;
+		            }
                 }
             }
         }
@@ -308,8 +291,8 @@ function TextUpdaterNode({ data, isConnectable }) {
                 } else if (key === 'new_category' && !value) {
                     continue;
                 } else if (key === 'column_descriptions') {
-	            textEntries[key] = JSON.stringify(value);
-                } {
+	                textEntries[key] = JSON.stringify(value);
+                } else {
                     textEntries[key] = value;
                 }
             }
