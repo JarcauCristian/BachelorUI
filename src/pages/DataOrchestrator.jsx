@@ -9,7 +9,7 @@ import MuiAccordionSummary from '@mui/material/AccordionSummary';
 import MuiAccordionDetails from '@mui/material/AccordionDetails';
 import Typography from "@mui/material/Typography";
 import {useEffect} from "react";
-import {Alert, Backdrop, CircularProgress, List, Snackbar} from "@mui/material";
+import {Backdrop, CircularProgress, List} from "@mui/material";
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -39,7 +39,6 @@ const initialNodes = [
         data: {params: [], label: 'My Custom Node',  name: "My Custom Node", pipeline_name: "pipeline_name", language: "python", background: "lightgreen", type: "transformer"},
     },
 ];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2', style: { stroke: 'black' }, }];
 
 const drawerWidth = 240;
 
@@ -87,10 +86,6 @@ const DataOrchestrator = () => {
     const [normalization, setNormalization] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
     const isSet = React.useRef(false);
-    const [toastMessage, setToastMessage] = React.useState("");
-    const [toastSeverity, setToastSeverity] = React.useState("error");
-    const [open, setOpen] = React.useState(false);
-    const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [nodes, setNodes] = React.useState(initialNodes);
     const [edges, setEdges] = React.useState([]);
     const [hoverStates, setHoverStates] = React.useState(Array(3).fill(false));
@@ -102,23 +97,9 @@ const DataOrchestrator = () => {
     };
 
     const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, style: {stroke: "black"}}, eds)), [setEdges]);
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-
-        setOpen(false);
-    };
     const Caps = (str) => {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
-
-    const handleToast = (message, severity)  => {
-        setToastMessage(message);
-        setToastSeverity(severity);
-        setOpen(true);
-    }
-
     const handleChange = (panel) => (event, newExpanded) => {
         setExpanded(newExpanded ? panel : false);
     };
@@ -238,14 +219,6 @@ const DataOrchestrator = () => {
     return (
         <div style={{width: '100vw', height: '100vh', display: "flex", flexDirection: "row" }}>
         <Box sx={{ display: 'flex', background: "#000", color: "#fff" }}>
-            <Snackbar
-                open={open}
-                autoHideDuration={2000}
-                anchorOrigin={{ vertical, horizontal }}
-                onClose={handleClose}
-            >
-                <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
-            </Snackbar>
             <Backdrop
                 sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={loading}

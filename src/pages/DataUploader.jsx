@@ -2,26 +2,12 @@ import * as React from 'react';
 import '../styles/data_uploader.css';
 import Box from "@mui/material/Box";
 import {Autocomplete, TextField} from "@mui/material";
-import {useEffect} from "react";
 import Typography from "@mui/material/Typography";
 
-function getWindowDimensions() {
-    const { innerWidth: width } = window;
-    return width;
-}
 const uploadOptions = ["Rabbit MQ", "CSV File"]
 const DataUploader = ({token}) => {
-    const [windowWidth, setWindowWidth] = React.useState(getWindowDimensions());
     const [value, setValue] = React.useState(null);
 
-    useEffect(() => {
-        function handleResize() {
-            setWindowWidth(getWindowDimensions());
-        }
-
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
     return (
         <>
         <Box className="mydiv"

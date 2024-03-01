@@ -134,7 +134,7 @@ const DatasetGraph = () => {
             handleToast("Could not get datasets!", "error");
             setNodes([]);
         })
-    }, []);
+    }, [setEdges, setNodes]);
 
     const handleToast = (message, severity) => {
         setToastMessage(message);

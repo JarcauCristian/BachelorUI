@@ -50,7 +50,7 @@ function ResponsiveAppBar({logout, role, username}) {
       setPages(["Home", "Datasets", "Notebooks", "Models"]);
       setHoverEffect([false, false, false, false]);
     }
-  }, [appBarRef]);
+  }, [role, appBarRef]);
 
 
   // Logout function
@@ -140,7 +140,7 @@ function ResponsiveAppBar({logout, role, username}) {
           <Button sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
                    onMouseLeave={handleLogoLeave}
                    onMouseEnter={handleLogoEnter}
-                   onClick={windowDimensions > 1000 ? goToHome : handleOpenMenu} >
+                   onClick={windowDimensions > 1500 ? goToHome : handleOpenMenu} >
             <AdjustIcon sx={{fontSize: 40, color: "white", marginRight: 1}} />
             <Typography variant="p" sx={{color: "white", marginRight: 2}}>
               AI1
@@ -148,7 +148,7 @@ function ResponsiveAppBar({logout, role, username}) {
           </Button>
           {windowDimensions > 1000 ?
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {pages.map((page, index) => (
+            {pages ? pages.map((page, index) => (
               <Button
                 key={index}
                 onMouseEnter={() => handleMouseEnter(index)}
@@ -166,7 +166,7 @@ function ResponsiveAppBar({logout, role, username}) {
               >
                 {page}
               </Button>
-            ))}
+            )) : undefined}
           </Box> :
               <Box>
             <Menu
@@ -185,14 +185,14 @@ function ResponsiveAppBar({logout, role, username}) {
                 open={Boolean(anchorEl)}
                 onClose={handleCloseMenu}
             >
-              {pages.map((page) => (
+              {pages ? pages.map((page) => (
                   <MenuItem key={page}>
                     <Typography textAlign="center" >
                       {page}
                       <Divider sx={{ color: "black", backgroundColor: "black" }}/>
                     </Typography>
                   </MenuItem>
-              ))}
+              )) : undefined}
             </Menu>
           </Box>
             }

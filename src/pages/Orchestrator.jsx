@@ -145,7 +145,7 @@ const Orchestrator = () => {
         setValue(newValue);
     };
 
-    const handleTabClose = (index, tabName) => {
+    const handleTabClose = React.useCallback((index, tabName) => {
         const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
         axios({
             method: "DELETE",
@@ -189,7 +189,7 @@ const Orchestrator = () => {
                 "Authorization": `Bearer ${Cookies.get("token")}`
             }
         }).catch((_) => {})
-    }
+    }, [counter])
     const handleMainChange = ()=> {
             setExpanded(!expanded);
     };
@@ -572,7 +572,7 @@ const Orchestrator = () => {
             handleToast("Error getting pipelines!", "error");
             setLoading(false);
         })
-    }, [tabs, tabsName, counter, pipelines])
+    }, [handleTabClose, tabs, tabsName, counter, pipelines])
 
     React.useEffect(() => {
         const creation = pipelines[tabsName[value]] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null;
@@ -585,7 +585,7 @@ const Orchestrator = () => {
                 localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(pipelines[tabsName[value]]));
             }
         }
-    }, [value, tabsName, pipelines]);
+    }, [tabs.length, value, tabsName, pipelines]);
 
     React.useEffect(() => {
         if (Object.keys(pipelines).length > 0 && pipelines[tabsName[value]]) {
@@ -623,7 +623,7 @@ const Orchestrator = () => {
            })
        }
         }
-    }, [pipelinesBlocksNames, tabsName, value]);
+    }, [pipelines, pipelinesBlocksNames, tabsName, value]);
 
     return (
         <div style={{ display: "flex", flexDirection: "row", alignItems: tabs.length > 0 ? "center" : "", justifyContent: tabs.length > 0 ? "space-between" : "", backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
@@ -813,7 +813,7 @@ const Orchestrator = () => {
                         </Button>
                     </Tabs>
                 </Box>
-                {tabs && (tabs.map((_, index) => {
+                {tabs ? (tabs.map((_, index) => {
                         return (
                             <ReactFlowPanel
                                 key={index}
@@ -835,7 +835,7 @@ const Orchestrator = () => {
                         )
                     }
 
-                ))}
+                )) : undefined}
             </Box>
         </div>
     );

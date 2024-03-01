@@ -166,7 +166,7 @@ const LandingPage = ({role, userID}) => {
             .catch(error => {
                 console.error('Error:', error);
             });
-    }, [role])
+    }, [role, REACT_APP_ADMIN_PASSWORD, REACT_APP_ADMIN_USERNAME, REACT_APP_CLIENT_ID, REACT_APP_TOKEN_URL])
 
     return (
         <div style={{backgroundColor: "#D9D9D9", height: "100vh", marginTop: 82 }}>

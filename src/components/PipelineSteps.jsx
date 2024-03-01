@@ -125,36 +125,6 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         });
     }, [pipelineName]);
 
-    React.useEffect(() => {
-        if (isRunSteps.current) return;
-
-        isRunSteps.current = true;
-
-        const savedState = JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`));
-        if (savedState) {
-            setCompleted(savedState.completed);
-            setFailed(savedState.failed);
-            setActiveStep(savedState.activeStep);
-            setIsLoading(savedState.isLoading);
-            if (savedState.isLoading) {
-                setTimeout(() => {
-                    runPipeline("useEffect").then((_) => {});
-                }, 5000);
-            }
-        } else {
-            const complete = {};
-            const fail = {}
-
-            steps.forEach((value) => {
-                complete[value] = false;
-                fail[value] = false;
-            })
-
-            setCompleted(complete);
-            setFailed(fail);
-        }
-    }, [steps, pipelineName]);
-
     const startPipeline = React.useCallback(async () => {
         const complete = {};
         const fail = {}
@@ -207,7 +177,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                 return false;
             }
         }
-    }, [steps, toast, pipelineName, nodesName.length]);
+    }, [toast, pipelineName, nodesName.length]);
 
     const callStep = React.useCallback(async () => {
         const result = await runStep();
@@ -241,7 +211,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         }
 
         localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-    }, [completed, failed, runStep, steps, pipelineName]);
+    }, [completed, failed, runStep, pipelineName]);
 
     const runPipeline = React.useCallback(async (source) => {
         if (source === "button") {
@@ -290,7 +260,37 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         } else {
             callStep().then((_) => {});
         }
-    }, [completed, failed, steps, pipelineName, startPipeline, callStep]);
+    }, [completed, failed, pipelineName, startPipeline, callStep]);
+
+    React.useEffect(() => {
+        if (isRunSteps.current) return;
+
+        isRunSteps.current = true;
+
+        const savedState = JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`));
+        if (savedState) {
+            setCompleted(savedState.completed);
+            setFailed(savedState.failed);
+            setActiveStep(savedState.activeStep);
+            setIsLoading(savedState.isLoading);
+            if (savedState.isLoading) {
+                setTimeout(() => {
+                    runPipeline("useEffect").then((_) => {});
+                }, 5000);
+            }
+        } else {
+            const complete = {};
+            const fail = {}
+
+            steps.forEach((value) => {
+                complete[value] = false;
+                fail[value] = false;
+            })
+
+            setCompleted(complete);
+            setFailed(fail);
+        }
+    }, [runPipeline, pipelineName]);
 
     return (
         <div>

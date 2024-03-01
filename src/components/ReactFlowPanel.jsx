@@ -19,7 +19,6 @@ import {
     FormControl,
     InputLabel, Select,
     Snackbar,
-    TextField
 } from "@mui/material";
 import axios from "axios";
 import {
@@ -74,7 +73,7 @@ const ReactFlowPanel = (props) => {
         setOpen(false);
     };
 
-    const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, selectable: false, deletable: true, style: {stroke: "black"}}, eds)), []);
+    const onConnect = React.useCallback((params) => setEdges((eds) => addEdge({...params, selectable: false, deletable: true, style: {stroke: "black"}}, eds)), [setEdges]);
 
     const onNodesChange = React.useCallback(
         (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -92,7 +91,7 @@ const ReactFlowPanel = (props) => {
     const onEdgeUpdate = React.useCallback((oldEdge, newConnection) => {
         edgeUpdateSuccessful.current = true;
         setEdges((els) => updateEdge(oldEdge, newConnection, els));
-    }, []);
+    }, [setEdges]);
 
     const onEdgeUpdateEnd = React.useCallback((_, edge) => {
         if (!edgeUpdateSuccessful.current) {
@@ -100,7 +99,7 @@ const ReactFlowPanel = (props) => {
         }
 
         edgeUpdateSuccessful.current = true;
-    }, []);
+    }, [setEdges]);
     const isValidConnection = (connection) => {
         const { source, target } = connection;
 
@@ -139,7 +138,7 @@ const ReactFlowPanel = (props) => {
             }
         }
         setLocalUpdate(false);
-    }, [other.componentNodes, setNodes]);
+    }, [localUpdate, other.componentNodes, setNodes]);
 
     const deleteNode = (nodeId) => {
         const nodeToDelete = nodes.find((n) => n.id === nodeId);
@@ -434,7 +433,7 @@ const ReactFlowPanel = (props) => {
                     }))
                 }
             }
-    }, [edges]);
+    }, [other, edges]);
 
     const handleOpenDialog = () => {
         setStreamDialogOpen(true);
@@ -507,7 +506,7 @@ const ReactFlowPanel = (props) => {
                         </Select>
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                             <DateTimePicker
-                                renderInput={(props) => <TextField {...props} />}
+                                slotProps={{ textField: { variant: 'outlined' } }}
                                 label="Start Time For Trigger"
                                 value={dateTime}
                                 onChange={handleDateTimeChange}
@@ -537,10 +536,10 @@ const ReactFlowPanel = (props) => {
             )}
             {value === index && (
                 <ReactFlow key={index}
-                           nodes={nodes.map((node) => ({
+                           nodes={nodes ? nodes.map((node) => ({
                                ...node,
-                               data: {...node.data, onDelete: deleteNode, toast: handleToast, addSecret: setSecrets, hasSecret: setHasSecrets}
-                           }))}
+                               data: {...node.data, nodeID: node.id, onDelete: deleteNode, toast: handleToast, addSecret: setSecrets, hasSecret: setHasSecrets}
+                           })) : undefined}
                            edges={other.created ? other.componentEdges : edges}
                            onNodesChange={onNodesChange}
                            onEdgesChange={onEdgesChange}

@@ -99,7 +99,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         setContent(value);
 
         try {
-            const yamlContent = yaml.load(value);
+            const yamlContent = yaml.load(value, undefined);
             setValues({
                 ...values,
                 "column_descriptions": yamlContent
@@ -196,9 +196,9 @@ function TextUpdaterNode({ data, isConnectable }) {
 
     React.useEffect(() => {
         if (!data.created) {
-            localStorage.setItem(`${data.pipeline_name}-${data.name}-block-content`, blockContent);
+            localStorage.setItem(`${data.pipeline_name}-${data.name}-block-content`, JSON.stringify(blockContent));
         }
-    }, [blockContent, data.pipeline_name, data.name]);
+    }, [data.created, blockContent, data.pipeline_name, data.name]);
 
     React.useEffect(() => {
         if (isRun.current || data.created) return;
@@ -208,9 +208,9 @@ function TextUpdaterNode({ data, isConnectable }) {
         const isBlockContent = localStorage.getItem(`${data.pipeline_name}-${data.name}-block-content`);
 
         if (isBlockContent) {
-            setBlockContent(isBlockContent);
+            setBlockContent(JSON.parse(isBlockContent));
         }
-    }, [])
+    }, [data.created, data.name, data.pipeline_name])
 
     const allFieldsFilled = () => {
         let condition = true;
@@ -219,7 +219,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                 continue;
             }
             if (key === "column_descriptions") {
-                for (let [_, v] of Object.entries(values["column_descriptions"])) {
+                for (let [, v] of Object.entries(values["column_descriptions"])) {
                     if (v === '' || v === null || v === "(Column Description)") {
                         condition = false;
                         break;
@@ -256,7 +256,7 @@ function TextUpdaterNode({ data, isConnectable }) {
             });
             setValues(aux);
         }
-    }, [])
+    }, [data.name, data.pipeline_name])
 
     const handleSubmit = () => {
         const textEntries = {};
@@ -358,7 +358,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                 <div className="custom-node__header" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
                     <strong>{data.label}</strong>
                     {data.editable &&
-                        <HighlightOffIcon sx={{ cursor: "pointer" }} onClick={() => data.onDelete(data.name)}/>
+                        <HighlightOffIcon sx={{ cursor: "pointer" }} onClick={() => data.onDelete(data.nodeID)}/>
                     }
                 </div>
                 <div className="custom-node__body" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>

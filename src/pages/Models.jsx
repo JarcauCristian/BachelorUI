@@ -76,7 +76,7 @@ const Models = ({user_id}) => {
                 }
               }
         })
-    }, []);
+    }, [user_id]);
 
     const handleFilterApplication = () => {
         if (user_id) {

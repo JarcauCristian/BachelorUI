@@ -1,6 +1,6 @@
 import './App.css';
 import Layout from "./components/layout/Layout";
-import {BrowserRouter, Routes, Route, useNavigate} from "react-router-dom";
+import {BrowserRouter, Routes, Route} from "react-router-dom";
 import * as React from "react";
 import useAuth from "./hooks/useAuth";
 import DataUploader from "./pages/DataUploader";

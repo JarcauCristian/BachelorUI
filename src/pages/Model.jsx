@@ -6,9 +6,9 @@ import {
     AccordionSummary,
     Alert,
     Backdrop,
-    CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
+    CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
     Divider, FormControl, FormGroup, FormLabel, Input,
-    List, Slide,
+    List,
     Snackbar, Tooltip,
 } from "@mui/material";
 import Card from "@mui/material/Card";
@@ -160,7 +160,7 @@ const Model = () => {
             handleToast("Failed to load model Details!", "error");
             setLoading(false);
         })
-    }, [])
+    }, [modelID])
 
     return (
         <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>

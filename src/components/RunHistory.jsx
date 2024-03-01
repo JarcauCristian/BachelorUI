@@ -51,6 +51,10 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
         setOpen(false);
     }
 
+    React.useEffect(() => {
+        console.log(value);
+    }, [value]);
+
     const handleChange = async (e) => {
         setValue(e.target.value);
         setLoading(true);
@@ -105,9 +109,23 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                     RUN HISTORY
                 </DialogTitle>
                 <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
-
+                    <FormControl fullWidth>
+                        <Typography variant="p" sx={{ color: "black", fontWeight: "bold" }}>{`History Limit`.toUpperCase()}</Typography>
+                        <Select
+                            labelId="demo-simple-select-label"
+                            value={value}
+                            onChange={handleChange}
+                            fullWidth
+                        >
+                            <MenuItem value={10}>10</MenuItem>
+                            <MenuItem value={15}>15</MenuItem>
+                            <MenuItem value={30}>30</MenuItem>
+                            <MenuItem value={50}>50</MenuItem>
+                            <MenuItem value={100}>100</MenuItem>
+                        </Select>
+                    </FormControl>
                     <CircularProgress sx={{ color: "black", display: loading ? "block" : "none" }}/>
-                    {historyData && (
+                    {historyData ?
                         <TableContainer component={Paper} sx={{ display: loading ? "none" : "block" }}>
                             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                 <TableHead>
@@ -135,13 +153,13 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                                 </TableBody>
                             </Table>
                         </TableContainer>
-                    )}
+                    : undefined}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-            <Tooltip title="RUN HISTORY">
+            <Tooltip title="RUN HISTORY" sx={{ marginTop: "2vh", marginLeft: "20vw" }}>
                 <HistoryIcon sx={{ cursor: "pointer", fontSize: 50, color: "white" }} onClick={() => setOpen(true)}/>
             </Tooltip>
         </Box>
