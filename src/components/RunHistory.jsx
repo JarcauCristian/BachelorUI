@@ -159,7 +159,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                     <Button onClick={() => setOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-            <Tooltip title="RUN HISTORY" sx={{ marginTop: "2vh", marginLeft: "20vw" }}>
+            <Tooltip title="RUN HISTORY">
                 <HistoryIcon sx={{ cursor: "pointer", fontSize: 50, color: "white" }} onClick={() => setOpen(true)}/>
             </Tooltip>
         </Box>
