@@ -45,12 +45,14 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
     const [historyData, setHistoryData] = React.useState(null);
     const [open, setOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
+    const [value, setValue] = React.useState(10);
 
     const handleClose = () => {
         setOpen(false);
     }
 
     const handleChange = async (e) => {
+        setValue(e.target.value);
         setLoading(true);
         try {
             const response = await axios({
@@ -103,20 +105,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                     RUN HISTORY
                 </DialogTitle>
                 <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
-                    <FormControl fullWidth>
-                        <Typography variant="p" sx={{ color: "black", fontWeight: "bold" }}>{`History Limit`.toUpperCase()}</Typography>
-                        <Select
-                            labelId="demo-simple-select-label"
-                            onChange={handleChange}
-                            fullWidth
-                        >
-                            <MenuItem value={10}>10</MenuItem>
-                            <MenuItem value={15}>15</MenuItem>
-                            <MenuItem value={30}>30</MenuItem>
-                            <MenuItem value={50}>50</MenuItem>
-                            <MenuItem value={100}>100</MenuItem>
-                        </Select>
-                    </FormControl>
+
                     <CircularProgress sx={{ color: "black", display: loading ? "block" : "none" }}/>
                     {historyData && (
                         <TableContainer component={Paper} sx={{ display: loading ? "none" : "block" }}>
