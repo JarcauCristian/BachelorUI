@@ -77,6 +77,8 @@ export const GET_MODEL_DETAILS = (model_id) => `${modelsUrl}/model_details?model
 
 export const GET_MODEL = (model_id) => `${modelsUrl}/model?model_id=${model_id}`;
 
+export const DOWNLOAD_MODEL = (model_id) => `${modelsUrl}/models/download?model_id=${model_id}`;
+
 export const UPDATE_MODEL_SCORE = `${modelsUrl}/update_score`;
 
 export const PREDICTION = (model_id) => `${modelsUrl}/prediction?model_id=${model_id}`;

@@ -23,11 +23,14 @@ import {DemoContainer} from "@mui/x-date-pickers/internals/demo";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {useNavigate} from "react-router-dom";
 import Cookies from "js-cookie";
-import {GET_MODELS, GET_MODELS_USER} from "../components/utils/apiEndpoints";
+import {GET_MODELS, GET_MODELS_USER, DOWNLOAD_MODEL} from "../components/utils/apiEndpoints";
 import Transition from '../components/utils/transition';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
 const Models = ({user_id}) => {
     const [models, setModels] = React.useState([]);
+    const [downloading, setDownloading] = React.useState(false);
     const [filterModels, setFilterModels] = React.useState([]);
     const isRun = React.useRef(false);
     const [toastMessage, setToastMessage] = React.useState("");
@@ -134,6 +137,31 @@ const Models = ({user_id}) => {
         navigate(`/models/${model_id}`);
     }
 
+    const handleDownload = async (model_id, notebook_type) => {
+        try {
+            setDownloading(true);
+            const response = await axios({
+                method: "GET",
+                url: DOWNLOAD_MODEL(model_id),
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token")
+                }
+            })
+            const model_bytes = response.data;
+            const finalFilename = notebook_type === "sklearn" || notebook_type === "pytorch" ? `model-${notebook_type}.pkl` : `model-${notebook_type}.zip`
+            const url = window.URL.createObjectURL(new Blob([model_bytes]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', finalFilename);
+            document.body.appendChild(link);
+            link.click();
+            setDownloading(false);
+          } catch (error) {
+            handleToast("Error Downloading the model!", "error");
+            setDownloading(false);
+          }
+    }
+
     const handleDialogClose = () => {
         setDialogOpen(false);
     }
@@ -204,11 +232,13 @@ const Models = ({user_id}) => {
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model Name</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model Type</Typography>
                                 <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Score</Typography>
                             </Stack>
                         </CardContent>
                         <CardActions>
                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access Model</Typography>
+                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download Model</Typography>
                         </CardActions>
                     </Card>
                     {filterModels.length !== 0 ?
@@ -233,6 +263,7 @@ const Models = ({user_id}) => {
                                             Check Dataset
                                         </Button>
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{format(new Date(model["created_at"]), "yyyy-dd-MM")}</Typography>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["notebook_type"].toUpperCase()}</Typography>
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["score"]}</Typography>
                                     </Stack>
                                 </CardContent>
@@ -243,6 +274,14 @@ const Models = ({user_id}) => {
                                         onClick={() => handleEnter(model["model_id"])}
                                     >
                                         Check Model
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
+                                        onClick={() => handleDownload(model["model_id"], model["notebook_type"])}
+                                        disabled={downloading}
+                                    >
+                                        {downloading ? "Downloading..." : "Download Model"}
                                     </Button>
                                 </CardActions>
                             </Card>
@@ -304,7 +343,7 @@ const Models = ({user_id}) => {
                         fullWidth
                     />
                     {!user_id && (
-                        <FormControlLabel control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} inputProps={{ 'aria-label': 'controlled' }} />} label="Models Based on My Datasets" />
+                        <FormControlLabel control={<Checkbox sx={{ color: "white" }} checked={checked} onChange={(e) => setChecked(e.target.checked)} inputProps={{ 'aria-label': 'controlled' }} />} label="Models Based on My Datasets" />
                     )}
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <DemoContainer components={['DatePicker']}>

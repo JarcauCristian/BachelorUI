@@ -50,62 +50,64 @@ function Neo4jNode({ data, isConnectable }) {
                 "name": data.name,
                 "user": data.user
             }
-        })
-        
-        axios({
-            method: "GET",
-            url: GET_DATASET_NEO(data.name),
-            headers: {
-                "Authorization": "Bearer " + Cookies.get("token")
-            }
-        }).then((response) => {
-            const getFromStorage = JSON.parse(localStorage.getItem(`${response.data.name}-${response.data.user}-dataset-info`));
-
-            if (getFromStorage) {
-                setDatasetInformation(getFromStorage.datasetInfo);
-                setColumnsDescriptions(getFromStorage.columnsDescriptions);
-                setCsvData(getFromStorage.csvData);
-                data.load(false);
-                setOpen(true);
-            } else {
-                const descriptions = {}
-                const datasetInfo = {}
-                for (let [key, value] of Object.entries(response.data)) {
-                    if (!["name", "description", "user", "url"].includes(key)) {
-                        descriptions[key] = value;
-                    } else {
-                        datasetInfo[key] = value;
-                    }
+        }).then((_) => {
+            axios({
+                method: "GET",
+                url: GET_DATASET_NEO(data.name),
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token")
                 }
-                setDatasetInformation(datasetInfo);
-                setColumnsDescriptions(descriptions);
-                data.load(false);
-
-                axios({
-                    method: "GET",
-                    url: GET_DATASET(response.data.url),
-                    headers: {
-                        "Authorization": "Bearer " + Cookies.get("token")
-                    }
-                }).then((resp) => {
-                    const parseCsvString = (csvString) => {
-                        const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
-                        return rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]])));
-                    };
-                    setCsvData(parseCsvString(resp.data));
-                    localStorage.setItem(`${response.data.name}-${response.data.user}-dataset-info`, JSON.stringify({
-                        "datasetInfo": datasetInfo,
-                        "columnsDescriptions": columnsDescriptions,
-                        "csvData": parseCsvString(resp.data)
-                    }));
+            }).then((response) => {
+                const getFromStorage = JSON.parse(localStorage.getItem(`${response.data.name}-${response.data.user}-dataset-info`));
+    
+                if (getFromStorage) {
+                    setDatasetInformation(getFromStorage.datasetInfo);
+                    setColumnsDescriptions(getFromStorage.columnsDescriptions);
+                    setCsvData(getFromStorage.csvData);
+                    data.load(false);
                     setOpen(true);
-                }).catch((e) => {
-                    console.log(e);
-                })
-            }
+                } else {
+                    const descriptions = {}
+                    const datasetInfo = {}
+                    for (let [key, value] of Object.entries(response.data)) {
+                        if (!["name", "description", "user", "url"].includes(key)) {
+                            descriptions[key] = value;
+                        } else {
+                            datasetInfo[key] = value;
+                        }
+                    }
+                    setDatasetInformation(datasetInfo);
+                    setColumnsDescriptions(descriptions);
+                    data.load(false);
+    
+                    axios({
+                        method: "GET",
+                        url: GET_DATASET(response.data.url),
+                        headers: {
+                            "Authorization": "Bearer " + Cookies.get("token")
+                        }
+                    }).then((resp) => {
+                        const parseCsvString = (csvString) => {
+                            const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
+                            return rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]])));
+                        };
+                        setCsvData(parseCsvString(resp.data));
+                        localStorage.setItem(`${response.data.name}-${response.data.user}-dataset-info`, JSON.stringify({
+                            "datasetInfo": datasetInfo,
+                            "columnsDescriptions": columnsDescriptions,
+                            "csvData": parseCsvString(resp.data)
+                        }));
+                        setOpen(true);
+                    }).catch((_) => {
+                        data.toast("Could not get the dataset.", "error");
+                    })
+                }
+            }).catch((_) => {
+                data.load(false);
+                data.toast("Could not get the dataset information.", "error");
+            })
         }).catch((_) => {
-            data.load(false);
-            data.toast("Could not get the dataset information.", "error");
+            data.toast("An error occured.", "error")
         })
     }
 
@@ -213,6 +215,7 @@ function Neo4jNode({ data, isConnectable }) {
                                     >
                                         <MenuItem value={"Sklearn"}>Sklearn</MenuItem>
                                         <MenuItem value={"PyTorch"}>PyTorch</MenuItem>
+                                        <MenuItem value={"Transformers"}>Transformers</MenuItem>
                                     </Select>
                                 </FormControl>
                             )}

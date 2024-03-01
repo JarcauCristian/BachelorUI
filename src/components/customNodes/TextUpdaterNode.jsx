@@ -9,12 +9,6 @@ import {
     DialogContent,
     DialogTitle, FormControl, InputLabel, Select,
     TextField,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
     Box
 } from "@mui/material";
 import Button from "@mui/material/Button";
@@ -25,13 +19,14 @@ import {UPLOAD_TEMP_FILE} from "../utils/apiEndpoints";
 import Cookies from "js-cookie";
 import Transition from "../utils/transition";
 import MenuItem from "@mui/material/MenuItem";
-import Paper from '@mui/material/Paper';
+import yaml from "js-yaml";
 
 
 function TextUpdaterNode({ data, isConnectable }) {
     const isRun = React.useRef(false);
     const isVariablesRun = React.useRef(false);
     const [blockContent, setBlockContent] = React.useState(data.content);
+    const [content, setContent] = React.useState(null);
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [variableDialogOpen, setVariableDialogOpen] = React.useState(false);
     const [values, setValues] = React.useState(Object.keys(data.params).reduce((acc, curr) => {
@@ -60,52 +55,64 @@ function TextUpdaterNode({ data, isConnectable }) {
         }
     }
 
-    const handleEditorChange = (value, event) => {
+    const handleEditorChange = (value, _) => {
         setBlockContent(value);
     }
 
     const handleInputChange = (e) => {
         const { name, value, files } = e.target;
-
+    
         const newValue = files ? files[0] : value;
-
-        if (files) {
-            if (newValue.type === "text/csv") {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                  const content = e.target.result;
-                  const result = parse(content, { preview: 1 });
-                  if (result.data.length > 0) {
+    
+        if (files && newValue.type === "text/csv") {
+            const auxFile = newValue;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                const result = parse(content, { preview: 1 });
+                if (result.data.length > 0) {
                     const columnNames = result.data[0];
-                    const columnDescriptions = {}
+                    const columnDescriptions = {};
                     for (let entry of columnNames) {
-                        columnDescriptions[entry] = "";
+                        columnDescriptions[entry] = "(Column Description)";
                     }
-                    setValues({...values, "columnNames": columnNames, "column_descriptions": columnDescriptions});
-                  }
-                };
-                reader.readAsText(newValue);
-            }
+
+                    const yamlData = yaml.dump(columnDescriptions);
+
+                    setContent(yamlData);
+                    setValues({
+                        ...values,
+                        [name]: auxFile,
+                        "columnNames": columnNames,
+                        "column_descriptions": columnDescriptions
+                    });
+                }
+            };
+            reader.readAsText(newValue);
+        } else {
+            setValues({ ...values, [name]: newValue });
         }
-        setValues({ ...values, [name]: newValue });
     };
+    
 
-    const handleTableInputChage = (e) => {
-        const { name, value } = e.target;
+    const handleEditor = (value) => {
+        setContent(value);
 
-        setValues(prevValues => ({
-            ...prevValues,
-            "column_descriptions": {
-              ...prevValues.column_descriptions,
-              [name]: value
-            }
-          }));
+        try {
+            const yamlContent = yaml.load(value);
+            setValues({
+                ...values,
+                "column_descriptions": yamlContent
+            });
+        } catch {
+            data.toast("YAML Format Incorrect!", "error");
+        }
     }
 
     const renderInputField = (key, type) => {
         if (type === 'file') {
             return (
-                <Box key={key} name={key} fullWidth sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <Box key={key} name={key} fullWidth sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", overflow: "auto", maxHeight: "1000px" }}>
                     <TextField
                         key={key}
                         name={key}
@@ -118,26 +125,10 @@ function TextUpdaterNode({ data, isConnectable }) {
                             accept: ".csv",
                         }}
                         onChange={handleInputChange}
-                        sx={{ mb: 2 }}
                     />
                     {"columnNames" in values && (
-                        values["columnNames"].map((column, index) => {
-                            return (
-                                <TextField
-                                    fullWidth
-                                    key={index}
-                                    name={column}
-                                    type="text"
-                                    value={values["column_descriptions"][column] || ''}
-                                    onChange={handleTableInputChage}
-                                    label={`Column ${column} Description`}
-                                    variant="outlined"
-                                    sx={{ mb: 2 }}
-                                />
-                            );
-                        })
+                        <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage="yaml" defaultValue={content} onChange={handleEditor}/>
                     )}
-
                 </Box>
             );
         } else if (type === 'int' || type === 'str') {
@@ -224,21 +215,23 @@ function TextUpdaterNode({ data, isConnectable }) {
     const allFieldsFilled = () => {
         let condition = true;
         for (let [key, value] of Object.entries(values)) {
-            if (key !== "new category" && (value === '' || value === null)) {
-                if (key !== "column_descriptions") {
-                    condition = false;
-                    break;
-                } else {
-                    for (let [key, value] of Object.entries(values["column_descriptions"])) {
-                        if (value === '' || value === null) {
-                            condition = false;
-                            break;
-                        }
+            if (key === "columnNames") {
+                continue;
+            }
+            if (key === "column_descriptions") {
+                for (let [_, v] of Object.entries(values["column_descriptions"])) {
+                    if (v === '' || v === null || v === "(Column Description)") {
+                        condition = false;
+                        break;
                     }
-                    if (!condition) {
-		    	        break;
-		            }
                 }
+                if (!condition) {
+                    break;
+                }
+            }
+            if (key !== "new category" && (value === '' || value === null)) {
+                condition = false;
+                break;
             }
         }
 
@@ -255,7 +248,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
         if (inter) {
             Object.entries(inter).forEach(([key, value]) => {
-                if (key === "name") {
+                if (key === "name" || key === "initial_name") {
                     aux[key] = value.split("/").pop();
                 } else {
                     aux[key] = value;
@@ -264,7 +257,6 @@ function TextUpdaterNode({ data, isConnectable }) {
             setValues(aux);
         }
     }, [])
-
 
     const handleSubmit = () => {
         const textEntries = {};
@@ -275,6 +267,9 @@ function TextUpdaterNode({ data, isConnectable }) {
             if (data.params[key] === 'file') {
                 fileInput = value;
             } else {
+                if (key === 'columnNames') {
+                    continue;
+                }
                 if (key === 'name') {
                     textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
                 }else if (key === 'initial_name') {
@@ -297,6 +292,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                 }
             }
         }
+
         if (!allFieldsFilled()) {
             data.toast("Please enter values for all the fields in the dialog!", "error");
             return;
@@ -309,7 +305,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
             formData.append("file", fileInput);
             formData.append("tags", JSON.stringify({}));
-            formData.append("name",  Cookies.get("userID").split("-").join("_") + "/" + data.pipeline_name + "/" + textEntries["initial_name"]);
+            formData.append("name", textEntries["initial_name"]);
             formData.append("temporary", true);
 
             axios({
@@ -342,7 +338,7 @@ function TextUpdaterNode({ data, isConnectable }) {
             <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="xl" TransitionComponent={Transition} keepMounted>
                 <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage={data.language} defaultValue={blockContent} onChange={handleEditorChange}/>
             </Dialog>
-            <Dialog TransitionComponent={Transition} keepMounted open={variableDialogOpen} onClose={handleVariableDialogClose} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <Dialog TransitionComponent={Transition} maxWidth={"columnNames" in values ? "xll" : "l"} keepMounted open={variableDialogOpen} onClose={handleVariableDialogClose} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", maxHeight: "1000px" }}>
                 <DialogTitle>ENTER VARIABLES</DialogTitle>
                 <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                     {data.params &&
@@ -362,7 +358,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                 <div className="custom-node__header" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
                     <strong>{data.label}</strong>
                     {data.editable &&
-                        <HighlightOffIcon onClick={() => data.onDelete(data.name)}/>
+                        <HighlightOffIcon sx={{ cursor: "pointer" }} onClick={() => data.onDelete(data.name)}/>
                     }
                 </div>
                 <div className="custom-node__body" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
