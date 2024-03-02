@@ -33,6 +33,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         acc[curr] = data.params[curr] === "file" ? null : '';
         return acc;
     }, {}));
+    const [newCategory, setNewCategory] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
 
     const handleBackdropClose = () => {
@@ -132,18 +133,20 @@ function TextUpdaterNode({ data, isConnectable }) {
                 </Box>
             );
         } else if (type === 'int' || type === 'str') {
-            if (key === "new category") {
+            if (key === "new_category") {
                 return (
-                    <TextField
-                        key={key}
-                        name={key}
-                        fullWidth
-                        label={key + " Leave empty if you pick from the categories."}
-                        type={type === 'int' ? 'number' : 'text'}
-                        value={values[key]}
-                        onChange={handleInputChange}
-                        sx={{ mb: 2 }}
-                    />
+                    <Box key={key} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                        <TextField
+                            name={key}
+                            fullWidth
+                            label={key}
+                            type={type === 'int' ? 'number' : 'text'}
+                            value={values[key]}
+                            onChange={handleInputChange}
+                            sx={{ mb: 2, display: newCategory ? "block" : "none" }}
+                        />
+                        <Button fullWidth variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" }, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }} onClick={() => setNewCategory(!newCategory)}>{newCategory ? "Remove New Category" : "Add New Category"}</Button>
+                    </Box>
                 );
             } else {
                 return (
@@ -214,9 +217,14 @@ function TextUpdaterNode({ data, isConnectable }) {
 
     const allFieldsFilled = () => {
         let condition = true;
+        let newCategoryCondition = false;
+
         for (let [key, value] of Object.entries(values)) {
             if (key === "columnNames") {
                 continue;
+            }
+            if (key === "new_category" && value) {
+                newCategoryCondition = true;
             }
             if (key === "column_descriptions") {
                 for (let [, v] of Object.entries(values["column_descriptions"])) {
@@ -229,10 +237,14 @@ function TextUpdaterNode({ data, isConnectable }) {
                     break;
                 }
             }
-            if (key !== "new category" && (value === '' || value === null)) {
+            if ((key !== "new_category" && key !== "category") && (value === '' || value === null)) {
                 condition = false;
                 break;
             }
+        }
+
+        if (Object.keys(values).includes("category")) {
+            condition = (!values["category"] || values["category"] === '') && newCategoryCondition;
         }
 
         return condition;
@@ -283,8 +295,6 @@ function TextUpdaterNode({ data, isConnectable }) {
                             value: value
                         }
                     ])
-                } else if (key === 'new_category' && !value) {
-                    continue;
                 } else if (key === 'column_descriptions') {
 	                textEntries[key] = JSON.stringify(value);
                 } else {
@@ -321,6 +331,8 @@ function TextUpdaterNode({ data, isConnectable }) {
             }).catch((_) => {
                 data.toast("Error uploading file!", "error");
             })
+        } else {
+            data.toast("Variables set successfully!", "success");
         }
 
         handleVariableDialogClose();
