@@ -51,10 +51,6 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
         setOpen(false);
     }
 
-    React.useEffect(() => {
-        console.log(value);
-    }, [value]);
-
     const handleChange = async (e) => {
         setValue(e.target.value);
         setLoading(true);
