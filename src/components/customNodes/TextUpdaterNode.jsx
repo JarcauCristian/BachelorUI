@@ -217,14 +217,10 @@ function TextUpdaterNode({ data, isConnectable }) {
 
     const allFieldsFilled = () => {
         let condition = true;
-        let newCategoryCondition = false;
 
         for (let [key, value] of Object.entries(values)) {
             if (key === "columnNames") {
                 continue;
-            }
-            if (key === "new_category" && value) {
-                newCategoryCondition = true;
             }
             if (key === "column_descriptions") {
                 for (let [, v] of Object.entries(values["column_descriptions"])) {
@@ -244,7 +240,11 @@ function TextUpdaterNode({ data, isConnectable }) {
         }
 
         if (Object.keys(values).includes("category")) {
-            condition = (!values["category"] || values["category"] === '') && newCategoryCondition;
+            if (condition) {
+                if ((values["new_category"] && !values["category"]) || (!values["new_category"] && values["category"])) {
+                    condition = true;
+                } 
+            }
         }
 
         return condition;
