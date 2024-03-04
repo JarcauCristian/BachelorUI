@@ -48,8 +48,8 @@ const ReactFlowPanel = (props) => {
     const [open, setOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
+    const [toastDuration, setToastDuration] = React.useState(2000);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
-    const [creationFailed, setCreationFailed] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [streamDialogOpen, setStreamDialogOpen] = React.useState(false);
     const [runInterval, setRunInterval] = React.useState("hourly");
@@ -59,9 +59,10 @@ const ReactFlowPanel = (props) => {
     const [hasSecrets, setHasSecrets] = React.useState(false);
     const isRun = React.useRef(0);
 
-    const handleToast = (message, severity) => {
+    const handleToast = (message, severity, duration = 2000) => {
         setToastMessage(message);
         setToastSeverity(severity);
+        setToastDuration(duration);
         setOpen(true);
     }
 
@@ -103,11 +104,7 @@ const ReactFlowPanel = (props) => {
     const isValidConnection = (connection) => {
         const { source, target } = connection;
 
-        if (source === target) {
-            return false;
-        }
-
-        return true;
+        return source !== target;
     };
 
     const handleDialogClose = () => {
@@ -174,78 +171,12 @@ const ReactFlowPanel = (props) => {
 
 
 
-    const createPipeline = () => {
+    const createPipeline = async () => {
+        let creationFailed = false;
 
         const timeoutID = setTimeout(() => {
             setLoading(true);
         }, 500);
-
-        let variables = {};
-        let counter = 0;
-        if (other.type === "batch") {
-            for (let node of nodes) {
-                if (Object.keys(node.data.params).length > 0) {
-                    const blockVariable = localStorage.getItem(`${other.pipeline_name}-${node.id}-variables`);
-
-                    if (blockVariable) {
-                        for (let [key, value] of Object.entries(JSON.parse(blockVariable))) {
-                            if (key === "initial_name"){
-                                variables[key] = Cookies.get("userID").split("-").join("_") + "/" + value;
-                            } else {
-                                variables[key] = value;
-                            }
-                        }
-                    } else {
-                        counter++;
-                    }
-                }
-            }
-        }
-
-        if (hasSecrets && secrets.length === 0) {
-            handleToast("Please add all the secrets for all the blocks!", "error");
-            clearTimeout(timeoutID);
-            const newTimeoutID = setTimeout(() => {
-                setLoading(false);
-            }, 100);
-
-            clearTimeout(newTimeoutID);
-            return;
-        }
-
-        if (secrets.length > 0) {
-            secrets.forEach((entry) => {
-                axios({
-                    method: "POST",
-                    url: PIPELINE_SECRET,
-                    data: entry
-                }).catch((_) => {
-                   handleToast("Could not create secret: " + entry.name, "error");
-                });
-            })
-        }
-
-        if (counter > 0) {
-            handleToast("Please add all the variables for all the blocks!", "error");
-            clearTimeout(timeoutID);
-            const newTimeoutID = setTimeout(() => {
-                setLoading(false);
-            }, 100);
-
-            clearTimeout(newTimeoutID);
-            return;
-        }
-
-        axios({
-            method: "POST",
-            url: PIPELINE_VARIABLES,
-            data: {
-                name: other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
-                variables: variables
-            }
-        }).catch((_) => {
-            handleToast("Variables for the pipeline could not be added, please try again!", "error");
-        })
 
         if (nodes.length === 0) {
             handleToast("Pipeline is empty!", "error");
@@ -276,7 +207,83 @@ const ReactFlowPanel = (props) => {
             return;
         }
 
+        let variables = {};
+        let counter = 0;
+        if (other.type === "batch") {
+            for (let node of nodes) {
+                if (Object.keys(node.data.params).length > 0) {
+                    const blockVariable = localStorage.getItem(`${other.pipeline_name}-${node.id}-variables`);
+                    if (blockVariable) {
+                        for (let [key, value] of Object.entries(JSON.parse(blockVariable))) {
+                            variables[key] = value;
+                        }
+                    } else {
+                        counter++;
+                    }
+                }
+            }
+        }
+
+        // Verify if all the blocks have all the variables set.
+        if (counter > 0) {
+            handleToast("Please add all the variables for all the blocks!", "error");
+            clearTimeout(timeoutID);
+            setLoading(false);
+            return;
+        }
+
+        // Verify if some blocks has secrets and if it has them completed.
+        if (hasSecrets && secrets.length === 0) {
+            handleToast("Please add all the secrets for all the blocks!", "error");
+            clearTimeout(timeoutID);
+            setLoading(false);
+            return;
+        }
+
+        // If the secrets length is greater than zero apply the secrets to the pipeline.
+        if (secrets.length > 0) {
+            try {
+                await Promise.all(secrets.map(async (entry) => {
+                    await axios({
+                        method: "POST",
+                        url: PIPELINE_SECRET,
+                        data: entry
+                    });
+                }));
+                handleToast("Created Secrets!", "success", 500);
+            } catch (_) {
+                handleToast("Could not create all the secrets secrets!", "error");
+                creationFailed = true;
+            }
+        }
+
+        try {
+            await axios({
+                method: "POST",
+                url: PIPELINE_VARIABLES,
+                data: {
+                    name: other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+                    variables: variables
+                }
+            });
+        } catch (_) {
+            handleToast("Variables for the pipeline could not be added, please try again!", "error");
+            creationFailed = true;
+        }
+
+        if (creationFailed) {
+            clearTimeout(timeoutID);
+            setLoading(false);
+            return;
+        }
+
+        handleToast("Created Pipeline Variables!", "success", 500);
+
         for (let node of nodes) {
+            if (creationFailed) {
+                break;
+            }
+
             const downStreamBlocks = [];
             const upStreamBlocks = [];
 
@@ -287,10 +294,13 @@ const ReactFlowPanel = (props) => {
                     upStreamBlocks.push(edge.source);
                 }
             }
-            const isInStorage = localStorage.getItem(`${other.pipeline_name}-${node.id}-block-content`);
-            const blob = node.data.language === "yaml" ?
-                isInStorage ? new Blob([isInStorage], { type: "text/yaml"}) : new Blob([node.data.content], { type: "text/yaml"}) :
-                isInStorage ? new Blob([isInStorage], { type: "application/octet-stream"}) : new Blob([node.data.content], { type: "application/octet-stream"})
+
+            // const isInStorage = localStorage.getItem(`${other.pipeline_name}-${node.id}-block-content`);
+            const blob = node.data.language === "yaml" ? new Blob([node.data.content], { type: "text/yaml"}) :
+                new Blob([node.data.content], { type: "application/octet-stream"});
+
+
+
             const file = new File([blob], "random");
             const formData = new FormData();
             formData.append("file", file);
@@ -300,89 +310,122 @@ const ReactFlowPanel = (props) => {
             formData.append("downstream_blocks", downStreamBlocks.length === 0 ? [] : downStreamBlocks);
             formData.append("upstream_blocks", upStreamBlocks.length === 0 ? [] : upStreamBlocks);
             formData.append("language", node.data.language);
-            axios({
-                method: "POST",
-                url: CREATE_BLOCK,
-                data: formData,
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            }).catch((error) => {
-                console.log(error);
-                handleToast("Block Could Not Be Created!", "error");
-                setCreationFailed(true);
-            })
+            try {
+                await axios({
+                    method: "POST",
+                    url: CREATE_BLOCK,
+                    data: formData,
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                })
+                handleToast(`Created block ${node.data.name}!`, "success", 500);
+            } catch (e) {
+                console.error(e);
+                handleToast(`Block ${node.data.name} Could Not Be Created!`, "error");
+                creationFailed = true;
+            }
         }
 
-        if (!creationFailed) {
-            setNodes(prevNodes => prevNodes.map(node => ({
-                ...node,
-                draggable: false,
-            })));
-            setEdges(prevNodes => prevNodes.map(edge => ({
-                ...edge,
-                focusable: false,
-                updatable: false,
-            })));
+        if (creationFailed) {
+            clearTimeout(timeoutID);
             setLoading(false);
-            axios({
+            return;
+        }
+
+
+        setNodes(prevNodes => prevNodes.map(node => ({
+            ...node,
+            draggable: false,
+        })));
+        setEdges(prevNodes => prevNodes.map(edge => ({
+            ...edge,
+            focusable: false,
+            updatable: false,
+        })));
+
+        try {
+            await axios({
                 method: "PUT",
                 url: MODIFY_DESCRIPTION,
                 data: {
                     "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
                     "description": "created"
                 }
-            }).then((_) => {
-                handleToast("Pipeline Created Successfully!", "success");
-                const allKeys = Object.keys(localStorage);
-                allKeys.forEach(key => {
-                    if(key.includes(other.pipeline_name)) {
-                        localStorage.removeItem(key);
-                    }
-                });
-                setNodes(nodes.map(node => ({
-                    ...node,
-                    data: {
-                        ...node.data,
-                        editable: false
-                    }
-                })));
-                const payload = other.type === "batch" ? {
-                    "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
-                    "trigger_type": "api",
-                } : {
-                    "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
-                    "trigger_type": "time",
-                    "interval": runInterval,
-                    "start_time": dateTime.toISOString()
-                }
-                axios({
-                    method: "POST",
-                    url: CREATE_PIPELINE_TRIGGER,
-                    data: payload
-                }).then((_) => {
-                    setLoading(false);
-                    other.setPipes((prevState) => ({
-                        ...prevState,
-                        [other.pipeline_name]: {
-                            [other.type]: {
-                                ...prevState[other.pipeline_name][other.type],
-                                loader: prevState[other.pipeline_name][other.type].loader,
-                                transformers:  prevState[other.pipeline_name][other.type].transformers,
-                                exporter:  prevState[other.pipeline_name][other.type].exporter,
-                                edges: prevState[other.pipeline_name][other.type].edges,
-                                created: true,
-                                blockPosition: prevState[other.pipeline_name][other.type].blockPosition
-                            },
-                        }
-                    }))
-                    window.location.reload();
-                })
-            }).catch((_) => {
-                handleToast("Failed to create Pipeline!", "error");
-                setLoading(false);
             })
+        } catch (_) {
+            handleToast("Could not update the description of the pipeline!", "error");
+            creationFailed = true;
         }
+
+        handleToast("Updated Description!", "success", 500)
+;
+        if (creationFailed) {
+            clearTimeout(timeoutID);
+            setLoading(false);
+            return;
+        }
+
+        const allKeys = Object.keys(localStorage);
+        allKeys.forEach(key => {
+            if(key.includes(other.pipeline_name)) {
+                localStorage.removeItem(key);
+            }
+        });
+
+        setNodes(nodes.map(node => ({
+            ...node,
+            data: {
+                ...node.data,
+                editable: false
+            }
+        })));
+
+        const payload = other.type === "batch" ? {
+            "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+            "trigger_type": "api",
+        } : {
+            "name": other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_"),
+            "trigger_type": "time",
+            "interval": runInterval,
+            "start_time": dateTime.toISOString()
+        }
+
+        try {
+            await axios({
+                method: "POST",
+                url: CREATE_PIPELINE_TRIGGER,
+                data: payload
+            });
+        } catch (_) {
+            creationFailed = true;
+        }
+
+        if (creationFailed) {
+            clearTimeout(timeoutID);
+            setLoading(false);
+            return;
+        }
+
+        handleToast("Pipeline Created Successfully!", "success");
+
+        setLoading(false);
+
+        other.setPipes((prevState) => ({
+            ...prevState,
+            [other.pipeline_name]: {
+                [other.type]: {
+                    ...prevState[other.pipeline_name][other.type],
+                    loader: prevState[other.pipeline_name][other.type].loader,
+                    transformers:  prevState[other.pipeline_name][other.type].transformers,
+                    exporter:  prevState[other.pipeline_name][other.type].exporter,
+                    edges: prevState[other.pipeline_name][other.type].edges,
+                    created: true,
+                    blockPosition: prevState[other.pipeline_name][other.type].blockPosition
+                },
+            }
+        }))
+        window.location.reload();
     }
 
     const handleChange = (event) => {
@@ -463,7 +506,7 @@ const ReactFlowPanel = (props) => {
             style={{ width: "88vw", height: "93vh" }}>
             <Snackbar
                 open={open}
-                autoHideDuration={2000}
+                autoHideDuration={toastDuration}
                 anchorOrigin={{ vertical, horizontal }}
                 onClose={handleClose}
             >

@@ -199,21 +199,21 @@ function TextUpdaterNode({ data, isConnectable }) {
 
     React.useEffect(() => {
         if (!data.created) {
-            localStorage.setItem(`${data.pipeline_name}-${data.name}-block-content`, JSON.stringify(blockContent));
+            localStorage.setItem(`${data.pipeline_name}-${data.nodeID}-block-content`, JSON.stringify(blockContent));
         }
-    }, [data.created, blockContent, data.pipeline_name, data.name]);
+    }, [data.nodeID, data.created, blockContent, data.pipeline_name]);
 
     React.useEffect(() => {
         if (isRun.current || data.created) return;
 
         isRun.current = true;
 
-        const isBlockContent = localStorage.getItem(`${data.pipeline_name}-${data.name}-block-content`);
+        const isBlockContent = localStorage.getItem(`${data.pipeline_name}-${data.nodeID}-block-content`);
 
         if (isBlockContent) {
             setBlockContent(JSON.parse(isBlockContent));
         }
-    }, [data.created, data.name, data.pipeline_name])
+    }, [data.nodeID, data.created, data.pipeline_name])
 
     const allFieldsFilled = () => {
         let condition = true;
@@ -255,7 +255,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
         isVariablesRun.current = true;
 
-        const inter = JSON.parse(localStorage.getItem(`${data.pipeline_name}-${data.name}-variables`));
+        const inter = JSON.parse(localStorage.getItem(`${data.pipeline_name}-${data.nodeID}-variables`));
         const aux = {}
 
         if (inter) {
@@ -268,7 +268,7 @@ function TextUpdaterNode({ data, isConnectable }) {
             });
             setValues(aux);
         }
-    }, [data.name, data.pipeline_name])
+    }, [data.nodeID, data.pipeline_name])
 
     const handleSubmit = () => {
         const textEntries = {};
@@ -308,7 +308,7 @@ function TextUpdaterNode({ data, isConnectable }) {
             return;
         }
 
-        localStorage.setItem(`${data.pipeline_name}-${data.name}-variables`, JSON.stringify(textEntries));
+        localStorage.setItem(`${data.pipeline_name}-${data.nodeID}-variables`, JSON.stringify(textEntries));
 
         if (fileInput) {
             const formData = new FormData();
