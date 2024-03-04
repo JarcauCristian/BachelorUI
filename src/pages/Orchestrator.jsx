@@ -145,51 +145,74 @@ const Orchestrator = () => {
         setValue(newValue);
     };
 
-    const handleTabClose = React.useCallback((index, tabName) => {
+    const handleTabClose = React.useCallback(async (index, tabName) => {
         const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
-        axios({
-            method: "DELETE",
-            url: DELETE_PIPELINE(name)
-        }).then((_) => {
-            setCounter(counter - 1);
-            setTabs(prevComponents => {
-                const updatedComponents = [...prevComponents];
-                updatedComponents.splice(index, 1);
-                return updatedComponents;
-            })
-            setPipelines((prevState) => {
-                const updatedPipelines = {...prevState};
-                delete updatedPipelines[tabName];
-                return updatedPipelines;
-            })
-            setTabsName(prevState => {
-                const updatedComponents = [...prevState];
-                updatedComponents.splice(index, 1);
-                return updatedComponents;
-            })
-            setPipelinesBlocksNames(prevState => {
-                const updatedComponents = [...prevState];
-                updatedComponents.splice(index, 1);
-                return updatedComponents;
-            })
 
-            for (let i = 0; i < localStorage.length; i++) {
-                if (localStorage.key(i).includes(tabName)) {
-                    localStorage.removeItem(localStorage.key(i));
+        let condition = false;
+
+        try {
+            await axios({
+                method: "DELETE",
+                url: DELETE_PIPELINE(name)
+            });
+        } catch (_) {
+            condition = true;
+        }
+
+        if (condition) {
+            handleToast("Could not delete the pipeline!", "error");
+            return;
+        }
+
+        try {
+            await axios({
+                method: "DELETE",
+                url: DELETE_FILES(Cookies.get("userID").split("-").join("_") + "/" + tabName,  "true"),
+                headers: {
+                    "Authorization": `Bearer ${Cookies.get("token")}`
                 }
-            }
-        }).catch((_) => {
-            handleToast("Error deleting pipeline!", "error");
+            });
+        } catch (_) {
+            condition = true;
+        }
+
+        if (condition) {
+            handleToast("Could not delete files associated with the pipeline!", "error");
+            return;
+        }
+
+        setCounter(counter - 1);
+        setTabs(prevComponents => {
+            const updatedComponents = [...prevComponents];
+            updatedComponents.splice(index, 1);
+            return updatedComponents;
         })
 
-        axios({
-            method: "DELETE",
-            url: DELETE_FILES(Cookies.get("userID").split("-").join("_") + "/" + tabName,  "true"),
-            headers: {
-                "Authorization": `Bearer ${Cookies.get("token")}`
+        setPipelines((prevState) => {
+            const updatedPipelines = {...prevState};
+            delete updatedPipelines[tabName];
+            return updatedPipelines;
+        })
+
+        setTabsName(prevState => {
+            const updatedComponents = [...prevState];
+            updatedComponents.splice(index, 1);
+            return updatedComponents;
+        })
+
+        setPipelinesBlocksNames(prevState => {
+            const updatedComponents = [...prevState];
+            updatedComponents.splice(index, 1);
+            return updatedComponents;
+        })
+
+        for (let i = 0; i < localStorage.length; i++) {
+            if (localStorage.key(i).includes(tabName)) {
+                localStorage.removeItem(localStorage.key(i));
             }
-        }).catch((_) => {})
+        }
     }, [counter])
+
     const handleMainChange = ()=> {
             setExpanded(!expanded);
     };
