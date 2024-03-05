@@ -311,6 +311,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         localStorage.setItem(`${data.pipeline_name}-${data.nodeID}-variables`, JSON.stringify(textEntries));
 
         if (fileInput) {
+            data.toast("Uploading File!", "success");
             const formData = new FormData();
 
             formData.append("file", fileInput);

@@ -71,25 +71,38 @@ const Datasets = () => {
         }
     }
 
-    const handleEnter = (dataset) => {
+    const handleEnter = async (dataset) => {
         setLoading(true);
-        axios({
-            method: "PUT",
-            url: UPDATE_DATASET,
-            headers: {
-                "Authorization": "Bearer " + Cookies.get("token"),
-                "Content-Type": "application/json"
-            },
-            data: {
-                "name": dataset.name,
-                "user": Cookies.get("userID").split("-").join("_")
-            }
-        })
 
-        axios({
-            method: "GET",
-            url: GET_DATASET(dataset.url)
-        }).then((response) => {
+        let condition = false;
+
+        try {
+            axios({
+                method: "PUT",
+                url: UPDATE_DATASET,
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token"),
+                    "Content-Type": "application/json"
+                },
+                data: {
+                    "name": dataset.name,
+                    "user": Cookies.get("userID").split("-").join("_")
+                }
+            })
+        } catch (_) {
+            condition = true;
+            setLoading(false);
+            handleToast("Error getting dataset!", "error");
+        }
+
+        if (condition) return;
+
+        try {
+            const response = await axios({
+                method: "GET",
+                url: GET_DATASET(dataset.url)
+            })
+
             setLoading(false);
             const parseCsvString = (csvString) => {
                 const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
@@ -109,32 +122,46 @@ const Datasets = () => {
             setColumnsDescriptions(descriptions);
             setName(dataset.name);
             setDialogOpen(true);
-        }).catch((_) => {
+        } catch (_) {
             setLoading(false);
-        })
+            handleToast("Error getting dataset!", "error");
+        }
     }
 
-    const handleDownload = (dataset) => {
+    const handleDownload = async (dataset) => {
         setLoading(true);
 
-        axios({
-            method: "PUT",
-            url: UPDATE_DATASET,
-            headers: {
-                "Authorization": "Bearer " + Cookies.get("token"),
-                "Content-Type": "application/json"
-            },
-            data: {
-                "name": dataset.name,
-                "user": Cookies.get("userID").split("-").join("_")
-            }
-        })
+        let condition = false;
 
-        axios({
-            method: "GET",
-            url: GET_DATASET(dataset.url)
-        }).then((response) => {
+        try {
+            await axios({
+                method: "PUT",
+                url: UPDATE_DATASET,
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token"),
+                    "Content-Type": "application/json"
+                },
+                data: {
+                    "name": dataset.name,
+                    "user": Cookies.get("userID").split("-").join("_")
+                }
+            })
+        } catch (_) {
+            condition = true;
             setLoading(false);
+            handleToast("Error downloading dataset!", "error");
+        }
+
+        if (condition) return;
+
+        try {
+            const response = await axios({
+                method: "GET",
+                url: GET_DATASET(dataset.url)
+            })
+
+            setLoading(false);
+
             const blob = new Blob([response.data], { type: 'text/csv' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
@@ -142,10 +169,10 @@ const Datasets = () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        }).catch((_) => {
+        } catch (_) {
             setLoading(false);
-            handleToast("Error downloading dataset!", "error")
-        })
+            handleToast("Error downloading dataset!", "error");
+        }
     }
 
     React.useEffect(() => {

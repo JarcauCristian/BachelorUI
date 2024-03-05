@@ -112,13 +112,14 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                         isResolved = true;
                         resolve(data);
                     } else {
+                        toast("Pipeline Still running!", "info");
                         console.log('Unsatisfactory response:', data);
                         counter += 1;
-                        setTimeout(retry, 30000);
+                        setTimeout(retry, 25000);
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    setTimeout(retry, 30000);
+                    setTimeout(retry, 25000);
                 }
             };
             retry();

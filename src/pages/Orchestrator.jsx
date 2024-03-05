@@ -161,8 +161,6 @@ const Orchestrator = () => {
             condition = true;
         }
 
-        console.log(condition);
-
         if (condition) {
             setLoading(false);
             handleToast("Could not delete the pipeline!", "error");
@@ -267,6 +265,8 @@ const Orchestrator = () => {
                         if (checking && batchName.length < 10) {
                                 if (((insideType === "loader" || insideType === "exporter") && pipelines[tabsName[value]]["batch"][insideType] === "") || insideType === "transformer") {
                                     if (!checkIfBlockNameExists(batchName)) {
+                                        setBatchOpen(false);
+                                        setLoading(true);
                                         axios({
                                             method: "GET",
                                             url: BLOCK_MODEL(name),
@@ -309,9 +309,9 @@ const Orchestrator = () => {
                                                     },
                                                 },
                                             }));
-                                            setBatchOpen(false);
+                                            setLoading(false);
                                         }).catch((_) => {
-                                            setBatchOpen(false);
+                                            setLoading(false);
                                             handleToast("Error loading block model!", "error");
                                         })
                                     } else {
