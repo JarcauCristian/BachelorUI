@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ai1
-        image: scr4pp/ai1:arm44
+        image: scr4pp/ai1:arm45
         ports:
         - name: api
           containerPort: 3000
