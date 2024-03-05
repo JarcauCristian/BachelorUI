@@ -149,17 +149,22 @@ const Orchestrator = () => {
         const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
 
         let condition = false;
+        setLoading(true);
 
         try {
             await axios({
                 method: "DELETE",
-                url: DELETE_PIPELINE(name)
+                url: DELETE_PIPELINE(name),
+                timeout: 10000
             });
         } catch (_) {
             condition = true;
         }
 
+        console.log(condition);
+
         if (condition) {
+            setLoading(false);
             handleToast("Could not delete the pipeline!", "error");
             return;
         }
@@ -170,13 +175,15 @@ const Orchestrator = () => {
                 url: DELETE_FILES(Cookies.get("userID").split("-").join("_") + "/" + tabName,  "true"),
                 headers: {
                     "Authorization": `Bearer ${Cookies.get("token")}`
-                }
+                },
+                timeout: 10000
             });
         } catch (_) {
             condition = true;
         }
 
         if (condition) {
+            setLoading(false);
             handleToast("Could not delete files associated with the pipeline!", "error");
             return;
         }
@@ -211,6 +218,8 @@ const Orchestrator = () => {
                 localStorage.removeItem(localStorage.key(i));
             }
         }
+
+        setLoading(false);
     }, [counter])
 
     const handleMainChange = ()=> {
