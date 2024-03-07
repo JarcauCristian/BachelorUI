@@ -201,7 +201,7 @@ const Model = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleDialogClose}>Close</Button>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleDialogClose}>Close</Button>
                 </DialogActions>
             </Dialog>
             <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>

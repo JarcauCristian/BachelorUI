@@ -219,7 +219,7 @@ const Models = ({user_id}) => {
                     </TableContainer>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setDialogOpen(false)}>Close</Button>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => setDialogOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
             <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>

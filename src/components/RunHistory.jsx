@@ -13,7 +13,7 @@ import {
     TableBody, TableCell,
     TableContainer,
     TableHead,
-    TableRow,
+    TableRow, TablePagination,
 } from "@mui/material";
 import Transition from './utils/transition';
 import Typography from "@mui/material/Typography";
@@ -43,6 +43,8 @@ function VariablesForm({ variables }) {
 const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
 
     const [historyData, setHistoryData] = React.useState(null);
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [open, setOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [value, setValue] = React.useState(10);
@@ -50,6 +52,15 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
     const handleClose = () => {
         setOpen(false);
     }
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
     const handleChange = async (e) => {
         setValue(e.target.value);
@@ -97,7 +108,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
             TransitionComponent={Transition}
             keepMounted
             fullWidth
-            maxWidth="xl"
+            maxWidth="xll"
             open={open} 
             onClose={handleClose} 
             sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} >
@@ -120,27 +131,36 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                             <MenuItem value={100}>100</MenuItem>
                         </Select>
                     </FormControl>
-                    <CircularProgress sx={{ color: "black", display: loading ? "block" : "none" }}/>
+                    <CircularProgress sx={{ color: "black", display: loading ? "block" : "none", mt: 2 }}/>
                     {historyData ?
-                        <TableContainer component={Paper} sx={{ display: loading ? "none" : "block" }}>
+                        <TableContainer component={Paper} sx={{ display: loading ? "none" : "block", mt: 2, border: "0.5px solid gray" }}>
                             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Status</TableCell>
-                                        <TableCell align="right">Running Date</TableCell>
+                                        <TableCell align="right">Run Date</TableCell>
+                                        <TableCell align="right">Last Completed Block</TableCell>
+                                        <TableCell align="right">Last Failed Block</TableCell>
+                                        <TableCell align="right">Error message (If the run failed!)</TableCell>
                                         <TableCell align="right">Variables (JSON)</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {historyData.map((row, index) => (
+                                    {(rowsPerPage > 0
+                                            ? historyData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                            : historyData
+                                    ).map((row, index) => (
                                         <TableRow
                                             key={index}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                         >
                                             <TableCell component="th" scope="row">
-                                                {row.status}
+                                                {row.status.toUpperCase()}
                                             </TableCell>
-                                            <TableCell align="right">{row.running_date}</TableCell>
+                                            <TableCell align="right">{row["running_date"]}</TableCell>
+                                            <TableCell align="right">{row["last_completed_block"]}</TableCell>
+                                            <TableCell align="right">{row["last_failed_block"]}</TableCell>
+                                            <TableCell align="right">{row["error_message"]}</TableCell>
                                             <TableCell align="right">
                                                 <VariablesForm variables={row.variables} />
                                             </TableCell>
@@ -148,11 +168,20 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                                     ))}
                                 </TableBody>
                             </Table>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                                component="div"
+                                count={historyData.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={handleChangePage}
+                                onRowsPerPageChange={handleChangeRowsPerPage}
+                            />
                         </TableContainer>
                     : undefined}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpen(false)}>Close</Button>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => setOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
             <Tooltip title="RUN HISTORY">
