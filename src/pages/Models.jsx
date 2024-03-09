@@ -191,7 +191,7 @@ const Models = ({user_id}) => {
             <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md" TransitionComponent={Transition} keepMounted>
                 <DialogTitle>CSV Data Information</DialogTitle>
                 <DialogContent>
-                    <TableContainer component={Paper}>
+                    <TableContainer sx={{ mb: 2, mt: 2 }} component={Paper}>
                         <Table>
                             <TableHead>
                                 <TableRow>

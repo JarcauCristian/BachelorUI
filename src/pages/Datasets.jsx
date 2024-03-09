@@ -224,7 +224,7 @@ const Datasets = () => {
                 )}
                 <DialogContent sx={{ maxWidth: 1000 }}>
                     {csvData && columnsDescriptions && (
-                        <DataTable data={csvData} descriptions={columnsDescriptions} />
+                        <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                     )}
                 </DialogContent>
                 <DialogActions>

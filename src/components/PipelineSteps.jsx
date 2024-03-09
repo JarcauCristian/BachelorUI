@@ -124,7 +124,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             };
             retry();
         });
-    }, [pipelineName]);
+    }, [pipelineName, toast]);
 
     const startPipeline = React.useCallback(async () => {
         const complete = {};

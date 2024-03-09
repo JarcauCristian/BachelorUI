@@ -9,7 +9,7 @@ import {
     DialogContent,
     DialogTitle, FormControl, InputLabel, Select,
     TextField,
-    Box
+    Box, Switch, Tooltip, alpha
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Editor from "@monaco-editor/react";
@@ -20,6 +20,21 @@ import Cookies from "js-cookie";
 import Transition from "../utils/transition";
 import MenuItem from "@mui/material/MenuItem";
 import yaml from "js-yaml";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import {styled} from "@mui/material/styles";
+import {common} from "@mui/material/colors";
+
+const BlackSwitch = styled(Switch)(({ theme }) => ({
+    '& .MuiSwitch-switchBase.Mui-checked': {
+        color: common["black"],
+        '&:hover': {
+            backgroundColor: alpha(common["black"], theme.palette.action.hoverOpacity),
+        },
+    },
+    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+        backgroundColor: common["black"],
+    },
+}));
 
 
 function TextUpdaterNode({ data, isConnectable }) {
@@ -30,7 +45,7 @@ function TextUpdaterNode({ data, isConnectable }) {
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [variableDialogOpen, setVariableDialogOpen] = React.useState(false);
     const [values, setValues] = React.useState(Object.keys(data.params).reduce((acc, curr) => {
-        acc[curr] = data.params[curr] === "file" ? null : '';
+        acc[curr] = data.params[curr] === "file" ? null : data.params[curr] === "bool" ? true : '';
         return acc;
     }, {}));
     const [newCategory, setNewCategory] = React.useState(false);
@@ -61,9 +76,17 @@ function TextUpdaterNode({ data, isConnectable }) {
     }
 
     const handleInputChange = (e) => {
-        const { name, value, files } = e.target;
+        const { name, checked, value, files } = e.target;
     
-        const newValue = files ? files[0] : value;
+        let newValue;
+
+        if (files) {
+            newValue = files[0];
+        } else if (values[name] !== checked) {
+            newValue = checked;
+        } else {
+            newValue = value;
+        }
     
         if (files && newValue.type === "text/csv") {
             const auxFile = newValue;
@@ -78,7 +101,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                         columnDescriptions[entry] = "(Column Description)";
                     }
 
-                    const yamlData = yaml.dump(columnDescriptions);
+                    const yamlData = yaml.dump(columnDescriptions, {});
 
                     setContent(yamlData);
                     setValues({
@@ -143,7 +166,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                             type={type === 'int' ? 'number' : 'text'}
                             value={values[key]}
                             onChange={handleInputChange}
-                            sx={{ mb: 2, display: newCategory ? "block" : "none" }}
+                            sx={{ mb: 2, mt: 2, display: newCategory ? "block" : "none" }}
                         />
                         <Button fullWidth variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" }, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }} onClick={() => setNewCategory(!newCategory)}>{newCategory ? "Remove New Category" : "Add New Category"}</Button>
                     </Box>
@@ -158,7 +181,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                         type={type === 'int' ? 'number' : 'text'}
                         value={values[key]}
                         onChange={handleInputChange}
-                        sx={{ mb: 2 }}
+                        sx={{ mb: 2, mt: 2 }}
                     />
                 );
             }
@@ -172,12 +195,20 @@ function TextUpdaterNode({ data, isConnectable }) {
                     type={'password'}
                     value={values[key]}
                     onChange={handleInputChange}
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 2, mt: 2 }}
                 />
+            );
+        } else if (type === "bool") {
+            return (
+                <FormControl key={key} sx={{ mb: 2, mt: 2 }}>
+                    <Tooltip title="Check if you want to share your data with data scientists!">
+                        <FormControlLabel control={<BlackSwitch inputProps={{ 'aria-label': 'controlled' }} name={key} label={key} onChange={handleInputChange} checked={values[key]} defaultChecked/>} label="Share Your Data" />
+                    </Tooltip>
+                </FormControl >
             );
         } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
             return (
-                <FormControl key={key} fullWidth sx={{ mb: 2 }}>
+                <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
                     <InputLabel>{key}</InputLabel>
                     <Select
                         name={key}
@@ -213,7 +244,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         if (isBlockContent) {
             setBlockContent(JSON.parse(isBlockContent));
         }
-    }, [data.nodeID, data.created, data.pipeline_name])
+    }, [data.nodeID, data.created, data.pipeline_name]);
 
     const allFieldsFilled = () => {
         let condition = true;

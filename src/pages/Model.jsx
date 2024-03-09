@@ -273,7 +273,7 @@ const Model = () => {
                         </div>
                     )}
                     {modelDetails && (
-                        <FormGroup sx={{width: 500, color: "#FFFFFF", display: modelDetails.notebook_type == "transformers" ? "none" : "block"}}>
+                        <FormGroup sx={{width: 500, color: "#FFFFFF", display: modelDetails.notebook_type === "transformers" ? "none" : "block"}}>
                             <Snackbar
                                 open={open}
                                 autoHideDuration={3000}

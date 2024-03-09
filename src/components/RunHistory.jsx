@@ -116,7 +116,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                     RUN HISTORY
                 </DialogTitle>
                 <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
-                    <FormControl fullWidth>
+                    <FormControl sx={{ mt: 2 }} fullWidth>
                         <Typography variant="p" sx={{ color: "black", fontWeight: "bold" }}>{`History Limit`.toUpperCase()}</Typography>
                         <Select
                             labelId="demo-simple-select-label"

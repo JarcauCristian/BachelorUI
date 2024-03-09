@@ -190,7 +190,7 @@ function Neo4jNode({ data, isConnectable }) {
                                 {datasetInformation.description}
                             </Typography>
                             {csvData && columnsDescriptions && (
-                                <DataTable data={csvData} descriptions={columnsDescriptions} />
+                                <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                             )}
                             {!isStartNotebook && (
                                 <Button onClick={handleStart} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
