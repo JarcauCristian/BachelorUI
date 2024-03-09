@@ -600,7 +600,7 @@ const Orchestrator = () => {
                 setCounter(counter + 1);
             }
             setLoading(false);
-        }).catch((error) => {
+        }).catch((_) => {
             handleToast("Error getting pipelines!", "error");
             setLoading(false);
         })
@@ -614,7 +614,13 @@ const Orchestrator = () => {
             tabs.length > 0
         ) {
             if (!creation) {
-                localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(pipelines[tabsName[value]]));
+                const edges = localStorage.getItem(`${tabsName[value]}-edges`)
+                let aux_pipeline = pipelines[tabsName[value]];
+                let pipeline_type = "stream" in pipelines[tabsName[value]] ? "stream" : "batch";
+                if (edges) {
+                    aux_pipeline[pipeline_type]["edges"] = JSON.parse(edges);
+                }
+                localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(aux_pipeline));
             }
         }
     }, [tabs.length, value, tabsName, pipelines]);
@@ -835,20 +841,20 @@ const Orchestrator = () => {
                 </Box>
             </Drawer>
             <Box>
-                <Box sx={{ borderBottom: 2, borderColor: 'black' }}>
+                <Box sx={{ borderBottom: 2, borderColor: 'black', display: 'flex', flexDirection: 'row' }}>
                     <Tabs value={value} onChange={handleChange}>
                         {tabs.map((entry, index) => (
                             React.cloneElement(entry, { key: index })
                         ))}
-                        <Button variant="filled" sx={{ backgroundColor: "white", color: "black" }} onClick={() => setOpen(true)}>
-                            <AddBoxIcon />
-                        </Button>
                     </Tabs>
+                    <Button variant="filled" sx={{ backgroundColor: "white", color: "black" }} onClick={() => setOpen(true)}>
+                        <AddBoxIcon />
+                    </Button>
                 </Box>
-                {tabs ? (tabs.map((_, index) => {
+                {tabs ? (tabs.map((val, index) => {
                         return (
                             <ReactFlowPanel
-                                key={index}
+                                key={`${val}-${index}`}
                                 index={index}
                                 value={value}
                                 {...{

@@ -248,7 +248,7 @@ const Datasets = () => {
                     </Card>
                     {filterDatasets.length !== 0 ?
                         filterDatasets.map((dataset) => (
-                            <Card key={dataset.name} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
+                            <Card key={dataset.name} variant="outlined" sx={{ mt: 2, mb: 2, height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
                                 <CardContent>
                                     <Stack spacing={4} direction="row">
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset.name.charAt(0).toUpperCase() + dataset.name.slice(1)}</Typography>

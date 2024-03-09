@@ -202,7 +202,7 @@ function TextUpdaterNode({ data, isConnectable }) {
             return (
                 <FormControl key={key} sx={{ mb: 2, mt: 2 }}>
                     <Tooltip title="Check if you want to share your data with data scientists!">
-                        <FormControlLabel control={<BlackSwitch inputProps={{ 'aria-label': 'controlled' }} name={key} label={key} onChange={handleInputChange} checked={values[key]} defaultChecked/>} label="Share Your Data" />
+                        <FormControlLabel control={<BlackSwitch inputProps={{ 'aria-label': 'controlled' }} name={key} label={key} onChange={handleInputChange} checked={values[key]} />} label="Share Your Data" />
                     </Tooltip>
                 </FormControl >
             );

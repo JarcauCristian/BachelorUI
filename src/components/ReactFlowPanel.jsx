@@ -9,7 +9,6 @@ import ReactFlow, {
     MiniMap,
     updateEdge, useEdgesState, useNodesState
 } from "reactflow";
-import {useEffect} from "react";
 import {nodeTypes} from "./utils/nodeTypes";
 import Box from "@mui/material/Box";
 import {
@@ -44,7 +43,7 @@ const ReactFlowPanel = (props) => {
     const { children, value, index, ...other } = props;
 
     const [nodes, setNodes] = useNodesState([]);
-    const [edges, setEdges] = useEdgesState(other.componentEdges);
+    const [edges, setEdges] = useEdgesState([]);
     const [open, setOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
@@ -57,7 +56,7 @@ const ReactFlowPanel = (props) => {
     const [localUpdate, setLocalUpdate] = React.useState(false);
     const [secrets, setSecrets] = React.useState([]);
     const [hasSecrets, setHasSecrets] = React.useState(false);
-    const isRun = React.useRef(0);
+    const isRun = React.useRef(false);
 
     const handleToast = (message, severity, duration = 2000) => {
         setToastMessage(message);
@@ -115,7 +114,7 @@ const ReactFlowPanel = (props) => {
         setDateTime(newValue);
     }
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (!localUpdate) {
             const new_nodes = [];
             if (other.componentNodes) {
@@ -148,7 +147,7 @@ const ReactFlowPanel = (props) => {
 
         setLocalUpdate(true);
         other.setPipes((prevState) => {
-            const newState = JSON.parse(JSON.stringify(prevState));
+            const newState = prevState;
             if (nodeToDelete.data.type === 'transformer') {
                 newState[other.pipeline_name][other.type].transformers = newState[other.pipeline_name][other.type].transformers.filter(t => t.id !== nodeId);
             } else if(nodeToDelete.data.type === 'loader' || nodeToDelete.data.type === 'exporter') {
@@ -162,6 +161,8 @@ const ReactFlowPanel = (props) => {
                     break;
                 }
             }
+
+            console.log(newState);
 
             newState[other.pipeline_name][other.type]["blockPosition"] = index * 300;
 
@@ -358,8 +359,8 @@ const ReactFlowPanel = (props) => {
             creationFailed = true;
         }
 
-        handleToast("Updated Description!", "success", 500)
-;
+        handleToast("Updated Description!", "success", 500);
+
         if (creationFailed) {
             clearTimeout(timeoutID);
             setLoading(false);
@@ -425,6 +426,13 @@ const ReactFlowPanel = (props) => {
                 },
             }
         }))
+
+        for (let i = 0; i < localStorage.length; i++) {
+            if (localStorage.key(i).includes(other.pipeline_name)) {
+                localStorage.removeItem(localStorage.key(i));
+            }
+        }
+
         window.location.reload();
     }
 
@@ -434,49 +442,23 @@ const ReactFlowPanel = (props) => {
 
     React.useEffect(() => {
         if (!other.created) {
-            if (isRun.current === 2) return;
+            if (isRun.current) return;
 
-            isRun.current++;
+            isRun.current = true;
 
             setEdges(other.componentEdges);
         }
     }, [setEdges, other.componentEdges, other.created]);
 
     React.useEffect(() => {
-            if (!other.created && edges !== other.componentEdges) {
-                if (other.type === "stream") {
-                    other.setPipes((prevState) => ({
-                        ...prevState,
-                        [other.pipeline_name]: {
-                            [other.type]: {
-                                ...prevState[other.pipeline_name].stream,
-                                loader: prevState[other.pipeline_name].stream.loader,
-                                transformers: prevState[other.pipeline_name].stream.transformers,
-                                exporter: prevState[other.pipeline_name].stream.exporter,
-                                edges: edges,
-                                created: prevState[other.pipeline_name].stream.created,
-                                blockPosition: prevState[other.pipeline_name].stream.blockPosition
-                            },
-                        }
-                    }))
-                } else {
-                    other.setPipes((prevState) => ({
-                        ...prevState,
-                        [other.pipeline_name]: {
-                            [other.type]: {
-                                ...prevState[other.pipeline_name].batch,
-                                loader: prevState[other.pipeline_name].batch.loader,
-                                transformers: prevState[other.pipeline_name].batch.transformers,
-                                exporter: prevState[other.pipeline_name].batch.exporter,
-                                edges: edges,
-                                created: prevState[other.pipeline_name].batch.created,
-                                blockPosition: prevState[other.pipeline_name].batch.blockPosition
-                            },
-                        }
-                    }))
-                }
+        const interval = setInterval(() => {
+            if (!other.created) {
+                localStorage.setItem(`${other.pipeline_name}-edges`, JSON.stringify(edges));
             }
-    }, [other, edges]);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [setEdges, other, edges]);
 
     const handleOpenDialog = () => {
         setStreamDialogOpen(true);
