@@ -40,6 +40,7 @@ const DatasetGraph = () => {
                 "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
+            console.log(response.data);
             let initialNodes = [];
             let initialEdges = [];
             let positions = {}
@@ -129,7 +130,8 @@ const DatasetGraph = () => {
             setNodes(initialNodes);
             setEdges(initialEdges);
             setLoading(false);
-        }).catch((_) => {
+        }).catch((e) => {
+            console.log(e);
             setLoading(false);
             handleToast("Could not get datasets!", "error");
             setNodes([]);
