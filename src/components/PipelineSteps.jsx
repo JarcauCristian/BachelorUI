@@ -212,7 +212,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
             "isLoading": false
         }
 
-        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+        localStorage.removeItem(`${pipelineName}-running-steps`);
     }, [completed, failed, runStep, pipelineName]);
 
     const runPipeline = React.useCallback(async (source) => {
