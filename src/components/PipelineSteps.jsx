@@ -204,14 +204,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
 
         setCompleted(complete);
         setFailed(fail);
-
-        const toSave = {
-            "completed": complete,
-            "failed": fail,
-            "activeStep": -1,
-            "isLoading": false
-        }
-
+        
         localStorage.removeItem(`${pipelineName}-running-steps`);
     }, [completed, failed, runStep, pipelineName]);
 
