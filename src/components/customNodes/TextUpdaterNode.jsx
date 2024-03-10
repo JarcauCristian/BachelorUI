@@ -82,7 +82,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
         if (files) {
             newValue = files[0];
-        } else if (values[name] !== checked) {
+        } else if (value === 'on' && typeof values[name] === "boolean") {
             newValue = checked;
         } else {
             newValue = value;
@@ -158,7 +158,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         } else if (type === 'int' || type === 'str') {
             if (key === "new_category") {
                 return (
-                    <Box key={key} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <Box key={key} sx={{ mb: 2, mt: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                         <TextField
                             name={key}
                             fullWidth
@@ -166,7 +166,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                             type={type === 'int' ? 'number' : 'text'}
                             value={values[key]}
                             onChange={handleInputChange}
-                            sx={{ mb: 2, mt: 2, display: newCategory ? "block" : "none" }}
+                            sx={{ mb: 2, display: newCategory ? "block" : "none" }}
                         />
                         <Button fullWidth variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" }, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }} onClick={() => setNewCategory(!newCategory)}>{newCategory ? "Remove New Category" : "Add New Category"}</Button>
                     </Box>

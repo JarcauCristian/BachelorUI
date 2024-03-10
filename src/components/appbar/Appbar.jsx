@@ -187,7 +187,7 @@ function ResponsiveAppBar({logout, role, username}) {
             >
               {pages ? pages.map((page) => (
                   <MenuItem key={page}>
-                    <Typography textAlign="center" >
+                    <Typography textAlign="center" onClick={() => handleRedirect(page)} >
                       {page}
                       <Divider sx={{ color: "black", backgroundColor: "black" }}/>
                     </Typography>
