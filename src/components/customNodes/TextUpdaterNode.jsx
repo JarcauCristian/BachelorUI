@@ -9,7 +9,7 @@ import {
     DialogContent,
     DialogTitle, FormControl, InputLabel, Select,
     TextField,
-    Box, Switch, Tooltip, alpha
+    Box, Switch, Tooltip, alpha, FormGroup
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Editor from "@monaco-editor/react";
@@ -200,11 +200,11 @@ function TextUpdaterNode({ data, isConnectable }) {
             );
         } else if (type === "bool") {
             return (
-                <FormControl key={key} sx={{ mb: 2, mt: 2 }}>
+                <FormGroup key={key} sx={{ mb: 2, mt: 2 }}>
                     <Tooltip title="Check if you want to share your data with data scientists!">
                         <FormControlLabel control={<BlackSwitch inputProps={{ 'aria-label': 'controlled' }} name={key} label={key} onChange={handleInputChange} checked={values[key]} />} label="Share Your Data" />
                     </Tooltip>
-                </FormControl >
+                </FormGroup >
             );
         } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
             return (
@@ -319,13 +319,19 @@ function TextUpdaterNode({ data, isConnectable }) {
                     textEntries[key] = Cookies.get("userID").split("-").join("_") + "/" + data.pipeline_name + "/" + value;
                 } else if (key === 'password') {
                     data.hasSecret(true);
-                    data.addSecret(prevState => [
-                        ...prevState,
-                        {
-                            name: key,
-                            value: value
+                    data.addSecret(prevState => {
+                        if (prevState.some(item => item.name === key)) {
+                            return prevState;
+                        } else {
+                            return [
+                                ...prevState,
+                                {
+                                    name: key,
+                                    value: value
+                                }
+                            ];
                         }
-                    ])
+                    })
                 } else if (key === 'column_descriptions') {
 	                textEntries[key] = JSON.stringify(value);
                 } else {

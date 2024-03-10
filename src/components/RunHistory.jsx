@@ -76,7 +76,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
             for (let entry of response.data) {
                 const variables = {}
                 Object.entries(entry.variables).forEach(([key, value]) => {
-                    if (key !== "execution_partition" && key !== "KEYCLOAK_TOKEN") {
+                    if (key !== "execution_partition" && key !== "KEYCLOAK_TOKEN" && key !== "PIPELINE_NAME") {
                         variables[key] = value
                     }
                 })

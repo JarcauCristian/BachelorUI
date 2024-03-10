@@ -154,7 +154,8 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                         "run_id": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id,
                         "token": JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).token,
                         "variables": {
-                            "KEYCLOAK_TOKEN": Cookies.get("token")
+                            "KEYCLOAK_TOKEN": Cookies.get("token"),
+                            "PIPELINE_NAME": pipelineName + "_" + Cookies.get("userID").split("-").join("_")
                         }
                     },
                     timeout: 10000

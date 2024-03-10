@@ -162,8 +162,6 @@ const ReactFlowPanel = (props) => {
                 }
             }
 
-            console.log(newState);
-
             newState[other.pipeline_name][other.type]["blockPosition"] = index * 300;
 
             return newState;
@@ -180,14 +178,20 @@ const ReactFlowPanel = (props) => {
         }, 500);
 
         if (nodes.length === 0) {
+            setLoading(false);
+            clearTimeout(timeoutID);
             handleToast("Pipeline is empty!", "error");
             return;
         }
         if (edges.length === 0) {
+            setLoading(false);
+            clearTimeout(timeoutID);
             handleToast("Can't create pipeline without edges!", "error");
             return;
         }
         if (edges.length !== nodes.length - 1) {
+            setLoading(false);
+            clearTimeout(timeoutID);
             handleToast("Please connect all the nodes together!", "error");
             return;
         }
@@ -204,6 +208,8 @@ const ReactFlowPanel = (props) => {
         }
 
         if (!hasLoader || !hasExporter) {
+            setLoading(false);
+            clearTimeout(timeoutID);
             handleToast("Pipeline should have a loader and an exporter!", "error");
             return;
         }
@@ -244,14 +250,17 @@ const ReactFlowPanel = (props) => {
         // If the secrets length is greater than zero apply the secrets to the pipeline.
         if (secrets.length > 0) {
             try {
-                await Promise.all(secrets.map(async (entry) => {
+                for (let i = 0; i < secrets.length; i++) {
+                    const secret = secrets[i];
+                    secret["name"] = secret["name"] + "-" + other.pipeline_name + "_" + Cookies.get("userID").split("-").join("_");
+                    await new Promise((resolve) => setTimeout(resolve, 500));
                     await axios({
                         method: "POST",
                         url: PIPELINE_SECRET,
-                        data: entry
+                        data: secret
                     });
-                }));
-                handleToast("Created Secrets!", "success", 500);
+                }
+                handleToast("Created Secrets!", "success", 1000);
             } catch (_) {
                 handleToast("Could not create all the secrets secrets!", "error");
                 creationFailed = true;
@@ -278,7 +287,7 @@ const ReactFlowPanel = (props) => {
             return;
         }
 
-        handleToast("Created Pipeline Variables!", "success", 500);
+        handleToast("Created Pipeline Variables!", "success", 1000);
 
         for (let node of nodes) {
             if (creationFailed) {
@@ -320,7 +329,7 @@ const ReactFlowPanel = (props) => {
                         "Content-Type": "multipart/form-data"
                     }
                 })
-                handleToast(`Created block ${node.data.name}!`, "success", 500);
+                handleToast(`Created block ${node.data.name}!`, "success", 1000);
             } catch (e) {
                 console.error(e);
                 handleToast(`Block ${node.data.name} Could Not Be Created!`, "error");
@@ -359,7 +368,7 @@ const ReactFlowPanel = (props) => {
             creationFailed = true;
         }
 
-        handleToast("Updated Description!", "success", 500);
+        handleToast("Updated Description!", "success", 1000);
 
         if (creationFailed) {
             clearTimeout(timeoutID);
