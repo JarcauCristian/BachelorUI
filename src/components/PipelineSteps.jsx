@@ -94,7 +94,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         return new Promise((resolve) => {
             const retry = async () => {
                 if (isResolved) return;
-                if (counter === 10) {
+                if (counter > 15) {
                     isResolved = true;
                     resolve("failed");
                     return;
@@ -115,11 +115,11 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                         toast("Pipeline Still running!", "info");
                         console.log('Unsatisfactory response:', data);
                         counter += 1;
-                        setTimeout(retry, 25000);
+                        setTimeout(retry, 10000);
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    setTimeout(retry, 25000);
+                    setTimeout(retry, 10000);
                 }
             };
             retry();
