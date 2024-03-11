@@ -231,6 +231,8 @@ const ReactFlowPanel = (props) => {
             }
         }
 
+        variables["PIPELINE_NAME"] = other.pipeline_name;
+
         // Verify if all the blocks have all the variables set.
         if (counter > 0) {
             handleToast("Please add all the variables for all the blocks!", "error");
