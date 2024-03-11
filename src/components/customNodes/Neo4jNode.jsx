@@ -70,10 +70,8 @@ function Neo4jNode({ data, isConnectable }) {
                     const descriptions = {}
                     const datasetInfo = {}
                     for (let [key, value] of Object.entries(response.data)) {
-                        if (!["name", "description", "user", "url"].includes(key)) {
+                        if (!["name", "description", "user", "url", "last_accessed"].includes(key)) {
                             descriptions[key] = value;
-                        } else {
-                            datasetInfo[key] = value;
                         }
                     }
                     setDatasetInformation(datasetInfo);
@@ -97,6 +95,8 @@ function Neo4jNode({ data, isConnectable }) {
                             "columnsDescriptions": columnsDescriptions,
                             "csvData": parseCsvString(resp.data)
                         }));
+
+                        console.log(parseCsvString(resp.data));
                         setOpen(true);
                     }).catch((_) => {
                         data.toast("Could not get the dataset.", "error");
@@ -186,9 +186,11 @@ function Neo4jNode({ data, isConnectable }) {
                                 {datasetInformation.name.toUpperCase() + " BY " + datasetInformation.user}
                             </Typography>
                             <br />
-                            <Typography variant="p" sx={{ fontWeight: "bold" }}>
-                                {datasetInformation.description}
-                            </Typography>
+                            <Tooltip title={datasetInformation.description}>
+                                <Typography variant="p" sx={{ fontWeight: "bold" }}>
+                                    {datasetInformation.description.length > 20 ? datasetInformation.description.slice(0, 20) : datasetInformation.description}
+                                </Typography>
+                            </Tooltip>
                             {csvData && columnsDescriptions && (
                                 <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                             )}
