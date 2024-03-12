@@ -48,7 +48,6 @@ const DatasetGraph = () => {
             let offset = 0;
             const yOffset = 150;
             const categoryNodes = [];
-            const datasetNodes = [];
 
             for (let node of response.data) {
                 if (node["label"] === "base") {
@@ -56,36 +55,31 @@ const DatasetGraph = () => {
                     first_node = node;
                 } else if (node["label"] === "category") {
                     categoryNodes.push(node);
-                } else if (node["label"] === "dataset") {
-                    datasetNodes.push(node);
                 }
             }
+
+            let newYOffset = 150;
 
             for (let i = 0; i < categoryNodes.length; i++) {
                 if (i % 2 === 1 && i > 0) {
                     offset += 300;
                 }
                 positions[categoryNodes[i]["name"]] = [i === 0 ? offset : (i % 2 === 0 ? offset : -offset), yOffset];
-            }
-
-            offset = 150;
-
-            for (let i = 0; i < datasetNodes.length; i+=2) {
-                offset += yOffset;
-                if (datasetNodes.length === 1) {
-                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
-                } else if (datasetNodes.length === 2) {
-                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
-                    positions[datasetNodes[i + 1]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] + 100, offset];
-                } else if (datasetNodes.length - i === 2) {
-                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
-                    positions[datasetNodes[i + 1]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] + 100, offset];
-                } else if (datasetNodes.length - i === 1) {
-                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
-                } else {
-                    positions[datasetNodes[i]["name"]] = [positions[datasetNodes[i]["upper_node"]][0], offset];
-                    positions[datasetNodes[i + 1]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] + 100, offset];
-                    positions[datasetNodes[i + 2]["name"]] = [positions[datasetNodes[i]["upper_node"]][0] - 100, offset];
+                newYOffset = 150;
+                for (let j = 0; j < categoryNodes[i]["under_nodes"].length; j+=2) {
+                    newYOffset += yOffset;
+                    if (categoryNodes[i]["under_nodes"].length === 1) {
+                        positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0], newYOffset];
+                    } else if (categoryNodes[i]["under_nodes"].length === 2 || categoryNodes[i]["under_nodes"].length - i === 2) {
+                        positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0], newYOffset];
+                        positions[categoryNodes[i]["under_nodes"][j + 1]] = [positions[categoryNodes[i]["name"]][0] + 100, newYOffset];
+                    } else if (categoryNodes[i]["under_nodes"].length - i === 1) {
+                        positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0] , newYOffset];
+                    } else {
+                        positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0] , newYOffset];
+                        positions[categoryNodes[i]["under_nodes"][j + 1]] = [positions[categoryNodes[i]["name"]][0]  + 100, newYOffset];
+                        positions[categoryNodes[i]["under_nodes"][j + 2]] = [positions[categoryNodes[i]["name"]][0]  - 100, newYOffset];
+                    }
                 }
             }
 
@@ -129,7 +123,7 @@ const DatasetGraph = () => {
             setNodes(initialNodes);
             setEdges(initialEdges);
             setLoading(false);
-        }).catch((e) => {
+        }).catch((_) => {
             setLoading(false);
             handleToast("Could not get datasets!", "error");
             setNodes([]);

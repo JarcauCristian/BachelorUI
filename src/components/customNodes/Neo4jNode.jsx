@@ -72,6 +72,8 @@ function Neo4jNode({ data, isConnectable }) {
                     for (let [key, value] of Object.entries(response.data)) {
                         if (!["name", "description", "user", "url", "last_accessed"].includes(key)) {
                             descriptions[key] = value;
+                        } else {
+                            datasetInfo[key] = value;
                         }
                     }
                     setDatasetInformation(datasetInfo);
@@ -107,7 +109,7 @@ function Neo4jNode({ data, isConnectable }) {
                 data.toast("Could not get the dataset information.", "error");
             })
         }).catch((_) => {
-            data.toast("An error occured.", "error")
+            data.toast("Could not update the dataset information!.", "error")
         })
     }
 
