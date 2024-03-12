@@ -51,7 +51,6 @@ const Model = () => {
 
     const handleScoreChange = (event) => {
         setScore(event.target.value);
-        console.log(event.target.value)
     }
 
     const handleFilesChange = (files) => {
@@ -233,9 +232,9 @@ const Model = () => {
                                     <Typography sx={{ fontWeight: "bold" }}>MODEL NAME</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Tooltip title={modelDetails.model_name.toUpperCase()}>
+                                    <Tooltip title={modelDetails["model_name"].toUpperCase()}>
                                         <Typography>
-                                            {modelDetails.model_name.length > 28 ? modelDetails.model_name.toUpperCase().slice(0, 28) + "..." : modelDetails.model_name.toUpperCase()}
+                                            {modelDetails["model_name"].length > 28 ? modelDetails["model_name"].toUpperCase().slice(0, 28) + "..." : modelDetails["model_name"].toUpperCase()}
                                         </Typography>
                                     </Tooltip>
                                 </AccordionDetails>
@@ -313,9 +312,9 @@ const Model = () => {
                     <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#F5F5F5" }} variant="outlined">
                         <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL METRICS</Typography>
                         <Divider flexItem sx={{ backgroundColor: "black", fontSize: 5 }}/>
-                        {modelData.metrics && (
+                        {modelData["metrics"] && (
                             <List>
-                                {Object.entries(modelData.metrics).map(([key, value]) => (
+                                {Object.entries(modelData["metrics"]).map(([key, value]) => (
                                     <ListItem key={key}>
                                         <ListItemText primary={key.replace(/_/g, " ").toUpperCase()} secondary={value} />
                                     </ListItem>
@@ -339,48 +338,48 @@ const Model = () => {
                     <Card sx={{minWidth: 280, minHeight: "40vh", overflowY: "scroll", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#F5F5F5" }} variant="outlined">
                         <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>TRAIN DATASET DETAILS</Typography>
                         <Divider flexItem sx={{ backgroundColor: "black", fontSize: 5 }}/>
-                        {modelDescription.column_dtypes && (
+                        {modelDescription["column_dtypes"] && (
                             <Typography sx={{ fontWeight: "bold" }}>Column Types</Typography>
                         )}
-                        {modelDescription.column_dtypes && (
+                        {modelDescription["column_dtypes"] && (
                             <List>
-                                {Object.entries(modelDescription.column_dtypes).map(([key, value]) => (
+                                {Object.entries(modelDescription["column_dtypes"]).map(([key, value]) => (
                                     <ListItem key={key}>
                                         <ListItemText primary={key.toUpperCase()} secondary={value} />
                                     </ListItem>
                                 ))}
                             </List>
                         )}
-                        {modelDescription.column_ranges && (
+                        {modelDescription["column_ranges"] && (
                             <Typography sx={{ fontWeight: "bold" }}>Column Ranges</Typography>
                         )}
-                        {modelDescription.column_ranges && (
+                        {modelDescription["column_ranges"] && (
                             <List>
-                                {Object.entries(modelDescription.column_ranges).map(([key, value]) => (
+                                {Object.entries(modelDescription["column_ranges"]).map(([key, value]) => (
                                     <ListItem key={key}>
                                         <ListItemText primary={key.toUpperCase()} secondary={value} />
                                     </ListItem>
                                 ))}
                             </List>
                         )}
-                        {modelDescription.column_categories && (
+                        {modelDescription["column_categories"] && (
                             <Typography sx={{ fontWeight: "bold" }}>Column Categories</Typography>
                         )}
-                        {modelDescription.column_categories && (
+                        {modelDescription["column_categories"] && (
                             <List>
-                                {Object.entries(modelDescription.column_categories).map(([key, value]) => (
+                                {Object.entries(modelDescription["column_categories"]).map(([key, value]) => (
                                     <ListItem key={key}>
                                         <ListItemText primary={key.toUpperCase()} secondary={value} />
                                     </ListItem>
                                 ))}
                             </List>
                         )}
-                        {modelDescription.column_unique_values && (
+                        {modelDescription["column_unique_values"] && (
                             <Typography sx={{ fontWeight: "bold" }}>Column Unique Values</Typography>
                         )}
-                        {modelDescription.column_unique_values && (
+                        {modelDescription["column_unique_values"] && (
                             <List>
-                                {Object.entries(modelDescription.column_unique_values).map(([key, value]) => (
+                                {Object.entries(modelDescription["column_unique_values"]).map(([key, value]) => (
                                     <ListItem key={key}>
                                         <ListItemText primary={key.toUpperCase()} secondary={value} />
                                     </ListItem>
