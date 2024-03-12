@@ -1,6 +1,6 @@
 
 const baseUrl = "https://ingress.sedimark.work/mage";
-const neo4jUrl = "http://localhost:8000/neo4j";
+const neo4jUrl = "https://ingress.sedimark.work/neo4j";
 const modelsUrl = "https://ingress.sedimark.work/models";
 const notebooksUrl = "https://ingress.sedimark.work/notebook_manager";
 const balancerUrl = "https://ingress.sedimark.work/balancer";
