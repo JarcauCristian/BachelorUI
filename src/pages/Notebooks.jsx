@@ -39,9 +39,9 @@ const Notebooks = () => {
     const handleFilterApplication = () => {
         if (notebookIDFilter !== '' || creationDate !== '' || expirationDate !== '') {
             const filteredNotebooks = notebooks.filter((notebook) => {
-                const matchesID = notebookIDFilter ? notebook.notebook_id === notebookIDFilter : true;
-                const matchesCreationDate = creationDate ? new Date(notebook.creation_time) <= new Date(creationDate) : true;
-                const matchesExpirationDate = expirationDate ? new Date(notebook.expiration_time) >= new Date(expirationDate) : true;
+                const matchesID = notebookIDFilter ? notebook["notebook_id"] === notebookIDFilter : true;
+                const matchesCreationDate = creationDate ? new Date(notebook["creation_time"]) <= new Date(creationDate) : true;
+                const matchesExpirationDate = expirationDate ? new Date(notebook["expiration_time"]) >= new Date(expirationDate) : true;
 
                 return matchesID && matchesCreationDate && matchesExpirationDate;
             });
@@ -76,7 +76,7 @@ const Notebooks = () => {
         setNotebookIDFilter("");
     };
 
-    const handleEnter = (notebook_id) => {
+    const handleEnter = (notebook_id, notebook_type) => {
         axios({
             method: 'PUT',
             url: UPDATE_ACCESS(notebook_id),
@@ -85,7 +85,7 @@ const Notebooks = () => {
                 'Authorization': "Bearer " + Cookies.get("token")
             }
         }).then(() => {
-            navigate(`/notebooks/${notebook_id}`);
+            navigate(`/notebooks/${notebook_id}_${notebook_type}`);
         }).catch(() => {
             handleToast("Error updating access!", "error");
         })
@@ -102,7 +102,7 @@ const Notebooks = () => {
         }).then(() => {
             handleToast("Notebook Deleted Successfully", "success");
 
-            const aux = notebooks.filter((obj) => obj.notebook_id !== notebook_id);
+            const aux = notebooks.filter((obj) => obj["notebook_id"] !== notebook_id);
 
             setNotebooks(aux);
             setFilterNotebooks(aux);
@@ -176,29 +176,29 @@ const Notebooks = () => {
                 </Card>
                 {filterNotebooks.length !== 0 ?
                     filterNotebooks.map((notebook) => (
-                        <Card key={notebook.notebook_id} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
+                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
                             <CardContent>
                                 <Stack spacing={4} direction="row">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.notebook_id}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"]}</Typography>
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.description}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.creation_time}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.expiration_time}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.last_accessed}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.type}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["creation_time"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["expiration_time"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["last_accessed"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_type"]}</Typography>
                                 </Stack>
                             </CardContent>
                             <CardActions>
                                 <Button
                                     variant="outlined"
                                     sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { bgcolor: 'grey', borderColor: "white" }}}
-                                    onClick={() => handleEnter(notebook.notebook_id)}
+                                    onClick={() => handleEnter(notebook["notebook_id"], notebook["notebook_type"])}
                                 >
                                     Enter
                                 </Button>
                                 <Button
                                     variant="outlined"
                                     sx={{ color: "White", borderColor: "white", '&:hover': { bgcolor: 'grey', borderColor: "white"  }}}
-                                    onClick={() => handleDelete(notebook.notebook_id)}
+                                    onClick={() => handleDelete(notebook["notebook_id"])}
                                 >
                                     Delete
                                 </Button>

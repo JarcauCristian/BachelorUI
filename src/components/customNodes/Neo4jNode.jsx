@@ -9,13 +9,12 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
-    FormLabel, Select,
+    FormLabel,
     TextField,
     Tooltip
 } from "@mui/material";
 import {CREATE_NOTEBOOK, GET_DATASET, GET_DATASET_NEO, UPDATE_DATASET} from "../utils/apiEndpoints";
 import DataTable from "../DataTable";
-import MenuItem from "@mui/material/MenuItem";
 import Cookies from "js-cookie";
 import {useNavigate} from "react-router-dom";
 import Transition from '../utils/transition';
@@ -29,7 +28,6 @@ function Neo4jNode({ data, isConnectable }) {
     const [passwordOpen, setPasswordOpen] = React.useState(false);
     const [isStartNotebook, setIsStartNotebook] = React.useState(false);
     const [description, setDescription] = React.useState(null);
-    const [notebookType, setNotebookType] = React.useState("Sklearn");
     const [notebookID, setNotebookID] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [isHovered, setIsHovered] = React.useState(false);
@@ -70,7 +68,7 @@ function Neo4jNode({ data, isConnectable }) {
                     const descriptions = {}
                     const datasetInfo = {}
                     for (let [key, value] of Object.entries(response.data)) {
-                        if (!["name", "description", "user", "url", "last_accessed"].includes(key)) {
+                        if (!["name", "description", "user", "url", "last_accessed", "share_data", "dataset_type"].includes(key)) {
                             descriptions[key] = value;
                         } else {
                             datasetInfo[key] = value;
@@ -123,7 +121,7 @@ function Neo4jNode({ data, isConnectable }) {
         data.load(true);
         setTimeout(() => {
             data.load(false);
-            navigate(`/notebooks/${notebookID}`);
+            navigate(`/notebooks/${notebookID}_${datasetInformation["dataset_type"].toLowerCase()}`);
         }, 15000)
     }
 
@@ -140,7 +138,7 @@ function Neo4jNode({ data, isConnectable }) {
                 "user_id": Cookies.get("userID").split("-").join("_"),
                 "description": description,
                 "dataset_url": datasetInformation.url,
-                "notebook_type": notebookType.toLowerCase(),
+                "notebook_type": datasetInformation["dataset_type"],
                 "dataset_name": data.name,
                 "dataset_user": data.user
             },
@@ -151,7 +149,7 @@ function Neo4jNode({ data, isConnectable }) {
             data.load(false);
             setOpen(false);
             setPassword(response.data.password);
-            setNotebookID(response.data.notebook_id);
+            setNotebookID(response.data["notebook_id"]);
             setPasswordOpen(true);
         }).catch((_) => {
             data.load(false);
@@ -193,34 +191,20 @@ function Neo4jNode({ data, isConnectable }) {
                                     {datasetInformation.description.length > 20 ? datasetInformation.description.slice(0, 20) : datasetInformation.description}
                                 </Typography>
                             </Tooltip>
-                            {csvData && columnsDescriptions && (
+                            {(csvData && columnsDescriptions) && (
                                 <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                             )}
                             {!isStartNotebook && (
-                                <Button onClick={handleStart} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
+                                <Button onClick={handleStart} sx={{ mt: 2, mb: 2, fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
                                     select dataset
                                 </Button>
                             )}
                             {isStartNotebook && (
-                                <FormControl sx={{ display: "flex", flexDirection: "column", alignItems: "center" }} >
+                                <FormControl sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center" }} >
                                     <FormLabel>
                                         Notebook Description
                                     </FormLabel>
                                     <TextField fullWidth required label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                                    <FormLabel>
-                                        Notebook Type
-                                    </FormLabel>
-                                    <Select
-                                        fullWidth
-                                        required
-                                        value={notebookType}
-                                        sx={{ color: "black" }}
-                                        onChange={(e) => setNotebookType(e.target.value)}
-                                    >
-                                        <MenuItem value={"Sklearn"}>Sklearn</MenuItem>
-                                        <MenuItem value={"PyTorch"}>PyTorch</MenuItem>
-                                        <MenuItem value={"Transformers"}>Transformers</MenuItem>
-                                    </Select>
                                 </FormControl>
                             )}
                     </DialogContent>
@@ -252,9 +236,11 @@ function Neo4jNode({ data, isConnectable }) {
                     <ContentCopyIcon sx={{ cursor: "pointer" }} onClick={() => {navigator.clipboard.writeText(password); data.toast("Password Copied to Clipboard!", "success")}} />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handlePasswordClick} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
-                        go to notebook
-                    </Button>
+                    <Tooltip title="If the notebook is not spwaned when you arrive on the page, please go to the notebooks page and wait a little bit more until trying again">
+                        <Button onClick={handlePasswordClick} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
+                            go to notebook
+                        </Button>
+                    </Tooltip>
                 </DialogActions>
             </Dialog>
             {data.type !== "base" && (<Handle type="target" position={Position.Top} style={{ backgroundColor: "black" }} isConnectable={isConnectable} />)}
