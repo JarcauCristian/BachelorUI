@@ -8,7 +8,7 @@ import {
     Divider,
     Snackbar,
     Stack,
-    TextField
+    TextField, Tooltip, Switch, alpha, FormGroup
 } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -20,6 +20,22 @@ import {GET_ALL_DATASETS, GET_DATASET, UPDATE_DATASET} from "../components/utils
 import Cookies from "js-cookie";
 import DataTable from "../components/DataTable";
 import Transition from '../components/utils/transition';
+import {styled} from "@mui/material/styles";
+import {common} from "@mui/material/colors";
+import FormControlLabel from "@mui/material/FormControlLabel";
+
+const WhiteSwitch = styled(Switch)(({ theme }) => ({
+    '& .MuiSwitch-switchBase.Mui-checked': {
+        color: common["white"],
+        '&:hover': {
+            backgroundColor: alpha(common["white"], theme.palette.action.hoverOpacity),
+        },
+    },
+    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+        backgroundColor: common["white"],
+    },
+}));
+
 
 const Datasets = () => {
     const isRun = React.useRef(false);
@@ -34,6 +50,7 @@ const Datasets = () => {
     const [filterDatasets, setFilterDatasets] = React.useState([]);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
+    const [shareStatus, setShareStatus] = React.useState({});
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
 
     const handleClose = (event, reason) => {
@@ -175,6 +192,15 @@ const Datasets = () => {
         }
     }
 
+    const handleStatusChange = (e) => {
+        const {name, checked} = e.target;
+
+        setShareStatus((prevState) => ({
+            ...prevState,
+            [name]: checked
+        }))
+    }
+
     React.useEffect(() => {
         if (isRun.current) return;
 
@@ -191,6 +217,14 @@ const Datasets = () => {
         }).then((response) => {
             setDatasets(response.data);
             setFilterDatasets(response.data);
+            const shareStatues = {};
+
+            for (let entry of response.data) {
+                shareStatues[`${entry["name"]}-${entry["user"]}`] = entry["share_data"];
+            }
+
+            setShareStatus(shareStatues);
+
             setLoading(false);
         }).catch((_) => {
             setLoading(false);
@@ -244,6 +278,8 @@ const Datasets = () => {
                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access Dataset</Typography>
                             <Divider sx={{ color: "white", width: 5 }} orientation="vertical" />
                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download Dataset</Typography>
+                            <Divider sx={{ color: "white", width: 5 }} orientation="vertical" />
+                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Share Dataset</Typography>
                         </CardActions>
                     </Card>
                     {filterDatasets.length !== 0 ?
@@ -251,8 +287,12 @@ const Datasets = () => {
                             <Card key={dataset.name} variant="outlined" sx={{ mt: 2, mb: 2, height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
                                 <CardContent>
                                     <Stack spacing={4} direction="row">
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset.name.charAt(0).toUpperCase() + dataset.name.slice(1)}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset.description}</Typography>
+                                        <Tooltip title={dataset.name}>
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset.name.length > 15 ? dataset.name.slice(0, 15) : dataset.name}</Typography>
+                                        </Tooltip>
+                                        <Tooltip title={dataset.description}>
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset["description"].length > 15 ? dataset["description"].slice(0, 15) + "..." : dataset["description"]}</Typography>
+                                        </Tooltip>
                                     </Stack>
                                 </CardContent>
                                 <CardActions>
@@ -270,6 +310,9 @@ const Datasets = () => {
                                     >
                                         Download
                                     </Button>
+                                    <FormGroup sx={{ mb: 2, mt: 2 }}>
+                                        <FormControlLabel name={`${dataset.name}-${dataset.user}`} control={<WhiteSwitch inputProps={{ 'aria-label': 'controlled' }} onChange={handleStatusChange} checked={shareStatus[`${dataset.name}-${dataset.user}`]} />} label="Share Dataset" />
+                                    </FormGroup >
                                 </CardActions>
                             </Card>
                         ))
