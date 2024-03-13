@@ -53,6 +53,8 @@ export const GET_ALL_DATASETS = (user) => `${neo4jUrl}/datasets?user=${user}`;
 
 export const GET_DATASET_NEO = (name) => `${neo4jUrl}/dataset?name=${name}`;
 
+export const UPDATE_SHARE_VALUE = `${neo4jUrl}/dataset/update/share`;
+
 export const GET_TEMPLATES = (pipeline_type) => `${baseUrl}/pipeline/templates?pipeline_type=${pipeline_type}`;
 
 export const BATCH_STATUS = (id) => `${baseUrl}/pipeline/batch_status?pipeline_id=${id}`;

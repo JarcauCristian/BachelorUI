@@ -151,6 +151,24 @@ function TextUpdaterNode({ data, isConnectable }) {
                         onChange={handleInputChange}
                     />
                     {"columnNames" in values && (
+                        <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
+                            <Tooltip title="This column will be used, if you share the dataset, as the target column for the ML models">
+                                <InputLabel>Target Column (Hover to see details!)</InputLabel>
+                            </Tooltip>
+                            <Select
+                                name="target_column"
+                                value={values["target_column"]}
+                                onChange={handleInputChange}
+                            >
+                                { values["columnNames"].map((item, index) => (
+                                    <MenuItem key={index} value={item}>
+                                        {item}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    )}
+                    {"columnNames" in values && (
                         <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage="yaml" defaultValue={content} onChange={handleEditor}/>
                     )}
                 </Box>
@@ -162,7 +180,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                         <TextField
                             name={key}
                             fullWidth
-                            label={key}
+                            label={key.split("_").join(" ").toUpperCase()}
                             type={type === 'int' ? 'number' : 'text'}
                             value={values[key]}
                             onChange={handleInputChange}
@@ -171,13 +189,28 @@ function TextUpdaterNode({ data, isConnectable }) {
                         <Button fullWidth variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" }, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }} onClick={() => setNewCategory(!newCategory)}>{newCategory ? "Remove New Category" : "Add New Category"}</Button>
                     </Box>
                 );
+            } else if (key === "target_column") {
+                return (
+                    <Tooltip title="This column will be used, if you opt for sharing this dataset, as the target column for the ML models, please specify it exactly how is it in the table.">
+                        <TextField
+                            key={key}
+                            name={key}
+                            fullWidth
+                            label={key.split("_").join(" ").toUpperCase()}
+                            type={type === 'int' ? 'number' : 'text'}
+                            value={values[key]}
+                            onChange={handleInputChange}
+                            sx={{ mb: 2, mt: 2 }}
+                        />
+                    </Tooltip>
+                );
             } else {
                 return (
                     <TextField
                         key={key}
                         name={key}
                         fullWidth
-                        label={key}
+                        label={key.split("_").join(" ").toUpperCase()}
                         type={type === 'int' ? 'number' : 'text'}
                         value={values[key]}
                         onChange={handleInputChange}
@@ -191,7 +224,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                     key={key}
                     name={key}
                     fullWidth
-                    label={key}
+                    label={key.split("_").join(" ").toUpperCase()}
                     type={'password'}
                     value={values[key]}
                     onChange={handleInputChange}
@@ -209,7 +242,7 @@ function TextUpdaterNode({ data, isConnectable }) {
         } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
             return (
                 <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
-                    <InputLabel>{key}</InputLabel>
+                    <InputLabel>{key.split("_").join(" ").toUpperCase()}</InputLabel>
                     <Select
                         name={key}
                         value={values[key]}
