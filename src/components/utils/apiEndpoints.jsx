@@ -19,6 +19,8 @@ export const MODIFY_DESCRIPTION = `${baseUrl}/pipeline/description`;
 
 export const PIPELINE_DESCRIPTION = (name) => `${baseUrl}/pipeline/description?name=${name}`;
 
+export const GET_MODEL_IMAGES = (modelID) => `${modelsUrl}/model_images?model_id=${modelID}`;
+
 export const PIPELINE_RUN_DATA = (pipeline_name) => `${baseUrl}/pipeline/triggers?name=${pipeline_name}`;
 
 export const CREATE_BLOCK =  `${baseUrl}/block/create`;
