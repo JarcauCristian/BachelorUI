@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 const DataTable = ({data, descriptions}) => {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [paginatedData, setPaginatedData] = React.useState(data.slice(0, 5));
 
     const columns = Object.keys(data[0]).map((key) => ({
         field: key,
@@ -29,7 +30,9 @@ const DataTable = ({data, descriptions}) => {
         setPage(0);
     };
 
-    const paginatedData = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+    React.useEffect(() => {
+        setPaginatedData(data.slice(page * rowsPerPage, (page + 1) * rowsPerPage));
+    }, [data, page, rowsPerPage]);
 
     return (
         <div style={{ padding: 20 }}>

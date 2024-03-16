@@ -26,7 +26,6 @@ function Neo4jNode({ data, isConnectable }) {
     const [columnsDescriptions, setColumnsDescriptions] = React.useState(null);
     const [open, setOpen] = React.useState(false);
     const [passwordOpen, setPasswordOpen] = React.useState(false);
-    const [isStartNotebook, setIsStartNotebook] = React.useState(false);
     const [description, setDescription] = React.useState(null);
     const [notebookID, setNotebookID] = React.useState("");
     const [password, setPassword] = React.useState("");
@@ -34,81 +33,112 @@ function Neo4jNode({ data, isConnectable }) {
     const dummyPassword = "*********";
     const navigate = useNavigate();
 
-    const handleClick = () => {
+    const handleClick = async () => {
         data.load(true);
 
-        axios({
-            method: "PUT",
-            url: UPDATE_DATASET,
-            headers: {
-                "Authorization": "Bearer " + Cookies.get("token"),
-                "Content-Type": "application/json"
-            },
-            data: {
-                "name": data.name,
-                "user": data.user
-            }
-        }).then((_) => {
-            axios({
+        let condition = false;
+
+        try {
+            await axios({
+                method: "PUT",
+                url: UPDATE_DATASET,
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token"),
+                    "Content-Type": "application/json"
+                },
+                data: {
+                    "name": data.name,
+                    "user": data.user
+                }
+            })
+        } catch (_) {
+            condition = true;
+        }
+
+        if (condition) {
+            data.load(false);
+            data.toast("Could not update the dataset information!.", "error");
+            return;
+        }
+
+        const getFromStorage = JSON.parse(localStorage.getItem(`${data.name}-${data.user}-dataset-info`));
+        if (getFromStorage) {
+            setDatasetInformation(getFromStorage.datasetInfo);
+            setColumnsDescriptions(getFromStorage.columnsDescriptions);
+            setCsvData(JSON.parse(getFromStorage["csvData"]));
+            data.load(false);
+            setOpen(true);
+            return;
+        }
+
+        const descriptions = {}
+        const datasetInfo = {}
+        try {
+            const response = await axios({
                 method: "GET",
                 url: GET_DATASET_NEO(data.name, data.user),
                 headers: {
                     "Authorization": "Bearer " + Cookies.get("token")
                 }
-            }).then((response) => {
-                const getFromStorage = JSON.parse(localStorage.getItem(`${response.data.name}-${response.data.user}-dataset-info`));
-    
-                if (getFromStorage) {
-                    setDatasetInformation(getFromStorage.datasetInfo);
-                    setColumnsDescriptions(getFromStorage.columnsDescriptions);
-                    setCsvData(getFromStorage.csvData);
-                    data.load(false);
-                    setOpen(true);
-                } else {
-                    const descriptions = {}
-                    const datasetInfo = {}
-                    for (let [key, value] of Object.entries(response.data)) {
-                        if (!["name", "description", "user", "url", "last_accessed", "share_data", "dataset_type"].includes(key)) {
-                            descriptions[key] = value;
-                        } else {
-                            datasetInfo[key] = value;
-                        }
-                    }
-                    setDatasetInformation(datasetInfo);
-                    setColumnsDescriptions(descriptions);
-                    data.load(false);
-    
-                    axios({
-                        method: "GET",
-                        url: GET_DATASET(response.data.url),
-                        headers: {
-                            "Authorization": "Bearer " + Cookies.get("token")
-                        }
-                    }).then((resp) => {
-                        const parseCsvString = (csvString) => {
-                            const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
-                            return rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]])));
-                        };
-                        setCsvData(parseCsvString(resp.data));
-                        localStorage.setItem(`${response.data.name}-${response.data.user}-dataset-info`, JSON.stringify({
-                            "datasetInfo": datasetInfo,
-                            "columnsDescriptions": columnsDescriptions,
-                            "csvData": parseCsvString(resp.data)
-                        }));
-
-                        console.log(parseCsvString(resp.data));
-                        setOpen(true);
-                    }).catch((_) => {
-                        data.toast("Could not get the dataset.", "error");
-                    })
-                }
-            }).catch((_) => {
-                data.load(false);
-                data.toast("Could not get the dataset information.", "error");
             })
-        }).catch((_) => {
-            data.toast("Could not update the dataset information!.", "error")
-        })
+
+            if (response.status === 200) {
+                for (let [key, value] of Object.entries(response.data)) {
+                    if (!["name", "description", "user", "url", "last_accessed", "dataset_type", "target_column"].includes(key)) {
+                        descriptions[key] = value;
+                    } else {
+                        datasetInfo[key] = value;
+                    }
+                }
+                setDatasetInformation(datasetInfo);
+                setColumnsDescriptions(descriptions);
+            }
+        } catch (_) {
+            condition = true;
+        }
+
+        if (condition) {
+            data.load(false);
+            data.toast("Could not get the dataset information.", "error");
+            return;
+        }
+
+        let cData;
+        try {
+            const response = await axios({
+                method: "GET",
+                url: GET_DATASET(datasetInfo.url),
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token")
+                }
+            })
+
+            if (response.status === 200) {
+                const parseCsvString = (csvString) => {
+                    const [headers, ...rows] = csvString.replace("\r", "").split('\n').map((line) => line.split(','));
+                    return rows.map((row) => Object.fromEntries(headers.map((header, index) => [header, row[index]])));
+                };
+                cData = parseCsvString(response.data);
+                setCsvData(cData);
+                setOpen(true);
+            }
+        } catch (_) {
+            condition = true;
+        }
+
+        if (condition) {
+            data.load(false);
+            data.toast("Could not get the dataset.", "error");
+            return;
+        }
+
+        localStorage.setItem(`${data.name}-${data.user}-dataset-info`, JSON.stringify({
+            "datasetInfo": datasetInfo,
+            "columnsDescriptions": columnsDescriptions,
+            "csvData": JSON.stringify(cData)
+        }));
+
+        data.load(false);
     }
 
     const handleClose = () => {
@@ -125,11 +155,13 @@ function Neo4jNode({ data, isConnectable }) {
         }, 15000)
     }
 
-    const handleStart = () => {
-        setIsStartNotebook(!isStartNotebook);
-    }
 
     const createNotebook = () => {
+        if ([undefined, "", null].includes(description)) {
+            data.toast("Please enter a description for the notebook!", "info");
+            return;
+        }
+
         data.load(true);
         axios({
             method: "POST",
@@ -140,7 +172,8 @@ function Neo4jNode({ data, isConnectable }) {
                 "dataset_url": datasetInformation.url,
                 "notebook_type": datasetInformation["dataset_type"],
                 "dataset_name": data.name,
-                "dataset_user": data.user
+                "dataset_user": data.user,
+                "target_column": datasetInformation.target_column
             },
             headers: {
                 "Authorization": "Bearer " + Cookies.get("token")
@@ -194,27 +227,18 @@ function Neo4jNode({ data, isConnectable }) {
                             {(csvData && columnsDescriptions) && (
                                 <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                             )}
-                            {!isStartNotebook && (
-                                <Button onClick={handleStart} sx={{ mt: 2, mb: 2, fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
-                                    select dataset
-                                </Button>
-                            )}
-                            {isStartNotebook && (
-                                <FormControl sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center" }} >
-                                    <FormLabel>
-                                        Notebook Description
-                                    </FormLabel>
-                                    <TextField fullWidth required label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                                </FormControl>
-                            )}
+                            <FormControl sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center" }} >
+                                <FormLabel>
+                                    Notebook Description
+                                </FormLabel>
+                                <TextField fullWidth required label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+                            </FormControl>
                     </DialogContent>
                 )}
                 <DialogActions>
-                    {isStartNotebook && (
-                        <Button onClick={createNotebook} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
-                            start notebook
-                        </Button>
-                    )}
+                    <Button onClick={createNotebook} sx={{ fontWeight: "bold", padding: 0, cursor: "pointer", backgroundColor: "#000000", color: "white", '&:hover': { backgroundColor: "white", color: "black" } }}>
+                        start notebook
+                    </Button>
                 </DialogActions>
             </Dialog>
             <Dialog 
