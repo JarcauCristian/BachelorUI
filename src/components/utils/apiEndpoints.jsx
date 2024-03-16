@@ -53,7 +53,7 @@ export const UPDATE_DATASET = `${neo4jUrl}/dataset/update`;
 
 export const GET_ALL_DATASETS = (user) => `${neo4jUrl}/datasets?user=${user}`;
 
-export const GET_DATASET_NEO = (name) => `${neo4jUrl}/dataset?name=${name}`;
+export const GET_DATASET_NEO = (name, user) => `${neo4jUrl}/dataset?name=${name}&user=${user}`;
 
 export const UPDATE_SHARE_VALUE = `${neo4jUrl}/dataset/update/share`;
 

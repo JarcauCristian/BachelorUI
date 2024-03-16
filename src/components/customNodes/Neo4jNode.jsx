@@ -51,7 +51,7 @@ function Neo4jNode({ data, isConnectable }) {
         }).then((_) => {
             axios({
                 method: "GET",
-                url: GET_DATASET_NEO(data.name),
+                url: GET_DATASET_NEO(data.name, data.user),
                 headers: {
                     "Authorization": "Bearer " + Cookies.get("token")
                 }
