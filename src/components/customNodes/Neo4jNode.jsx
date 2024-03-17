@@ -84,7 +84,7 @@ function Neo4jNode({ data, isConnectable }) {
 
             if (response.status === 200) {
                 for (let [key, value] of Object.entries(response.data)) {
-                    if (!["name", "description", "user", "url", "last_accessed", "dataset_type", "target_column"].includes(key)) {
+                    if (!["name", "description", "user", "url", "last_accessed", "dataset_type", "share_data", "target_column"].includes(key)) {
                         descriptions[key] = value;
                     } else {
                         datasetInfo[key] = value;
@@ -134,7 +134,7 @@ function Neo4jNode({ data, isConnectable }) {
 
         localStorage.setItem(`${data.name}-${data.user}-dataset-info`, JSON.stringify({
             "datasetInfo": datasetInfo,
-            "columnsDescriptions": columnsDescriptions,
+            "columnsDescriptions": descriptions,
             "csvData": JSON.stringify(cData)
         }));
 
