@@ -220,7 +220,7 @@ const DataOrchestrator = () => {
         <div style={{width: '100vw', height: '100vh', display: "flex", flexDirection: "row" }}>
         <Box sx={{ display: 'flex', background: "#000", color: "#fff" }}>
             <Backdrop
-                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={loading}
                 onClick={handleBackdropClose}
             >

@@ -152,7 +152,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                     />
                     {"columnNames" in values && (
                         <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
-                            <Tooltip title="This column will be used, if you share the dataset, as the target column for the ML models">
+                            <Tooltip title="This column will be used, if you share the dataset, as the target column for the ML models (Don't use if dataset type is clustering)">
                                 <InputLabel>Target Column (Hover to see details!)</InputLabel>
                             </Tooltip>
                             <Select
@@ -196,7 +196,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                             key={key}
                             name={key}
                             fullWidth
-                            label={key.split("_").join(" ").toUpperCase()}
+                            label={key.split("_").join(" ").toUpperCase() + " (Don't use if dataset type is clustering)"}
                             type={type === 'int' ? 'number' : 'text'}
                             value={values[key]}
                             onChange={handleInputChange}

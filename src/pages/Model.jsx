@@ -213,7 +213,7 @@ const Model = () => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: 'white', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1 }}
                 open={loading}
                 onClick={handleBackdropClose}
             >

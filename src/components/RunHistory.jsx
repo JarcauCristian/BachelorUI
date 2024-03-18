@@ -131,7 +131,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                             <MenuItem value={100}>100</MenuItem>
                         </Select>
                     </FormControl>
-                    <CircularProgress sx={{ color: "black", display: loading ? "block" : "none", mt: 2 }}/>
+                    <CircularProgress sx={{ color: "gray", display: loading ? "block" : "none", mt: 2 }}/>
                     {historyData ?
                         <TableContainer component={Paper} sx={{ display: loading ? "none" : "block", mt: 2, border: "0.5px solid gray" }}>
                             <Table sx={{ minWidth: 650 }} aria-label="simple table">
