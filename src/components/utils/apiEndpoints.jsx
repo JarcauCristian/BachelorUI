@@ -17,6 +17,8 @@ export const MODIFY_DESCRIPTION = `${baseUrl}/pipeline/description`;
 
 export const PIPELINE_DESCRIPTION = (name) => `${baseUrl}/pipeline/description?name=${name}`;
 
+export const GET_MODEL_IMAGES = (modelID) => `${modelsUrl}/model_images?model_id=${modelID}`;
+
 export const PIPELINE_RUN_DATA = (pipeline_name) => `${baseUrl}/pipeline/triggers?name=${pipeline_name}`;
 
 export const CREATE_BLOCK =  `${baseUrl}/block/create`;
@@ -41,7 +43,9 @@ export const UPDATE_DATASET = `${neo4jUrl}/dataset/update`;
 
 export const GET_ALL_DATASETS = (user) => `${neo4jUrl}/datasets?user=${user}`;
 
-export const GET_DATASET_NEO = (name) => `${neo4jUrl}/dataset?name=${name}`;
+export const GET_DATASET_NEO = (name, user) => `${neo4jUrl}/dataset?name=${name}&user=${user}`;
+
+export const UPDATE_SHARE_VALUE = `${neo4jUrl}/dataset/update/share`;
 
 export const GET_TEMPLATES = (pipeline_type) => `${baseUrl}/pipeline/templates?pipeline_type=${pipeline_type}`;
 

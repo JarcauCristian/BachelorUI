@@ -16,7 +16,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import axios from "axios";
-import {GET_ALL_DATASETS, GET_DATASET, UPDATE_DATASET} from "../components/utils/apiEndpoints";
+import {GET_ALL_DATASETS, GET_DATASET, UPDATE_DATASET, UPDATE_SHARE_VALUE} from "../components/utils/apiEndpoints";
 import Cookies from "js-cookie";
 import DataTable from "../components/DataTable";
 import Transition from '../components/utils/transition';
@@ -196,13 +196,46 @@ const Datasets = () => {
         }
     }
 
-    const handleStatusChange = (e) => {
+    const handleStatusChange = async (e) => {
         const {name, checked} = e.target;
 
         setShareStatus((prevState) => ({
             ...prevState,
             [name]: checked
         }))
+
+        let datasetName;
+        let datasetUser;
+
+        if (name.split(":").length > 2) {
+            datasetName = name.split(":").slice(0, name.split(":").length - 1).join(":");
+            datasetUser = name.split(":")[name.split(":").length];
+        } else {
+            datasetName = name.split(":")[0];
+            datasetUser = name.split(":")[1];
+        }
+
+        try {
+            const result = await axios({
+                method: "PUT",
+                url: UPDATE_SHARE_VALUE,
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token"),
+                    "Content-Type": "application/json"
+                },
+                data: {
+                    "name": datasetName,
+                    "user": datasetUser,
+                    "share_value": checked
+                }
+            })
+
+            if (result.status === 200) {
+                handleToast("Share status updated successfully.", "success");
+            }
+        } catch (_) {
+            handleToast("Could not update the status of the dataset", "error");
+        }
     }
 
     React.useEffect(() => {
@@ -225,7 +258,7 @@ const Datasets = () => {
             const shareStatues = {};
 
             for (let entry of response.data) {
-                shareStatues[`${entry["name"]}-${entry["user"]}`] = entry["share_data"];
+                shareStatues[`${entry["name"]}:${entry["user"]}`] = entry["share_data"];
             }
 
             setShareStatus(shareStatues);
@@ -328,7 +361,7 @@ const Datasets = () => {
                                         Download
                                     </Button>
                                     <FormGroup sx={{ mb: 2, mt: 2 }}>
-                                        <FormControlLabel name={`${dataset.name}-${dataset.user}`} control={<WhiteSwitch inputProps={{ 'aria-label': 'controlled' }} onChange={handleStatusChange} checked={shareStatus[`${dataset.name}-${dataset.user}`]} />} label="Share Dataset" />
+                                        <FormControlLabel name={`${dataset.name}:${dataset.user}`} control={<WhiteSwitch inputProps={{ 'aria-label': 'controlled' }} onChange={handleStatusChange} checked={shareStatus[`${dataset.name}:${dataset.user}`]} />} label="Share Dataset" />
                                     </FormGroup >
                                 </CardActions>
                             </Card>

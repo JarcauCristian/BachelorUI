@@ -18,9 +18,16 @@ import ListItemText from "@mui/material/ListItemText";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Button from "@mui/material/Button";
 import Cookies from "js-cookie";
-import {GET_MODEL, GET_MODEL_DETAILS, UPDATE_MODEL_SCORE, PREDICTION} from "../components/utils/apiEndpoints";
+import {
+    GET_MODEL,
+    GET_MODEL_DETAILS,
+    UPDATE_MODEL_SCORE,
+    PREDICTION,
+    GET_MODEL_IMAGES
+} from "../components/utils/apiEndpoints";
 import {format} from "date-fns";
 import Transition from '../components/utils/transition';
+import Box from "@mui/material/Box";
 
 const Model = () => {
     const {modelID} = useParams();
@@ -38,9 +45,12 @@ const Model = () => {
     const [predictions, setPredictions] = React.useState("");
     const [score, setScore] = React.useState("");
     const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
+    const [images, setImages] = React.useState({});
 
     const handleDialogClose = () => {
-        setDialogOpen(false);
+        if (dialogOpen) setDialogOpen(false);
+        if (imageDialogOpen) setImageDialogOpen(false);
     };
 
 
@@ -124,6 +134,37 @@ const Model = () => {
         setLoading(false);
     }
 
+    const getImages = async () => {
+        setLoading(true);
+
+        try {
+            const response = await axios({
+                method: "GET",
+                url: GET_MODEL_IMAGES(modelID),
+                headers: {
+                    'Content-Type': "application/json",
+                    "Authorization": "Bearer " + Cookies.get("token")
+                }
+            })
+
+            if (response.status === 200) handleToast("Images loaded successfully!");
+
+            const newImages = {};
+
+            for (let [k, v] of Object.entries(response.data)) {
+                const newKey = k.split("_").join(" ").toUpperCase();
+                newImages[newKey] = v;
+            }
+
+            setLoading(false);
+            setImages(newImages);
+            setImageDialogOpen(true);
+        } catch (_) {
+            setLoading(false);
+            handleToast("Could not load model images!", "error");
+        }
+    }
+
     React.useEffect(() => {
         if (isRun.current) return;
 
@@ -182,7 +223,7 @@ const Model = () => {
                 open={dialogOpen}
                 TransitionComponent={Transition}
                 keepMounted
-                onClose={handleClose}
+                onClose={handleDialogClose}
                 aria-describedby="alert-dialog-slide-description"
             >
                 <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>Model Predictions</DialogTitle>
@@ -203,8 +244,36 @@ const Model = () => {
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleDialogClose}>Close</Button>
                 </DialogActions>
             </Dialog>
+            <Dialog
+                open={imageDialogOpen}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={handleDialogClose}
+                aria-describedby="alert-dialog-slide-description"
+            >
+                <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>Model Images</DialogTitle>
+                <DialogContent>
+                    {images && (
+                        <List>
+                            {Object.entries(images).map(([key, value]) => (
+                                <ListItem key={key} alignItems="flex-start">
+                                    <Box>
+                                        <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: 16, marginBottom: 1 }}>
+                                            Image Name: {key}
+                                        </Typography>
+                                        <img src={value} alt={key} style={{ maxWidth: '100%', height: 'auto', borderRadius: 4 }} />
+                                    </Box>
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleDialogClose}>Close</Button>
+                </DialogActions>
+            </Dialog>
             <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>
-                <Card sx={{ width: "90vw", height: "45vh", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
+                <Card sx={{ width: "90vw", height: "50vh", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
                     {modelDetails && (
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
@@ -251,6 +320,18 @@ const Model = () => {
                                     <Typography>
                                         {format(new Date(modelDetails["created_at"]), "yyyy-dd-MM")}
                                     </Typography>
+                                </AccordionDetails>
+                            </Accordion>
+                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel5a-content"
+                                    id="panel5a-header"
+                                >
+                                    <Typography sx={{ fontWeight: "bold" }}>MODEL IMAGES</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <Button variant="contained" fullWidth sx={{backgroundColor: "black", color: "white", marginTop: 2, '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={getImages}>Show images</Button>
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
