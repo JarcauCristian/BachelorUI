@@ -37,7 +37,7 @@ import Cookies from "js-cookie";
 import ListItemText from "@mui/material/ListItemText";
 import Transition from '../components/utils/transition';
 
-const drawerWidth = 300;
+const drawerWidth = 350;
 function a11yProps(index) {
     return {
         id: `simple-tab-${index}`,
@@ -46,9 +46,7 @@ function a11yProps(index) {
 }
 const Orchestrator = () => {
     const [expanded, setExpanded] = React.useState(true);
-    const [loaderExpanded, setLoaderExpanded] = React.useState(false);
-    const [transformerExpanded, setTransformerExpanded] = React.useState(false);
-    const [exporterExpanded, setExporterExpanded] = React.useState(false);
+    const [outsideExpanded, setOutsideExpanded] = React.useState(false);
     const [batchLoaderExpanded, setBatchLoaderExpanded] = React.useState(false);
     const [batchTransformerExpanded, setBatchTransformerExpanded] = React.useState(false);
     const [batchExporterExpanded, setBatchExporterExpanded] = React.useState(false);
@@ -224,16 +222,16 @@ const Orchestrator = () => {
             setExpanded(!expanded);
     };
 
-    const handleLoaderChange = () => {
-        setLoaderExpanded(!loaderExpanded);
+    const handleLoaderChange = (panel) => (event, isExpanded) => {
+        setOutsideExpanded(isExpanded ? panel : false);
     }
 
-    const handleTransformersChange = () => {
-        setTransformerExpanded(!transformerExpanded);
+    const handleTransformersChange = (panel) => (event, isExpanded) => {
+        setOutsideExpanded(isExpanded ? panel : false);
     }
 
-    const handleExporterChange = () => {
-        setExporterExpanded(!exporterExpanded);
+    const handleExporterChange = (panel) => (event, isExpanded) => {
+        setOutsideExpanded(isExpanded ? panel : false);
     }
 
     const handleBatchLoaderChange = (panel) => (event, isExpanded) => {
@@ -694,7 +692,7 @@ const Orchestrator = () => {
                 </Box>
             </Dialog>
             <Dialog open={batchOpen} onClose={handleClose} TransitionComponent={Transition} keepMounted>
-                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 250, width: 250 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: 400, width: 400 }}>
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         BLOCK NAME
                     </DialogTitle>
@@ -727,7 +725,7 @@ const Orchestrator = () => {
                         </AccordionSummary>
                         <AccordionDetails>
                             <Box>
-                                <Accordion sx={{ backgroundColor: "#4877ff" }} expanded={loaderExpanded} >
+                                <Accordion sx={{ backgroundColor: "#36454F", color: "white" }} expanded={outsideExpanded.toString() === `loader_panel`} onChange={handleLoaderChange(`loader_panel`)} >
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon />}
                                         aria-controls="panel1bh-content"
@@ -763,7 +761,7 @@ const Orchestrator = () => {
                                         )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "#7d55ec" }} expanded={transformerExpanded} >
+                                <Accordion sx={{ backgroundColor: "#36454F", color: "white" }} expanded={outsideExpanded.toString() === "transformer_panel"} onChange={handleTransformersChange("transformer_panel")} >
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon />}
                                         aria-controls="panel1bh-content"
@@ -799,7 +797,7 @@ const Orchestrator = () => {
                                         )}
                                     </AccordionDetails>
                                 </Accordion>
-                                <Accordion sx={{ backgroundColor: "#ffcc19" }} expanded={exporterExpanded}>
+                                <Accordion sx={{ backgroundColor: "#36454F", color: "white" }} expanded={outsideExpanded.toString() === "exporter_panel"} onChange={handleExporterChange("exporter_panel")}>
                                     <AccordionSummary
                                         expandIcon={<ExpandMoreIcon />}
                                         aria-controls="panel1bh-content"

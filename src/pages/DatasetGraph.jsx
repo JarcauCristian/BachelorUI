@@ -23,6 +23,7 @@ const DatasetGraph = () => {
     const [toastOpen, setToastOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
+    const [loadingMessage, setLoadingMessage] = React.useState("");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
 
@@ -95,7 +96,8 @@ const DatasetGraph = () => {
                         user: node.user,
                         hasInformation: node["hasInformation"],
                         toast: handleToast,
-                        load: setLoading
+                        load: setLoading,
+                        loadingMessage: setLoadingMessage,
                     },
                     draggable: false
                 })
@@ -170,11 +172,12 @@ const DatasetGraph = () => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
+                <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             {nodes.length > 0 ?
                 <ReactFlow nodes={nodes}

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import axios from "axios";
 import { format } from 'date-fns';
+import background from "../images/background_image.jpg";
 import {
     Alert,
     Backdrop,
@@ -10,7 +11,7 @@ import {
     Snackbar,
     Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     TextField,
-    Tooltip
+    Tooltip, Divider
 } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -172,7 +173,7 @@ const Models = ({user_id}) => {
     }
 
     return (
-        <div style={{backgroundColor: "#FFFFFF", height: "100vh", width: "100vw", marginTop: 82 }}>
+        <div style={{backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat', height: "100vh", width: "100vw", marginTop: 82 }}>
             <Snackbar
                 open={open}
                 autoHideDuration={2000}
@@ -182,11 +183,12 @@ const Models = ({user_id}) => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
+                <Typography variant="h4" sx={{ color: "white" }}>Loading Models</Typography>
             </Backdrop>
             <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md" TransitionComponent={Transition} keepMounted>
                 <DialogTitle>CSV Data Information</DialogTitle>
@@ -227,18 +229,41 @@ const Models = ({user_id}) => {
                     <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                         <CardContent>
                             <Stack spacing={4} direction="row">
-                                {user_id && <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model ID</Typography>}
-                                {!user_id && <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>User ID</Typography>}
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model Name</Typography>
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Model Type</Typography>
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Score</Typography>
+                                {user_id &&
+                                    <Tooltip title="Model ID">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>ID</Typography>
+                                    </Tooltip>}
+                                {!user_id &&
+                                    <Tooltip title="User ID">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>ID</Typography>
+                                    </Tooltip>}
+                                <Tooltip title="Model Name">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Name</Typography>
+                                </Tooltip>
+                                <Tooltip title="Description">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
+                                </Tooltip>
+                                <Tooltip title="Creation Date">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation</Typography>
+                                </Tooltip>
+                                <Tooltip title="Model Type">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Type</Typography>
+                                </Tooltip>
+                                <Tooltip title="Overall score of the model.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Score</Typography>
+                                </Tooltip>
                             </Stack>
                         </CardContent>
+                        <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
                         <CardActions>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access Model</Typography>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download Model</Typography>
+                            <Stack spacing={4} direction="row">
+                                <Tooltip title="Access Model">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access</Typography>
+                                </Tooltip>
+                                <Tooltip title="Download Model">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download</Typography>
+                                </Tooltip>
+                            </Stack>
                         </CardActions>
                     </Card>
                     {filterModels.length !== 0 ?
@@ -246,10 +271,14 @@ const Models = ({user_id}) => {
                             <Card key={model["model_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
                                 <CardContent>
                                     <Stack spacing={4} direction="row">
-                                        {user_id && <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_id"]}</Typography>}
+                                        {user_id &&
+                                            <Tooltip title={model["model_id"]}>
+                                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_id"].length > 10 ? model["model_id"].slice(0, 10) + "..." : model["model_id"]}</Typography>
+                                            </Tooltip>
+                                        }
                                         {!user_id &&
                                             <Tooltip title={model["user_id"]}>
-                                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["user_id"].length > 15 ? model["user_id"].slice(0, 15) + "..." : model["user_id"]}</Typography>
+                                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["user_id"].length > 10 ? model["user_id"].slice(0, 10) + "..." : model["user_id"]}</Typography>
                                             </Tooltip>
                                         }
                                         <Tooltip title={model["model_name"]}>
@@ -267,6 +296,7 @@ const Models = ({user_id}) => {
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["score"]}</Typography>
                                     </Stack>
                                 </CardContent>
+                                <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
                                 <CardActions>
                                     <Button
                                         variant="outlined"

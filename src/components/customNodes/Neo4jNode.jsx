@@ -119,8 +119,10 @@ function Neo4jNode({ data, isConnectable }) {
     const handlePasswordClick = () => {
         setPasswordOpen(false);
         data.load(true);
+        data.loadingMessage("Waiting for the notebook to be ready! (If it isn't ready after the loading please go to the Notebooks page.)");
         setTimeout(() => {
             data.load(false);
+            data.loadingMessage("");
             navigate(`/notebooks/${notebookID}_${datasetInformation["dataset_type"].toLowerCase()}`);
         }, 15000)
     }
@@ -131,6 +133,7 @@ function Neo4jNode({ data, isConnectable }) {
 
     const createNotebook = () => {
         data.load(true);
+        setOpen(false);
         axios({
             method: "POST",
             url: CREATE_NOTEBOOK,
@@ -140,14 +143,14 @@ function Neo4jNode({ data, isConnectable }) {
                 "dataset_url": datasetInformation.url,
                 "notebook_type": datasetInformation["dataset_type"],
                 "dataset_name": data.name,
-                "dataset_user": data.user
+                "dataset_user": data.user,
+                "target_column": data.target_column
             },
             headers: {
                 "Authorization": "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
             data.load(false);
-            setOpen(false);
             setPassword(response.data.password);
             setNotebookID(response.data["notebook_id"]);
             setPasswordOpen(true);

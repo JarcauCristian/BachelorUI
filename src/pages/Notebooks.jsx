@@ -6,7 +6,7 @@ import {
     CardActions,
     CircularProgress, Divider,
     Snackbar,
-    Stack, TextField
+    Stack, TextField, Tooltip
 } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -19,6 +19,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {useNavigate} from "react-router-dom";
 import Cookies from "js-cookie";
+import background from "../images/background_image.jpg"
 import {DELETE_NOTEBOOK, UPDATE_ACCESS, USER_NOTEBOOKS_DETAILS} from "../components/utils/apiEndpoints";
 
 
@@ -139,7 +140,7 @@ const Notebooks = () => {
     },[])
 
     return (
-      <div style={{backgroundColor: "#FFFFFF", height: "100vh", width: "100vw", marginTop: 82 }}>
+      <div style={{backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundImage: `url(${background})`, height: "100vh", width: "100vw", marginTop: 82 }}>
           <Snackbar
               open={open}
               autoHideDuration={2000}
@@ -149,44 +150,64 @@ const Notebooks = () => {
               <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
           </Snackbar>
           <Backdrop
-              sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+              sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
               open={loading}
               onClick={handleBackdropClose}
           >
               <CircularProgress color="inherit" />
+              <Typography variant="h4" sx={{ color: "white" }}>Loading Notebooks</Typography>
           </Backdrop>
           <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
             <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
                 <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                     <CardContent>
-                        <Stack spacing={4} direction="row">
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Notebook ID</Typography>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation Time</Typography>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Expiration Time</Typography>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Last Accessed</Typography>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Type</Typography>
+                        <Stack spacing={10} direction="row">
+                            <Tooltip title="Notebook ID">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>ID</Typography>
+                            </Tooltip>
+                            <Tooltip title="Notebook Description">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
+                            </Tooltip>
+                            <Tooltip title="Creation Date">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation</Typography>
+                            </Tooltip>
+                            <Tooltip title="Expiration Date">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Expiration</Typography>
+                            </Tooltip>
+                            <Tooltip title="When the notebook was last accessed.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Last Accessed</Typography>
+                            </Tooltip>
+                            <Tooltip title="Notebook Type">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Type</Typography>
+                            </Tooltip>
                         </Stack>
                     </CardContent>
+                    <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
                     <CardActions>
-                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access Notebook</Typography>
-                        <Divider orientation="vertical" flexItem sx={{ marginLeft: 2 , marginRight: 1, borderWidth: 2, backgroundColor: "white"}} />
-                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Delete Notebook</Typography>
+                        <Stack spacing={4} direction="row">
+                            <Tooltip title="Access Notebook">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access</Typography>
+                            </Tooltip>
+                            <Tooltip title="Delete Notebook">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Delete</Typography>
+                            </Tooltip>
+                        </Stack>
                     </CardActions>
                 </Card>
                 {filterNotebooks.length !== 0 ?
                     filterNotebooks.map((notebook) => (
-                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
+                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
                             <CardContent>
                                 <Stack spacing={4} direction="row">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook.description}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["creation_time"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["expiration_time"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["last_accessed"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_type"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"].length > 10 ? notebook["notebook_id"].slice(0, 10) + "..." : notebook["notebook_id"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["description"].length > 10 ? notebook["description"].slice(0, 10) + "..." : notebook["description"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["creation_time"].length > 10 ? notebook["creation_time"].slice(0, 10) + "..." : notebook["creation_time"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["expiration_time"].length > 10 ? notebook["expiration_time"].slice(0, 10) + "..." : notebook["expiration_time"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["last_accessed"].length > 10 ? notebook["last_accessed"].slice(0, 10) + "..." : notebook["last_accessed"]}</Typography>
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_type"].length > 10 ? notebook["notebook_type"].slice(0, 10) + "..." : notebook["notebook_type"]}</Typography>
                                 </Stack>
                             </CardContent>
+                            <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
                             <CardActions>
                                 <Button
                                     variant="outlined"

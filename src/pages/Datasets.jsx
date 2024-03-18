@@ -23,6 +23,7 @@ import Transition from '../components/utils/transition';
 import {styled} from "@mui/material/styles";
 import {common} from "@mui/material/colors";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import background from "../images/background_image.jpg";
 
 const WhiteSwitch = styled(Switch)(({ theme }) => ({
     '& .MuiSwitch-switchBase.Mui-checked': {
@@ -51,6 +52,7 @@ const Datasets = () => {
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [shareStatus, setShareStatus] = React.useState({});
+    const [loadingMessage, setLoadingMessage] = React.useState("Loading Datasets");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
 
     const handleClose = (event, reason) => {
@@ -90,6 +92,7 @@ const Datasets = () => {
 
     const handleEnter = async (dataset) => {
         setLoading(true);
+        setLoadingMessage("Getting Dataset Information.");
 
         let condition = false;
 
@@ -147,6 +150,7 @@ const Datasets = () => {
 
     const handleDownload = async (dataset) => {
         setLoading(true);
+        setLoadingMessage("Downloading Dataset.");
 
         let condition = false;
 
@@ -207,6 +211,7 @@ const Datasets = () => {
         isRun.current = true;
 
         setLoading(true);
+        setLoadingMessage("Loading Datasets");
         axios({
             method: "GET",
             url: GET_ALL_DATASETS(Cookies.get("userID").split("-").join("_")),
@@ -233,7 +238,7 @@ const Datasets = () => {
     }, [])
 
     return (
-        <div style={{backgroundColor: "#FFFFFF", height: "100vh", width: "100vw", marginTop: 82 }}>
+        <div style={{backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundImage: `url(${background})`, height: "100vh", width: "100vw", marginTop: 82 }}>
             <Snackbar
                 open={open}
                 autoHideDuration={2000}
@@ -243,11 +248,12 @@ const Datasets = () => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: '#000', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
+                <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth TransitionComponent={Transition} keepMounted
                     maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -270,21 +276,32 @@ const Datasets = () => {
                     <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                         <CardContent>
                             <Stack spacing={4} direction="row">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Dataset Name</Typography>
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
+                                <Tooltip title="Name of the dataset.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Name</Typography>
+                                </Tooltip>
+                                <Tooltip title="Description of the dataset.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
+                                </Tooltip>
                             </Stack>
                         </CardContent>
+                        <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
                         <CardActions>
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access Dataset</Typography>
-                            <Divider sx={{ color: "white", width: 5 }} orientation="vertical" />
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download Dataset</Typography>
-                            <Divider sx={{ color: "white", width: 5 }} orientation="vertical" />
-                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Share Dataset</Typography>
+                            <Stack spacing={4} direction="row">
+                                <Tooltip title="Access Dataset">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access Dataset</Typography>
+                                </Tooltip>
+                                <Tooltip title="Download Dataset">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download Dataset</Typography>
+                                </Tooltip>
+                                <Tooltip title="Share Dataset">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Share Dataset</Typography>
+                                </Tooltip>
+                            </Stack>
                         </CardActions>
                     </Card>
                     {filterDatasets.length !== 0 ?
                         filterDatasets.map((dataset) => (
-                            <Card key={dataset.name} variant="outlined" sx={{ mt: 2, mb: 2, height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around"}}>
+                            <Card key={dataset.name} variant="outlined" sx={{ mt: 2, mb: 2, height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
                                 <CardContent>
                                     <Stack spacing={4} direction="row">
                                         <Tooltip title={dataset.name}>
@@ -326,7 +343,7 @@ const Datasets = () => {
                     sx={{
                         display: 'flex',
                         flexDirection: 'column',
-                        maxHeight: 500,
+                        maxHeight: 1000,
                         minWidth: 200,
                         overflowX: "hidden",
                         backgroundColor: 'black',

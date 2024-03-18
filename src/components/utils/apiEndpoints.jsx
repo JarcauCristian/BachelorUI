@@ -7,8 +7,6 @@ const balancerUrl = "https://ingress.sedimark.work/balancer";
 
 export const BLOCK_MODEL = (block_name) => `${baseUrl}/block/model?block_name=${block_name}`;
 
-export const BLOCK_MODEL_TRANSFORMERS = (pipeline_type, block_type, type) => `${baseUrl}/block/model?pipeline_type=${pipeline_type}&block_type=${block_type}&transformer_type=${type}`;
-
 export const DELETE_PIPELINE = (name) => `${baseUrl}/pipeline/delete?name=${name}`;
 
 export const CREATE_PIPELINE = (name, type) => `${baseUrl}/pipeline/create?name=${name}&ptype=${type}`;
@@ -27,15 +25,7 @@ export const READ_PIPELINE = (name) => `${baseUrl}/pipeline/read?pipeline_name=$
 
 export const RUN_PIPELINE = `${baseUrl}/pipeline/run`;
 
-export const BLOCK_STATUS = (pipeline_id, block_name) => `${baseUrl}/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
-
 export const CREATE_PIPELINE_TRIGGER = `${baseUrl}/pipeline/create/trigger`;
-
-export const CHANGE_PIPELINE_STATUS = `${baseUrl}/pipeline/trigger/status`;
-
-export const PIPELINE_STATUS = (name) => `${baseUrl}/pipeline/status?name=${name}`;
-
-export const PIPELINE_TRIGGER_STATUS = (name) => `${baseUrl}/pipeline/trigger/status?name=${name}`;
 
 export const PIPELINE_VARIABLES = `${baseUrl}/pipeline/variables`;
 
