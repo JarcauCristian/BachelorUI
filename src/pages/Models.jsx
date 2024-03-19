@@ -269,7 +269,7 @@ const Models = ({user_id}) => {
                     {filterModels.length !== 0 ?
                         filterModels.map((model) => (
                             <Card key={model["model_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
-                                <CardContent>
+                                <CardContent sx={{ width: 500 }}>
                                     <Stack spacing={4} direction="row">
                                         {user_id &&
                                             <Tooltip title={model["model_id"]}>

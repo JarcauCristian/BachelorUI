@@ -335,16 +335,17 @@ const Datasets = () => {
                     {filterDatasets.length !== 0 ?
                         filterDatasets.map((dataset) => (
                             <Card key={dataset.name} variant="outlined" sx={{ mt: 2, mb: 2, height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between"}}>
-                                <CardContent>
+                                <CardContent sx={{ width: 500 }}>
                                     <Stack spacing={4} direction="row">
                                         <Tooltip title={dataset.name}>
-                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset.name.length > 15 ? dataset.name.slice(0, 15) : dataset.name}</Typography>
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset.name.length > 30 ? dataset.name.slice(0, 30) : dataset.name}</Typography>
                                         </Tooltip>
                                         <Tooltip title={dataset.description}>
-                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset["description"].length > 15 ? dataset["description"].slice(0, 15) + "..." : dataset["description"]}</Typography>
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{dataset["description"].length > 30 ? dataset["description"].slice(0, 30) + "..." : dataset["description"]}</Typography>
                                         </Tooltip>
                                     </Stack>
                                 </CardContent>
+                                <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
                                 <CardActions>
                                     <Button
                                         variant="outlined"

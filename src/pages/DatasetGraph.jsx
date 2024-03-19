@@ -23,7 +23,6 @@ const DatasetGraph = () => {
     const [toastOpen, setToastOpen] = React.useState(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
-    const [loadingMessage, setLoadingMessage] = React.useState("");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
 
@@ -97,7 +96,6 @@ const DatasetGraph = () => {
                         hasInformation: node["hasInformation"],
                         toast: handleToast,
                         load: setLoading,
-                        loadingMessage: setLoadingMessage,
                     },
                     draggable: false
                 })
@@ -177,7 +175,7 @@ const DatasetGraph = () => {
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
-                <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
+                <Typography variant="h4" sx={{ color: "white" }}>Loading Datasets</Typography>
             </Backdrop>
             {nodes.length > 0 ?
                 <ReactFlow nodes={nodes}

@@ -20,7 +20,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import {useNavigate} from "react-router-dom";
 import Cookies from "js-cookie";
 import background from "../images/background_image.jpg"
-import {DELETE_NOTEBOOK, UPDATE_ACCESS, USER_NOTEBOOKS_DETAILS} from "../components/utils/apiEndpoints";
+import {
+    DELETE_NOTEBOOK,
+    NOTEBOOK_STATUS,
+    UPDATE_ACCESS,
+    USER_NOTEBOOKS_DETAILS
+} from "../components/utils/apiEndpoints";
 
 
 const Notebooks = () => {
@@ -77,19 +82,44 @@ const Notebooks = () => {
         setNotebookIDFilter("");
     };
 
-    const handleEnter = (notebook_id, notebook_type) => {
-        axios({
-            method: 'PUT',
-            url: UPDATE_ACCESS(notebook_id),
-            headers: {
-                'Content-Type': "application/json",
-                'Authorization': "Bearer " + Cookies.get("token")
+    const handleEnter = async (notebook_id, notebook_type) => {
+        let condition = false;
+
+        try {
+            const response = await axios({
+                method: "GET",
+                url: NOTEBOOK_STATUS(notebook_id),
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': "Bearer " + Cookies.get("token")
+                }
+            })
+
+            if (response.data !== "Running") {
+                condition = true;
             }
-        }).then(() => {
+
+            handleToast(response.data, "info");
+        } catch (_) {
+            handleToast("Could not get notebook status.", "error");
+            condition = true;
+        }
+
+        if (condition) return;
+
+        try {
+            await axios({
+                method: 'PUT',
+                url: UPDATE_ACCESS(notebook_id),
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': "Bearer " + Cookies.get("token")
+                }
+            })
             navigate(`/notebooks/${notebook_id}_${notebook_type}`);
-        }).catch(() => {
+        } catch (_) {
             handleToast("Error updating access!", "error");
-        })
+        }
     }
 
     const handleDelete = (notebook_id) => {
@@ -128,8 +158,9 @@ const Notebooks = () => {
                 'Authorization': "Bearer " + Cookies.get("token")
             }
         }).then((response) => {
-            setNotebooks(response.data);
-            setFilterNotebooks(response.data);
+            const sortedData = [...response.data].sort((a, b) => new Date(a["creation_time"]) - new Date(b["creation_time"]));
+            setNotebooks(sortedData);
+            setFilterNotebooks(sortedData);
             setLoading(false);
         }).catch((_) => {
             handleToast("Error getting Notebooks!", "error");
@@ -197,7 +228,7 @@ const Notebooks = () => {
                 {filterNotebooks.length !== 0 ?
                     filterNotebooks.map((notebook) => (
                         <Card key={notebook["notebook_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
-                            <CardContent>
+                            <CardContent sx={{ width: 700 }}>
                                 <Stack spacing={4} direction="row">
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"].length > 10 ? notebook["notebook_id"].slice(0, 10) + "..." : notebook["notebook_id"]}</Typography>
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["description"].length > 10 ? notebook["description"].slice(0, 10) + "..." : notebook["description"]}</Typography>

@@ -27,11 +27,26 @@ function Neo4jNode({ data, isConnectable }) {
     const [open, setOpen] = React.useState(false);
     const [passwordOpen, setPasswordOpen] = React.useState(false);
     const [description, setDescription] = React.useState(null);
-    const [notebookID, setNotebookID] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [isHovered, setIsHovered] = React.useState(false);
     const dummyPassword = "*********";
     const navigate = useNavigate();
+
+    React.useEffect(() => {
+        const lastClearedTime = localStorage.getItem(`lastClearedTime-${data.name}_${data.user}`);
+        const currentTime = new Date().getTime();
+
+        if (!lastClearedTime) {
+            localStorage.removeItem(`${data.name}-${data.user}-dataset-info`);
+            localStorage.setItem(`lastClearedTime-${data.name}_${data.user}`, JSON.stringify(currentTime));
+        } else  {
+            const compare = JSON.parse(lastClearedTime);
+            if (currentTime - compare >= 86400000){
+                localStorage.removeItem(`${data.name}-${data.user}-dataset-info`);
+                localStorage.setItem(`lastClearedTime-${data.name}_${data.user}`, JSON.stringify(currentTime));
+            }
+        }
+    }, [data.user, data.name])
 
     const handleClick = async () => {
         data.load(true);
@@ -148,13 +163,8 @@ function Neo4jNode({ data, isConnectable }) {
 
     const handlePasswordClick = () => {
         setPasswordOpen(false);
-        data.load(true);
-        data.loadingMessage("Waiting for the notebook to be ready! (If it isn't ready after the loading please go to the Notebooks page.)");
-        setTimeout(() => {
-            data.load(false);
-            data.loadingMessage("");
-            navigate(`/notebooks/${notebookID}_${datasetInformation["dataset_type"].toLowerCase()}`);
-        }, 15000)
+        data.load(false);
+        navigate("/notebooks");
     }
 
 
@@ -184,7 +194,6 @@ function Neo4jNode({ data, isConnectable }) {
         }).then((response) => {
             data.load(false);
             setPassword(response.data.password);
-            setNotebookID(response.data["notebook_id"]);
             setPasswordOpen(true);
         }).catch((_) => {
             data.load(false);
