@@ -225,7 +225,7 @@ function Neo4jNode({ data, isConnectable }) {
                     DATASET INFORMATION
                 </DialogTitle>
                 {datasetInformation && (
-                    <DialogContent sx={{ maxWidth: 1000 }}>
+                    <DialogContent sx={{ width: 1700 }}>
                             <Typography variant="p" sx={{ fontWeight: "bold" }}>
                                 {datasetInformation.name.toUpperCase() + " BY " + datasetInformation.user}
                             </Typography>

@@ -295,7 +295,7 @@ const Datasets = () => {
                         {name.toUpperCase()}
                     </DialogTitle>
                 )}
-                <DialogContent sx={{ maxWidth: 1000 }}>
+                <DialogContent sx={{ width: 1700 }}>
                     {csvData && columnsDescriptions && (
                         <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                     )}
