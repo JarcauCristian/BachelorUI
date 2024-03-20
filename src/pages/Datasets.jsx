@@ -289,13 +289,13 @@ const Datasets = () => {
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth TransitionComponent={Transition} keepMounted
-                    maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    maxWidth="xll" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 {name && (
                     <DialogTitle>
                         {name.toUpperCase()}
                     </DialogTitle>
                 )}
-                <DialogContent sx={{ width: 1700 }}>
+                <DialogContent>
                     {csvData && columnsDescriptions && (
                         <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                     )}

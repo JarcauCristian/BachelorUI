@@ -27,6 +27,7 @@ function Neo4jNode({ data, isConnectable }) {
     const [open, setOpen] = React.useState(false);
     const [passwordOpen, setPasswordOpen] = React.useState(false);
     const [description, setDescription] = React.useState(null);
+    const [modelName, setModelName] = React.useState(null);
     const [password, setPassword] = React.useState("");
     const [isHovered, setIsHovered] = React.useState(false);
     const dummyPassword = "*********";
@@ -174,6 +175,11 @@ function Neo4jNode({ data, isConnectable }) {
             return;
         }
 
+        if ([undefined, "", null].includes(modelName)) {
+            data.toast("Please enter a name for the model that will result from the notebook!", "info");
+            return;
+        }
+
         data.load(true);
         setOpen(false);
         axios({
@@ -219,13 +225,13 @@ function Neo4jNode({ data, isConnectable }) {
             keepMounted
             open={open} 
             onClose={handleClose} 
-            fullWidth maxWidth="xl" 
+            fullWidth maxWidth="xll" 
             sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>
                     DATASET INFORMATION
                 </DialogTitle>
                 {datasetInformation && (
-                    <DialogContent sx={{ width: 1700 }}>
+                    <DialogContent>
                             <Typography variant="p" sx={{ fontWeight: "bold" }}>
                                 {datasetInformation.name.toUpperCase() + " BY " + datasetInformation.user}
                             </Typography>
@@ -243,6 +249,14 @@ function Neo4jNode({ data, isConnectable }) {
                                     Notebook Description
                                 </FormLabel>
                                 <TextField fullWidth required label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+                            </FormControl>
+                            <FormControl sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center" }} >
+                                <Tooltip title="The name of the model that will be stored inside the platform!">
+                                    <FormLabel>
+                                        Notebook Model Name
+                                    </FormLabel>
+                                </Tooltip>
+                                <TextField fullWidth required label="Model Name" value={modelName} onChange={(e) => setModelName(e.target.value)} />
                             </FormControl>
                     </DialogContent>
                 )}

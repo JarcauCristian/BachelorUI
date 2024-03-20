@@ -190,9 +190,9 @@ const Models = ({user_id}) => {
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>Loading Models</Typography>
             </Backdrop>
-            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="md" TransitionComponent={Transition} keepMounted>
+            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="xll" TransitionComponent={Transition} keepMounted>
                 <DialogTitle>CSV Data Information</DialogTitle>
-                <DialogContent sx={{ width: 1700 }}>
+                <DialogContent>
                     <TableContainer sx={{ mb: 2, mt: 2 }} component={Paper}>
                         <Table>
                             <TableHead>
