@@ -38,6 +38,7 @@ const Model = () => {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const [open, setOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
+    const [loadingMessage, setLoadingMessage] = React.useState("");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
     const [file, setFile] = React.useState(null);
@@ -135,6 +136,7 @@ const Model = () => {
     }
 
     const getImages = async () => {
+        setLoadingMessage("Getting Images");
         setLoading(true);
 
         try {
@@ -170,6 +172,7 @@ const Model = () => {
 
         isRun.current = true;
 
+        setLoadingMessage("Getting Model Details");
         setLoading(true);
         axios({
             method: 'GET',
@@ -180,26 +183,26 @@ const Model = () => {
             }
         }).then((response) => {
             setModelData(response.data);
+            axios({
+                method: 'GET',
+                url: GET_MODEL(modelID),
+                headers: {
+                    'Content-Type': "application/json",
+                    "Authorization": "Bearer " + Cookies.get("token")
+                }
+            }).then((response) => {
+                setLoading(false);
+                setModelDetails(response.data);
+                setModelDescription(JSON.parse(response.data.description));
+            }).catch((_) => {
+                handleToast("Failed to load model Details!", "error");
+                setLoading(false);
+            })
         }).catch((_) => {
             handleToast("Failed to load model Data!", "error");
             setLoading(false);
         })
 
-        axios({
-            method: 'GET',
-            url: GET_MODEL(modelID),
-            headers: {
-                'Content-Type': "application/json",
-                "Authorization": "Bearer " + Cookies.get("token")
-            }
-        }).then((response) => {
-            setLoading(false);
-            setModelDetails(response.data);
-            setModelDescription(JSON.parse(response.data.description));
-        }).catch((_) => {
-            handleToast("Failed to load model Details!", "error");
-            setLoading(false);
-        })
     }, [modelID])
 
     return (
@@ -218,6 +221,7 @@ const Model = () => {
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
+                <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog
                 open={dialogOpen}

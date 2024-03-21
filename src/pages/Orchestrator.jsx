@@ -9,7 +9,7 @@ import {
     Alert,
     Backdrop,
     CircularProgress,
-    Dialog,
+    Dialog, DialogActions, DialogContent,
     DialogTitle,
     FormControl,
     List,
@@ -53,6 +53,7 @@ const Orchestrator = () => {
     const [value, setValue] = React.useState(0);
     const [tabs, setTabs] = React.useState([]);
     const [open, setOpen] = React.useState(false);
+    const [disclaimerOpen, setDisclaimerOpen] = React.useState(false);
     const [tabName, setTabName] = React.useState("");
     const [batchName, setBatchName] = React.useState("");
     const [counter, setCounter] = React.useState(0);
@@ -69,6 +70,7 @@ const Orchestrator = () => {
     const [batchBlockName, setBatchBlockName] = React.useState("");
     const [batchBlockType, setBatchBlockType] = React.useState("");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
+    const [loadingMessage, setLoadingMessage] = React.useState("");
     const isRun = React.useRef(false);
     const isDrawerRun = React.useRef(false);
 
@@ -250,6 +252,7 @@ const Orchestrator = () => {
         if (open) setOpen(false);
         if (streamingOpen) setStreamingOpen(false);
         if (batchOpen) setBatchOpen(false);
+        if (disclaimerOpen) setDisclaimerOpen(false);
     }
 
     const handleBatchAdder = (type, name) => {
@@ -418,6 +421,8 @@ const Orchestrator = () => {
         isRun.current = true;
 
         setLoading(true);
+        setDisclaimerOpen(true);
+        setLoadingMessage("Loading Pipelines");
         axios({
             method: "GET",
             url: PIPELINES(Cookies.get("userID").split("-").join("_"))
@@ -601,6 +606,7 @@ const Orchestrator = () => {
         }).catch((_) => {
             handleToast("Error getting pipelines!", "error");
             setLoading(false);
+            setLoadingMessage("");
         })
     }, [handleTabClose, tabs, tabsName, counter, pipelines])
 
@@ -672,11 +678,12 @@ const Orchestrator = () => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: 'black', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'black', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
+                <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog open={open} onClose={handleClose} TransitionComponent={Transition} keepMounted>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: tabs.length > 0 ? "space-evenly" : "", padding: 5 }}>
@@ -700,6 +707,21 @@ const Orchestrator = () => {
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => {handleBatchAdder(batchBlockType, batchBlockName)}}>
                         Add Block
                     </Button>
+                </Box>
+            </Dialog>
+            <Dialog open={disclaimerOpen} onClose={handleClose} TransitionComponent={Transition} keepMounted>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: tabs.length > 0 ? "space-evenly" : "", padding: 5 }}>
+                    <DialogTitle sx={{ fontWeight: "bold" }}>
+                        DISCLAIMERS
+                    </DialogTitle>
+                    <DialogContent>
+                        You can upload a CSV of maximum 1 GB.
+                    </DialogContent>
+                    <DialogActions>
+                        <Button variant="filled" sx={{ marginTop: 2, backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => setDisclaimerOpen(false)}>
+                            close
+                        </Button>
+                    </DialogActions>
                 </Box>
             </Dialog>
             <Drawer

@@ -192,7 +192,8 @@ function Neo4jNode({ data, isConnectable }) {
                 "notebook_type": datasetInformation["dataset_type"],
                 "dataset_name": data.name,
                 "dataset_user": data.user,
-                "target_column": datasetInformation["target_column"]
+                "target_column": datasetInformation["target_column"],
+                "model_name": modelName
             },
             headers: {
                 "Authorization": "Bearer " + Cookies.get("token")
@@ -225,13 +226,13 @@ function Neo4jNode({ data, isConnectable }) {
             keepMounted
             open={open} 
             onClose={handleClose} 
-            fullWidth maxWidth="xll" 
+            fullWidth maxWidth="xl"
             sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>
                     DATASET INFORMATION
                 </DialogTitle>
                 {datasetInformation && (
-                    <DialogContent>
+                    <DialogContent sx={{ width: 1700 }}>
                             <Typography variant="p" sx={{ fontWeight: "bold" }}>
                                 {datasetInformation.name.toUpperCase() + " BY " + datasetInformation.user}
                             </Typography>

@@ -92,7 +92,7 @@ const Datasets = () => {
 
     const handleEnter = async (dataset) => {
         setLoading(true);
-        setLoadingMessage("Getting Dataset Information.");
+        setLoadingMessage("Getting Dataset Information");
 
         let condition = false;
 
@@ -150,7 +150,7 @@ const Datasets = () => {
 
     const handleDownload = async (dataset) => {
         setLoading(true);
-        setLoadingMessage("Downloading Dataset.");
+        setLoadingMessage("Downloading Dataset");
 
         let condition = false;
 
@@ -289,13 +289,13 @@ const Datasets = () => {
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth TransitionComponent={Transition} keepMounted
-                    maxWidth="xll" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 {name && (
                     <DialogTitle>
                         {name.toUpperCase()}
                     </DialogTitle>
                 )}
-                <DialogContent>
+                <DialogContent sx={{ width: 1700 }}>
                     {csvData && columnsDescriptions && (
                         <DataTable sx={{ mt: 2, mb: 2 }} data={csvData} descriptions={columnsDescriptions} />
                     )}

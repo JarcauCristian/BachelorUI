@@ -81,14 +81,18 @@ function TextUpdaterNode({ data, isConnectable }) {
         let newValue;
 
         if (files) {
+            if (files[0].size > 1024 * 1024 * 1024) {
+                data.toast("CSV file needs to be lower then 1GB.", "info");
+                return;
+            }
             newValue = files[0];
         } else if (value === 'on' && typeof values[name] === "boolean") {
             newValue = checked;
         } else {
             newValue = value;
         }
-    
-        if (files && newValue.type === "text/csv") {
+
+        if (files && newValue.type === "text/csv" && newValue.size < 1024 * 1024 * 1024) {
             const auxFile = newValue;
             const reader = new FileReader();
             reader.onload = (e) => {

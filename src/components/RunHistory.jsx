@@ -62,13 +62,12 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
         setPage(0);
     };
 
-    const handleChange = async (e) => {
-        setValue(e.target.value);
+    const handleChange = async () => {
         setLoading(true);
         try {
             const response = await axios({
                 method: "GET",
-                url: PIPELINE_HISTORY(pipelineName + "_" + Cookies.get("userID").split("-").join("_"), e.target.value)
+                url: PIPELINE_HISTORY(pipelineName + "_" + Cookies.get("userID").split("-").join("_"), value)
             })
 
             const result = [];
@@ -121,7 +120,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                         <Select
                             labelId="demo-simple-select-label"
                             value={value}
-                            onChange={handleChange}
+                            onChange={(e) => setValue(e.target.value)}
                             fullWidth
                         >
                             <MenuItem value={10}>10</MenuItem>
@@ -179,6 +178,7 @@ const RunHistory = ({pipelineCreated, toast, pipelineName}) => {
                             />
                         </TableContainer>
                     : undefined}
+                    <Button variant="filled" sx={{ mt: 2, mb: 2, backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleChange}>Get History</Button>
                 </DialogContent>
                 <DialogActions>
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => setOpen(false)}>Close</Button>
