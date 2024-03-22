@@ -216,7 +216,7 @@ const Model = () => {
                 <Alert severity={toastSeverity} onClose={() => {}}> {toastMessage} </Alert>
             </Snackbar>
             <Backdrop
-                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
                 onClick={handleBackdropClose}
             >
@@ -277,7 +277,7 @@ const Model = () => {
                 </DialogActions>
             </Dialog>
             <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>
-                <Card sx={{ width: "90vw", height: "50vh", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
+                <Card sx={{ width: "90vw", height: "55vh", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
                     {modelDetails && (
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
@@ -315,6 +315,22 @@ const Model = () => {
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel2a-content"
+                                    id="panel2a-header"
+                                >
+                                    <Typography sx={{ fontWeight: "bold" }}>DESCRIPTION</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <Tooltip title={modelData["description"]}>
+                                        <Typography>
+                                            {modelData["description"].length > 70 ? modelData["description"].slice(0, 70) + "..." : modelData["description"]}
+                                        </Typography>
+                                    </Tooltip>
+                                </AccordionDetails>
+                            </Accordion>
+                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel3a-content"
                                     id="panel3a-header"
                                 >
@@ -338,7 +354,7 @@ const Model = () => {
                                     <Button variant="contained" fullWidth sx={{backgroundColor: "black", color: "white", marginTop: 2, '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={getImages}>Show images</Button>
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel4a-content"
@@ -380,10 +396,10 @@ const Model = () => {
                         <Typography variant="h5" sx={{ color: "white" }}>Model Data Could Not Be Loaded</Typography>
                     )}
                 </Card>
-                <div style={{ width: "100vw", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
-                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#F5F5F5" }} variant="outlined">
+                <div style={{ marginTop: 10, width: "100vw", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
                         <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL PARAMETERS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", fontSize: 5 }}/>
+                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
                         {modelData.params && (
                             <List>
                                 {Object.entries(modelData.params).map(([key, value]) => (
@@ -394,9 +410,9 @@ const Model = () => {
                             </List>
                         )}
                     </Card>
-                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#F5F5F5" }} variant="outlined">
+                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
                         <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL METRICS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", fontSize: 5 }}/>
+                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
                         {modelData["metrics"] && (
                             <List>
                                 {Object.entries(modelData["metrics"]).map(([key, value]) => (
@@ -407,9 +423,9 @@ const Model = () => {
                             </List>
                         )}
                     </Card>
-                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#F5F5F5" }} variant="outlined">
+                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
                         <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL TAGS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", fontSize: 5 }}/>
+                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
                         {modelData.tags && (
                             <List>
                                 {Object.entries(modelData.tags).map(([key, value]) => (
@@ -420,9 +436,9 @@ const Model = () => {
                             </List>
                         )}
                     </Card>
-                    <Card sx={{minWidth: 280, minHeight: "40vh", overflowY: "scroll", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#F5F5F5" }} variant="outlined">
+                    <Card sx={{minWidth: 280, minHeight: "40vh", overflowY: "scroll", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
                         <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>TRAIN DATASET DETAILS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", fontSize: 5 }}/>
+                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
                         {modelDescription["column_dtypes"] && (
                             <Typography sx={{ fontWeight: "bold" }}>Column Types</Typography>
                         )}
