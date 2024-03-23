@@ -95,7 +95,7 @@ const Notebooks = () => {
                 }
             })
 
-            if (response.data !== "Running") {
+            if (response.data !== "Notebook is running.") {
                 condition = true;
             }
 
@@ -227,15 +227,27 @@ const Notebooks = () => {
                 </Card>
                 {filterNotebooks.length !== 0 ?
                     filterNotebooks.map((notebook) => (
-                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ overflowX: "scroll", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
                             <CardContent sx={{ width: 700 }}>
                                 <Stack spacing={4} direction="row">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"].length > 10 ? notebook["notebook_id"].slice(0, 10) + "..." : notebook["notebook_id"]}</Typography>
+                                    <Tooltip title={notebook["notebook_id"]}>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"].length > 10 ? notebook["notebook_id"].slice(0, 10) + "..." : notebook["notebook_id"]}</Typography>
+                                    </Tooltip>
+                                    <Tooltip title={notebook["description"]}>
                                     <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["description"].length > 10 ? notebook["description"].slice(0, 10) + "..." : notebook["description"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["creation_time"].length > 10 ? notebook["creation_time"].slice(0, 10) + "..." : notebook["creation_time"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["expiration_time"].length > 10 ? notebook["expiration_time"].slice(0, 10) + "..." : notebook["expiration_time"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["last_accessed"].length > 10 ? notebook["last_accessed"].slice(0, 10) + "..." : notebook["last_accessed"]}</Typography>
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_type"].length > 10 ? notebook["notebook_type"].slice(0, 10) + "..." : notebook["notebook_type"]}</Typography>
+                                    </Tooltip>
+                                    <Tooltip title={notebook["creation_time"]}>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["creation_time"].length > 10 ? notebook["creation_time"].slice(0, 10) + "..." : notebook["creation_time"]}</Typography>
+                                    </Tooltip>
+                                    <Tooltip title={notebook["expiration_time"]}>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["expiration_time"].length > 10 ? notebook["expiration_time"].slice(0, 10) + "..." : notebook["expiration_time"]}</Typography>
+                                    </Tooltip>
+                                    <Tooltip title={notebook["last_accessed"]}>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["last_accessed"].length > 10 ? notebook["last_accessed"].slice(0, 10) + "..." : notebook["last_accessed"]}</Typography>
+                                    </Tooltip>
+                                    <Tooltip title={notebook["notebook_type"]}>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_type"].length > 10 ? notebook["notebook_type"].slice(0, 10) + "..." : notebook["notebook_type"]}</Typography>
+                                    </Tooltip>
                                 </Stack>
                             </CardContent>
                             <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>

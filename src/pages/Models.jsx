@@ -190,7 +190,7 @@ const Models = ({user_id}) => {
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>Loading Models</Typography>
             </Backdrop>
-            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="xl" TransitionComponent={Transition} keepMounted>
+            <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="xll" TransitionComponent={Transition} keepMounted>
                 <DialogTitle>CSV Data Information</DialogTitle>
                 <DialogContent sx={{ width: 1700 }}>
                     <TableContainer sx={{ mb: 2, mt: 2 }} component={Paper}>
@@ -268,7 +268,7 @@ const Models = ({user_id}) => {
                     </Card>
                     {filterModels.length !== 0 ?
                         filterModels.map((model) => (
-                            <Card key={model["model_id"]} variant="outlined" sx={{ height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
+                            <Card key={model["model_id"]} variant="outlined" sx={{ overflowX: "scroll", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
                                 <CardContent sx={{ width: 500 }}>
                                     <Stack spacing={4} direction="row">
                                         {user_id &&

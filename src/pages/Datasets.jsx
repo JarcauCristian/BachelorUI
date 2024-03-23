@@ -289,7 +289,7 @@ const Datasets = () => {
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth TransitionComponent={Transition} keepMounted
-                    maxWidth="xl" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    maxWidth="xll" sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 {name && (
                     <DialogTitle>
                         {name.toUpperCase()}
@@ -306,7 +306,7 @@ const Datasets = () => {
             </Dialog>
             <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
-                    <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+                    <Card variant="outlined" sx={{ overflowX: "scroll", height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                         <CardContent>
                             <Stack spacing={4} direction="row">
                                 <Tooltip title="Name of the dataset.">

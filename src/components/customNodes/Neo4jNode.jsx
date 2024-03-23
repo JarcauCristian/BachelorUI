@@ -226,7 +226,7 @@ function Neo4jNode({ data, isConnectable }) {
             keepMounted
             open={open} 
             onClose={handleClose} 
-            fullWidth maxWidth="xl"
+            fullWidth maxWidth="xll"
             sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>
                     DATASET INFORMATION
@@ -239,7 +239,7 @@ function Neo4jNode({ data, isConnectable }) {
                             <br />
                             <Tooltip title={datasetInformation.description}>
                                 <Typography variant="p" sx={{ fontWeight: "bold" }}>
-                                    {datasetInformation.description.length > 20 ? datasetInformation.description.slice(0, 20) : datasetInformation.description}
+                                    Description: {datasetInformation.description.length > 20 ? datasetInformation.description.slice(0, 20) : datasetInformation.description}
                                 </Typography>
                             </Tooltip>
                             {(csvData && columnsDescriptions) && (
