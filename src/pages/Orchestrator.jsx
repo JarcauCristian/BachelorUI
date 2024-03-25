@@ -99,7 +99,7 @@ const Orchestrator = () => {
             handleToast("A maximum of 10 tabs can be opened at a time!", "warning");
             return;
         }
-        localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
+
         const checking = /^[a-z_]+$/.test(tabName);
         if (checking && tabName.length <= 10) {
             const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
@@ -124,7 +124,7 @@ const Orchestrator = () => {
                         }
                     };
                 });
-
+                localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
                 setPipelinesBlocksNames(prevState => [...prevState, []]);
                 setTabsName(prevState => [...prevState, tabName]);
                 setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
@@ -147,7 +147,6 @@ const Orchestrator = () => {
     };
 
     const handleTabClose = React.useCallback(async (index, tabName) => {
-        localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
         const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
 
         let condition = false;
@@ -219,6 +218,7 @@ const Orchestrator = () => {
             }
         }
 
+        localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
         setLoading(false);
     }, [counter])
 
