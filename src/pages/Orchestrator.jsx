@@ -99,6 +99,7 @@ const Orchestrator = () => {
             handleToast("A maximum of 10 tabs can be opened at a time!", "warning");
             return;
         }
+        localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
         const checking = /^[a-z_]+$/.test(tabName);
         if (checking && tabName.length <= 10) {
             const name = `${tabName}_${Cookies.get("userID").split("-").join("_")}`
@@ -146,6 +147,7 @@ const Orchestrator = () => {
     };
 
     const handleTabClose = React.useCallback(async (index, tabName) => {
+        localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
         const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
 
         let condition = false;
@@ -423,9 +425,15 @@ const Orchestrator = () => {
         setLoading(true);
         setDisclaimerOpen(true);
         setLoadingMessage("Loading Pipelines");
+        let changed = localStorage.getItem(`changed-${Cookies.get("userID").split("-").join("_")}`);
+        if ([undefined, null, "", false].includes(changed)) {
+            changed = false
+        } else {
+            changed = JSON.parse(changed);
+        }
         axios({
             method: "GET",
-            url: PIPELINES(Cookies.get("userID").split("-").join("_"))
+            url: PIPELINES(Cookies.get("userID").split("-").join("_"), changed)
         }).then((response) => {
             for (let i of response.data) {
                 const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
@@ -602,9 +610,11 @@ const Orchestrator = () => {
                 setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={name} icon={<ClearIcon onClick={() => handleTabClose(counter, name)} />} iconPosition="end" {...a11yProps(counter)}/>]);
                 setCounter(counter + 1);
             }
+            localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
             setLoading(false);
         }).catch((_) => {
-            handleToast("Error getting pipelines!", "error");
+            localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
+            handleToast("Error getting the pipelines!", "error");
             setLoading(false);
             setLoadingMessage("");
         })

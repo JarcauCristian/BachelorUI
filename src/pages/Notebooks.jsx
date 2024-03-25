@@ -227,7 +227,7 @@ const Notebooks = () => {
                 </Card>
                 {filterNotebooks.length !== 0 ?
                     filterNotebooks.map((notebook) => (
-                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ overflowX: "scroll", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                        <Card key={notebook["notebook_id"]} variant="outlined" sx={{ overflowX: "auto", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
                             <CardContent sx={{ width: 700 }}>
                                 <Stack spacing={4} direction="row">
                                     <Tooltip title={notebook["notebook_id"]}>
