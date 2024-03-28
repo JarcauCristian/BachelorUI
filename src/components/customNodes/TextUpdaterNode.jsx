@@ -9,7 +9,7 @@ import {
     DialogContent,
     DialogTitle, FormControl, InputLabel, Select,
     TextField,
-    Box, Switch, Tooltip, alpha, FormGroup
+    Box, Switch, Tooltip, alpha, FormGroup, tooltipClasses
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Editor from "@monaco-editor/react";
@@ -33,6 +33,17 @@ const BlackSwitch = styled(Switch)(({ theme }) => ({
     },
     '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
         backgroundColor: common["black"],
+    },
+}));
+
+const CustomTooltip = styled(({ className, ...props }) => (
+    <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+    [`& .${tooltipClasses.tooltip}`]: {
+        color: 'white',
+        boxShadow: theme.shadows[1],
+        fontSize: 16, // Custom font size
+        padding: '10px 20px', // Custom padding for larger tooltip
     },
 }));
 
@@ -137,28 +148,30 @@ function TextUpdaterNode({ data, isConnectable }) {
         }
     }
 
-    const renderInputField = (key, type) => {
-        if (type === 'file') {
+    const renderInputField = (key, value) => {
+        if (value["type"] === 'file') {
             return (
                 <Box key={key} name={key} fullWidth sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", overflow: "auto", maxHeight: "1000px" }}>
-                    <TextField
-                        key={key}
-                        name={key}
-                        type="file"
-                        fullWidth
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                        inputProps={{
-                            accept: ".csv",
-                        }}
-                        onChange={handleInputChange}
-                    />
+                    <CustomTooltip title={value["description"]}>
+                        <TextField
+                            key={key}
+                            name={key}
+                            type="file"
+                            fullWidth
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            inputProps={{
+                                accept: ".csv",
+                            }}
+                            onChange={handleInputChange}
+                        />
+                    </CustomTooltip>
                     {"columnNames" in values && (
                         <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
-                            <Tooltip title="This column will be used, if you share the dataset, as the target column for the ML models (Don't use if dataset type is clustering)">
+                            <CustomTooltip title="This column will be used, if you share the dataset, as the target column for the ML models (Don't use if dataset type is clustering)">
                                 <InputLabel>Target Column (Hover to see details!)</InputLabel>
-                            </Tooltip>
+                            </CustomTooltip>
                             <Select
                                 name="target_column"
                                 value={values["target_column"]}
@@ -177,88 +190,96 @@ function TextUpdaterNode({ data, isConnectable }) {
                     )}
                 </Box>
             );
-        } else if (type === 'int' || type === 'str') {
+        } else if (value["type"] === 'int' || value["type"] === 'str') {
             if (key === "new_category") {
                 return (
-                    <Box key={key} sx={{ mb: 2, mt: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                        <TextField
-                            name={key}
-                            fullWidth
-                            label={key.split("_").join(" ").toUpperCase()}
-                            type={type === 'int' ? 'number' : 'text'}
-                            value={values[key]}
-                            onChange={handleInputChange}
-                            sx={{ mb: 2, display: newCategory ? "block" : "none" }}
-                        />
+                    <Box key={key} sx={{ width: 500, mb: 2, mt: 2, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                            <CustomTooltip title={value["description"]}>
+                                <TextField
+                                    name={key}
+                                    fullWidth
+                                    label={key.split("_").join(" ").toUpperCase()}
+                                    type={value["type"] === 'int' ? 'number' : 'text'}
+                                    value={values[key]}
+                                    onChange={handleInputChange}
+                                    sx={{ mb: 2, display: newCategory ? "block" : "none" }}
+                                />
+                            </CustomTooltip>
                         <Button fullWidth variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" }, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }} onClick={() => setNewCategory(!newCategory)}>{newCategory ? "Remove New Category" : "Add New Category"}</Button>
                     </Box>
                 );
             } else if (key === "target_column") {
                 return (
-                    <Tooltip title="This column will be used, if you opt for sharing this dataset, as the target column for the ML models, please specify it exactly how is it in the table.">
+                    <CustomTooltip title={value["description"]}>
                         <TextField
                             key={key}
                             name={key}
                             fullWidth
                             label={key.split("_").join(" ").toUpperCase() + " (Don't use if dataset type is clustering)"}
-                            type={type === 'int' ? 'number' : 'text'}
+                            type={value["type"] === 'int' ? 'number' : 'text'}
                             value={values[key]}
                             onChange={handleInputChange}
                             sx={{ mb: 2, mt: 2 }}
                         />
-                    </Tooltip>
+                    </CustomTooltip>
                 );
             } else {
                 return (
+                    <CustomTooltip title={value["description"]}>
+                        <TextField
+                            key={key}
+                            name={key}
+                            fullWidth
+                            label={key.split("_").join(" ").toUpperCase()}
+                            type={value["type"] === 'int' ? 'number' : 'text'}
+                            value={values[key]}
+                            onChange={handleInputChange}
+                            sx={{ mb: 2, mt: 2 }}
+                        />
+                    </CustomTooltip>
+                );
+            }
+        } else if (value["type"] === "secret") {
+            return (
+                <CustomTooltip title={value["description"]}>
                     <TextField
                         key={key}
                         name={key}
                         fullWidth
                         label={key.split("_").join(" ").toUpperCase()}
-                        type={type === 'int' ? 'number' : 'text'}
+                        type={'password'}
                         value={values[key]}
                         onChange={handleInputChange}
                         sx={{ mb: 2, mt: 2 }}
                     />
-                );
-            }
-        } else if (type === "secret") {
-            return (
-                <TextField
-                    key={key}
-                    name={key}
-                    fullWidth
-                    label={key.split("_").join(" ").toUpperCase()}
-                    type={'password'}
-                    value={values[key]}
-                    onChange={handleInputChange}
-                    sx={{ mb: 2, mt: 2 }}
-                />
+                </CustomTooltip>
             );
-        } else if (type === "bool") {
+        } else if (value["type"] === "bool") {
             return (
                 <FormGroup key={key} sx={{ mb: 2, mt: 2 }}>
-                    <Tooltip title="Check if you want to share your data with data scientists!">
+                    <CustomTooltip title={value["description"]}>
                         <FormControlLabel control={<BlackSwitch inputProps={{ 'aria-label': 'controlled' }} name={key} label={key} onChange={handleInputChange} checked={values[key]} />} label="Share Your Data" />
-                    </Tooltip>
+                    </CustomTooltip>
                 </FormGroup >
             );
-        } else if (Array.isArray(type) && type.every(item => typeof item === 'string')) {
+        } else if (value["type"] === "drop_down") {
             return (
-                <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
-                    <InputLabel>{key.split("_").join(" ").toUpperCase()}</InputLabel>
-                    <Select
-                        name={key}
-                        value={values[key]}
-                        onChange={handleInputChange}
-                    >
-                        {type.map((item, index) => (
-                            <MenuItem key={index} value={item}>
-                                {item}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                <CustomTooltip title={value["description"]}>
+                    <FormControl key={key} fullWidth sx={{ mb: 2, mt: 2 }}>
+                        <InputLabel>{key.split("_").join(" ").toUpperCase()}</InputLabel>
+                        <Select
+                            name={key}
+                            value={values[key]}
+                            onChange={handleInputChange}
+                        >
+                            {value["values"].map((item, index) => (
+                                <MenuItem key={index} value={item}>
+                                    {item}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </CustomTooltip>
             );
         }
 
@@ -338,6 +359,35 @@ function TextUpdaterNode({ data, isConnectable }) {
         }
     }, [data.nodeID, data.pipeline_name])
 
+    const checkRangesAndRegex = () => {
+        let condition = true;
+
+        for (let [key, value] of Object.entries(values)) {
+            if (data.params[key]["type"] === "str") {
+                const regexPattern = new RegExp(data.params[key]["regex"]);
+                if (!regexPattern.test(value)) {
+                    if (data.params[key]["regex"] === "^[a-z0-9_]+$") {
+                        data.toast(`Variable ${key} can only contain lowercase letters, numbers and underscores.`, "warning");
+                    } else if (data.params[key]["regex"] === "^[a-z_]+$") {
+                        data.toast(`Variable ${key} can only contain lowercase letters  and underscores.`, "warning");
+                    } else {
+                        data.toast(`Variable ${key} can only contain valid IPv4 address.`, "warning");
+                    }
+                    condition = false;
+                    break;
+                }
+            } else if (data.params[key]["type"] === "int") {
+                if (value < data.params[key]["range"][0] || value > data.params[key]["range"][1]) {
+                    data.toast(`Variable ${key} can only be inside the following range: [${data.params[key]["range"][0]}, ${data.params[key]["range"][1]}]!`, "warning");
+                    condition = false;
+                    break;
+                }
+            }
+        }
+
+        return condition;
+    }
+
     const handleSubmit = () => {
         const textEntries = {};
 
@@ -382,6 +432,8 @@ function TextUpdaterNode({ data, isConnectable }) {
             return;
         }
 
+        if (!checkRangesAndRegex()) return;
+
         localStorage.setItem(`${data.pipeline_name}-${data.nodeID}-variables`, JSON.stringify(textEntries));
 
         if (fileInput) {
@@ -425,13 +477,13 @@ function TextUpdaterNode({ data, isConnectable }) {
             <Dialog open={dialogOpen} onClose={handleDialogClose} maxWidth="xl" TransitionComponent={Transition} keepMounted>
                 <Editor height="100vh" width="50vw" theme="vs-dark" defaultLanguage={data.language} defaultValue={blockContent} onChange={handleEditorChange}/>
             </Dialog>
-            <Dialog TransitionComponent={Transition} maxWidth={"columnNames" in values ? "xll" : "l"} keepMounted open={variableDialogOpen} onClose={handleVariableDialogClose} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", maxHeight: "1000px" }}>
+            <Dialog TransitionComponent={Transition} maxWidth={"columnNames" in values ? "xll" : "xl"} keepMounted open={variableDialogOpen} onClose={handleVariableDialogClose} sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", maxHeight: "1000px" }}>
                 <DialogTitle>ENTER VARIABLES</DialogTitle>
-                <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <DialogContent sx={{ width: 500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                     {data.params &&
-                        Object.entries(data.params).map(([key, type]) => {
+                        Object.entries(data.params).map(([key, value]) => {
                             return (
-                                renderInputField(key, type)
+                                renderInputField(key, value)
                             )
                         })
                     }

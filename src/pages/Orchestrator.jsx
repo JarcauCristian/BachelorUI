@@ -270,6 +270,7 @@ const Orchestrator = () => {
                                     if (!checkIfBlockNameExists(batchName)) {
                                         setBatchOpen(false);
                                         setLoading(true);
+                                        setLoadingMessage("Loading Block!");
                                         axios({
                                             method: "GET",
                                             url: BLOCK_MODEL(name),
@@ -313,8 +314,10 @@ const Orchestrator = () => {
                                                 },
                                             }));
                                             setLoading(false);
+                                            setLoadingMessage("");
                                         }).catch((_) => {
                                             setLoading(false);
+                                            setLoadingMessage("");
                                             handleToast("Error loading block model!", "error");
                                         })
                                     } else {
@@ -612,6 +615,7 @@ const Orchestrator = () => {
             }
             localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
             setLoading(false);
+            setLoadingMessage("");
         }).catch((_) => {
             localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
             handleToast("Error getting the pipelines!", "error");
