@@ -118,7 +118,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
                         setTimeout(retry, 10000);
                     }
                 } catch (error) {
-                    console.error('Error:', error);
+                    toast("Error fetching status. Retrying in 10 seconds!", "warning");
                     setTimeout(retry, 10000);
                 }
             };
