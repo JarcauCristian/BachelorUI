@@ -56,7 +56,6 @@ const Orchestrator = () => {
     const [disclaimerOpen, setDisclaimerOpen] = React.useState(false);
     const [tabName, setTabName] = React.useState("");
     const [batchName, setBatchName] = React.useState("");
-    const [counter, setCounter] = React.useState(0);
     const [pipelines, setPipelines] = React.useState({});
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
@@ -79,10 +78,6 @@ const Orchestrator = () => {
         setToastSeverity(severity);
         setToastOpen(true);
     }
-    
-    const handleBackdropClose = () => {
-        setLoading(false);
-    }
 
     const handleToastClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -95,7 +90,7 @@ const Orchestrator = () => {
 
 
     const handleTabAdd = () => {
-        if (counter > 9) {
+        if (tabs.length > 9) {
             handleToast("A maximum of 10 tabs can be opened at a time!", "warning");
             return;
         }
@@ -127,8 +122,8 @@ const Orchestrator = () => {
                 localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
                 setPipelinesBlocksNames(prevState => [...prevState, []]);
                 setTabsName(prevState => [...prevState, tabName]);
-                setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(counter, tabName)} />} iconPosition="end" {...a11yProps(counter)}/>]);
-                setCounter(counter + 1);
+                setTabs(prevComponents => [...prevComponents, <Tab key={tabs.length} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(tabName, [...tabsName, tabName])} />} iconPosition="end" {...a11yProps(tabs.length)}/>]);
+                setValue(tabsName.length);
                 setOpen(false);
             }).catch((_) => {
                 handleToast("Error creating pipeline!", "error")
@@ -146,11 +141,12 @@ const Orchestrator = () => {
         setValue(newValue);
     };
 
-    const handleTabClose = React.useCallback(async (index, tabName) => {
+    const handleTabClose = React.useCallback(async (tabName, localTabs) => {
         const name = tabName + "_" + Cookies.get("userID").split("-").join("_");
 
         let condition = false;
         setLoading(true);
+        setLoadingMessage(`Deleting pipeline ${tabName}...`);
 
         try {
             await axios({
@@ -164,6 +160,7 @@ const Orchestrator = () => {
 
         if (condition) {
             setLoading(false);
+            setLoadingMessage("");
             handleToast("Could not delete the pipeline!", "error");
             return;
         }
@@ -183,15 +180,32 @@ const Orchestrator = () => {
 
         if (condition) {
             setLoading(false);
+            setLoadingMessage("");
             handleToast("Could not delete files associated with the pipeline!", "error");
             return;
         }
 
-        setCounter(counter - 1);
+        let index;
+        for (let i = 0; i < localTabs.length; i++) {
+            if (tabName === localTabs[i]) {
+                index = i;
+                break;
+            }
+        }
+
+        const newLocalTabs = localTabs.filter((_, i) => i !== index);
+
         setTabs(prevComponents => {
-            const updatedComponents = [...prevComponents];
-            updatedComponents.splice(index, 1);
-            return updatedComponents;
+            const updatedComponents = prevComponents.filter((_, i) => i !== index);
+            return updatedComponents.map((component, i) => {
+               return <Tab
+                   key={component.key}
+                   label={component.props.label}
+                   icon={<ClearIcon onClick={() => handleTabClose(component.props.label, newLocalTabs)} />}
+                   iconPosition="end"
+                   {...a11yProps(component.key)}
+               />;
+            });
         })
 
         setPipelines((prevState) => {
@@ -212,6 +226,8 @@ const Orchestrator = () => {
             return updatedComponents;
         })
 
+        setValue(0);
+
         for (let i = 0; i < localStorage.length; i++) {
             if (localStorage.key(i).includes(tabName)) {
                 localStorage.removeItem(localStorage.key(i));
@@ -220,7 +236,8 @@ const Orchestrator = () => {
 
         localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
         setLoading(false);
-    }, [counter])
+        setLoadingMessage("");
+    }, [])
 
     const handleMainChange = ()=> {
             setExpanded(!expanded);
@@ -438,6 +455,7 @@ const Orchestrator = () => {
             method: "GET",
             url: PIPELINES(Cookies.get("userID").split("-").join("_"), changed)
         }).then((response) => {
+            const names = [];
             for (let i of response.data) {
                 const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
                 const type = i.type === "streaming" ? "stream" : "batch";
@@ -608,10 +626,10 @@ const Orchestrator = () => {
 
                     }
                 }
-
+                console.log(name);
+                names.push(name);
                 setTabsName(prevState => [...prevState, name]);
-                setTabs(prevComponents => [...prevComponents, <Tab key={counter} label={name} icon={<ClearIcon onClick={() => handleTabClose(counter, name)} />} iconPosition="end" {...a11yProps(counter)}/>]);
-                setCounter(counter + 1);
+                setTabs(prevComponents => [...prevComponents, <Tab key={tabs.length} label={name} icon={<ClearIcon onClick={() => handleTabClose(name, names)} />} iconPosition="end" {...a11yProps(tabs.length)}/>]);
             }
             localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
             setLoading(false);
@@ -622,7 +640,7 @@ const Orchestrator = () => {
             setLoading(false);
             setLoadingMessage("");
         })
-    }, [handleTabClose, tabs, tabsName, counter, pipelines])
+    }, [handleTabClose, tabs, tabsName, pipelines])
 
     React.useEffect(() => {
         const creation = pipelines[tabsName[value]] ? "stream" in pipelines[tabsName[value]] ? pipelines[tabsName[value]].stream.created : pipelines[tabsName[value]].batch.created : null;
@@ -694,7 +712,6 @@ const Orchestrator = () => {
             <Backdrop
                 sx={{ color: 'black', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
-                onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
@@ -728,7 +745,7 @@ const Orchestrator = () => {
                     <DialogTitle sx={{ fontWeight: "bold" }}>
                         DISCLAIMERS
                     </DialogTitle>
-                    <DialogContent>
+                    <DialogContent sx={{ fontSize: "1.25rem" }}>
                         You can upload a CSV of maximum 1 GB.
                     </DialogContent>
                     <DialogActions>

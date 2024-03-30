@@ -24,6 +24,8 @@ import {styled} from "@mui/material/styles";
 import {common} from "@mui/material/colors";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import background from "../images/background_image.jpg";
+import CustomTooltip from "../components/CustomTooltip";
+import InfoIcon from "@mui/icons-material/Info";
 
 const WhiteSwitch = styled(Switch)(({ theme }) => ({
     '& .MuiSwitch-switchBase.Mui-checked': {
@@ -67,10 +69,6 @@ const Datasets = () => {
         setToastMessage(message);
         setToastSeverity(severity);
         setOpen(true);
-    }
-
-    const handleBackdropClose = () => {
-        setLoading(false);
     }
 
     const clearFilters = () => {
@@ -283,7 +281,6 @@ const Datasets = () => {
             <Backdrop
                 sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
-                onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
@@ -309,12 +306,12 @@ const Datasets = () => {
                     <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                         <CardContent>
                             <Stack spacing={4} direction="row">
-                                <Tooltip title="Name of the dataset.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Name</Typography>
-                                </Tooltip>
-                                <Tooltip title="Description of the dataset.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
-                                </Tooltip>
+                                <CustomTooltip title="Name of the dataset.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Name</Typography>
+                                </CustomTooltip>
+                                <CustomTooltip title="Description of the dataset.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Description</Typography>
+                                </CustomTooltip>
                             </Stack>
                         </CardContent>
                         <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>

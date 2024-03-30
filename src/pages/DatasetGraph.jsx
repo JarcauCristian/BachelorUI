@@ -154,11 +154,6 @@ const DatasetGraph = () => {
         [setEdges]
     );
 
-    const handleBackdropClose = () => {
-        setLoading(false);
-    }
-
-
     return (
         <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column" }}>
             <Snackbar
@@ -172,7 +167,6 @@ const DatasetGraph = () => {
             <Backdrop
                 sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
-                onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>Loading Datasets</Typography>

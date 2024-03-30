@@ -28,6 +28,8 @@ import {GET_MODELS, GET_MODELS_USER, DOWNLOAD_MODEL} from "../components/utils/a
 import Transition from '../components/utils/transition';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import CustomTooltip from "../components/CustomTooltip";
+import InfoIcon from "@mui/icons-material/Info";
 
 const Models = ({user_id}) => {
     const [models, setModels] = React.useState([]);
@@ -123,11 +125,6 @@ const Models = ({user_id}) => {
 
         setOpen(false);
     };
-
-    const handleBackdropClose = () => {
-        setLoading(false);
-    }
-
     const clearFilters = () => {
         setCreationDate("");
         setModelIDFilter("");
@@ -185,7 +182,6 @@ const Models = ({user_id}) => {
             <Backdrop
                 sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
-                onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>Loading Models</Typography>
@@ -230,28 +226,28 @@ const Models = ({user_id}) => {
                         <CardContent>
                             <Stack spacing={4} direction="row">
                                 {user_id &&
-                                    <Tooltip title="Model ID">
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>ID</Typography>
-                                    </Tooltip>}
+                                    <CustomTooltip title="The ID of the model.">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  ID</Typography>
+                                    </CustomTooltip>}
                                 {!user_id &&
-                                    <Tooltip title="User ID">
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>ID</Typography>
-                                    </Tooltip>}
-                                <Tooltip title="Model Name">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Name</Typography>
-                                </Tooltip>
-                                <Tooltip title="Description">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
-                                </Tooltip>
-                                <Tooltip title="Creation Date">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation</Typography>
-                                </Tooltip>
-                                <Tooltip title="Model Type">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Type</Typography>
-                                </Tooltip>
-                                <Tooltip title="Overall score of the model.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Score</Typography>
-                                </Tooltip>
+                                    <CustomTooltip title="The ID of the user who created the model.">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  ID</Typography>
+                                    </CustomTooltip>}
+                                <CustomTooltip title="The name of the model.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Name</Typography>
+                                </CustomTooltip>
+                                <CustomTooltip title="The description of the model.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Description</Typography>
+                                </CustomTooltip>
+                                <CustomTooltip title="The date when the model was created.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Creation</Typography>
+                                </CustomTooltip>
+                                <CustomTooltip title="The type of the model can be classification, regression or clustering.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Type</Typography>
+                                </CustomTooltip>
+                                <CustomTooltip title="Overall score of the model.">
+                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Score</Typography>
+                                </CustomTooltip>
                             </Stack>
                         </CardContent>
                         <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>

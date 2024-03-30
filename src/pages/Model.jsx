@@ -131,10 +131,6 @@ const Model = () => {
         setOpen(false);
     };
 
-    const handleBackdropClose = () => {
-        setLoading(false);
-    }
-
     const getImages = async () => {
         setLoadingMessage("Getting Images");
         setLoading(true);
@@ -218,7 +214,6 @@ const Model = () => {
             <Backdrop
                 sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
-                onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>

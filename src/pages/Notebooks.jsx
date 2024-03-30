@@ -4,7 +4,7 @@ import {
     Alert,
     Backdrop,
     CardActions,
-    CircularProgress, Divider,
+    CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider,
     Snackbar,
     Stack, TextField, Tooltip
 } from "@mui/material";
@@ -26,6 +26,9 @@ import {
     UPDATE_ACCESS,
     USER_NOTEBOOKS_DETAILS
 } from "../components/utils/apiEndpoints";
+import Transition from "../components/utils/transition";
+import InfoIcon from '@mui/icons-material/Info';
+import CustomTooltip from "../components/CustomTooltip";
 
 
 const Notebooks = () => {
@@ -40,6 +43,7 @@ const Notebooks = () => {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [open, setOpen] = React.useState(false);
+    const [disclaimerOpen, setDisclaimerOpen] = React.useState(false);
     const navigate = useNavigate();
 
     const handleFilterApplication = () => {
@@ -70,10 +74,6 @@ const Notebooks = () => {
 
         setOpen(false);
     };
-
-    const handleBackdropClose = () => {
-        setLoading(false);
-    }
 
     const clearFilters = () => {
         setFilterNotebooks(notebooks);
@@ -149,6 +149,7 @@ const Notebooks = () => {
         isRun.current = true;
         const user_id = Cookies.get("userID").split("-").join("_");
         setLoading(true);
+        setDisclaimerOpen(true);
         axios({
             method: 'GET',
             url: USER_NOTEBOOKS_DETAILS(user_id),
@@ -183,34 +184,48 @@ const Notebooks = () => {
           <Backdrop
               sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
               open={loading}
-              onClick={handleBackdropClose}
           >
               <CircularProgress color="inherit" />
               <Typography variant="h4" sx={{ color: "white" }}>Loading Notebooks</Typography>
           </Backdrop>
+          <Dialog maxWidth="xl" open={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} TransitionComponent={Transition} keepMounted>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: 5 }}>
+                  <DialogTitle sx={{ fontWeight: "bold" }}>
+                      DISCLAIMERS
+                  </DialogTitle>
+                  <DialogContent sx={{ fontSize: "1.25rem" }}>
+                      Notebooks that are unused for 10 days, and all notebooks older then 20 days  will be automatically deleted.
+                  </DialogContent>
+                  <DialogActions>
+                      <Button variant="filled" sx={{ marginTop: 2, backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => setDisclaimerOpen(false)}>
+                          close
+                      </Button>
+                  </DialogActions>
+              </Box>
+          </Dialog>
           <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
             <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
-                <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+                <Card variant="outlined" sx={{ height: "10%", width: "90%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
                     <CardContent>
                         <Stack spacing={10} direction="row">
-                            <Tooltip title="Notebook ID">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>ID</Typography>
-                            </Tooltip>
-                            <Tooltip title="Notebook Description">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Description</Typography>
-                            </Tooltip>
-                            <Tooltip title="Creation Date">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Creation</Typography>
-                            </Tooltip>
-                            <Tooltip title="Expiration Date">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Expiration</Typography>
-                            </Tooltip>
-                            <Tooltip title="When the notebook was last accessed.">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Last Accessed</Typography>
-                            </Tooltip>
-                            <Tooltip title="Notebook Type">
-                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Type</Typography>
-                            </Tooltip>
+                            <CustomTooltip title="The ID of the notebook as it is stored in the database.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  ID</Typography>
+                            </CustomTooltip>
+                            <CustomTooltip title="The description of the notebook.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Description</Typography>
+                            </CustomTooltip>
+                            <CustomTooltip title="Creation Date of the notebook.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Creation</Typography>
+                            </CustomTooltip>
+                            <CustomTooltip title="The date at which the notebook will expire and will be deleted.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Expiration</Typography>
+                            </CustomTooltip>
+                            <CustomTooltip title="When the notebook was last accessed.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Last Accessed</Typography>
+                            </CustomTooltip>
+                            <CustomTooltip title="The type of the notebook.">
+                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Type</Typography>
+                            </CustomTooltip>
                         </Stack>
                     </CardContent>
                     <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
@@ -228,7 +243,7 @@ const Notebooks = () => {
                 {filterNotebooks.length !== 0 ?
                     filterNotebooks.map((notebook) => (
                         <Card key={notebook["notebook_id"]} variant="outlined" sx={{ overflowX: "auto", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
-                            <CardContent sx={{ width: 700 }}>
+                            <CardContent sx={{ width: 750 }}>
                                 <Stack spacing={4} direction="row">
                                     <Tooltip title={notebook["notebook_id"]}>
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{notebook["notebook_id"].length > 10 ? notebook["notebook_id"].slice(0, 10) + "..." : notebook["notebook_id"]}</Typography>
