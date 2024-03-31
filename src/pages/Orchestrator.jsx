@@ -703,7 +703,7 @@ const Orchestrator = () => {
         <div style={{ display: "flex", flexDirection: "row", alignItems: tabs.length > 0 ? "center" : "", justifyContent: tabs.length > 0 ? "space-between" : "", backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
             <Snackbar
                 open={toastOpen}
-                autoHideDuration={2000}
+                autoHideDuration={5000}
                 anchorOrigin={{ vertical, horizontal }}
                 onClose={handleToastClose}
             >

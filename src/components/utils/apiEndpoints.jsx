@@ -67,11 +67,13 @@ export const GET_MODELS_USER = (user_id) => `${modelsUrl}/model/user?user_id=${u
 
 export const GET_MODELS = `${modelsUrl}/model/all`;
 
+export const GET_MODEL_SCORE = (modelID) => `${modelsUrl}/model_score?model_id=${modelID}`;
+
 export const GET_MODEL_DETAILS = (model_id) => `${modelsUrl}/model_details?model_id=${model_id}`;
 
 export const GET_MODEL = (model_id) => `${modelsUrl}/model?model_id=${model_id}`;
 
-export const DOWNLOAD_MODEL = (model_id) => `${modelsUrl}/models/download?model_id=${model_id}`;
+export const DOWNLOAD_MODEL = (model_id) => `${modelsUrl}/model/download?model_id=${model_id}`;
 
 export const UPDATE_MODEL_SCORE = `${modelsUrl}/update_score`;
 

@@ -158,7 +158,7 @@ const DatasetGraph = () => {
         <div style={{ height: "100vh", width: "100vw", display: "flex", flexDirection: "column" }}>
             <Snackbar
                 open={toastOpen}
-                autoHideDuration={2000}
+                autoHideDuration={5000}
                 anchorOrigin={{ vertical, horizontal }}
                 onClose={handleToastClose}
             >

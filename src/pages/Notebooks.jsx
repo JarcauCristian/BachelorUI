@@ -175,7 +175,7 @@ const Notebooks = () => {
       <div style={{backgroundRepeat: "no-repeat", backgroundSize: "cover", backgroundImage: `url(${background})`, height: "100vh", width: "100vw", marginTop: 82 }}>
           <Snackbar
               open={open}
-              autoHideDuration={2000}
+              autoHideDuration={5000}
               anchorOrigin={{ vertical, horizontal }}
               onClose={handleClose}
           >

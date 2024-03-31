@@ -135,7 +135,7 @@ const Models = ({user_id}) => {
         navigate(`/models/${model_id}`);
     }
 
-    const handleDownload = async (model_id, notebook_type) => {
+    const handleDownload = async (model_id, model_name) => {
         try {
             setDownloading(true);
             const response = await axios({
@@ -143,16 +143,28 @@ const Models = ({user_id}) => {
                 url: DOWNLOAD_MODEL(model_id),
                 headers: {
                     "Authorization": "Bearer " + Cookies.get("token")
-                }
+                },
+                responseType: 'blob'
             })
-            const model_bytes = response.data;
-            const finalFilename = notebook_type === "sklearn" || notebook_type === "pytorch" ? `model-${notebook_type}.pkl` : `model-${notebook_type}.zip`
-            const url = window.URL.createObjectURL(new Blob([model_bytes]));
+
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = model_name + ".onnx"; // Default filename if not specified in header
+            if (contentDisposition) {
+                const matches = contentDisposition.match(/filename="?(.+)"?/);
+                if (matches.length === 2) {
+                    filename = matches[1];
+                }
+            }
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', finalFilename);
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
+
+            window.URL.revokeObjectURL(url);
+            link.remove();
             setDownloading(false);
           } catch (error) {
             handleToast("Error Downloading the model!", "error");
@@ -173,7 +185,7 @@ const Models = ({user_id}) => {
         <div style={{backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat', height: "100vh", width: "100vw", marginTop: 82 }}>
             <Snackbar
                 open={open}
-                autoHideDuration={2000}
+                autoHideDuration={5000}
                 anchorOrigin={{ vertical, horizontal }}
                 onClose={handleClose}
             >
@@ -264,22 +276,15 @@ const Models = ({user_id}) => {
                     </Card>
                     {filterModels.length !== 0 ?
                         filterModels.map((model) => (
-                            <Card key={model["model_id"]} variant="outlined" sx={{ overflowX: "auto", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
-                                <CardContent sx={{ width: 500 }}>
+                            <Card key={model["model_id"]} variant="outlined" sx={{ overflowX: "scroll", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
+                                <CardContent sx={{ width: "85%", overflow: "auto"}}>
                                     <Stack spacing={4} direction="row">
-                                        {user_id &&
-                                            <Tooltip title={model["model_id"]}>
-                                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_id"].length > 10 ? model["model_id"].slice(0, 10) + "..." : model["model_id"]}</Typography>
-                                            </Tooltip>
-                                        }
-                                        {!user_id &&
-                                            <Tooltip title={model["user_id"]}>
-                                                <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["user_id"].length > 10 ? model["user_id"].slice(0, 10) + "..." : model["user_id"]}</Typography>
-                                            </Tooltip>
-                                        }
-                                        <Tooltip title={model["model_name"]}>
+                                        <CustomTooltip title={model["model_id"]}>
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_id"].length > 10 ? model["model_id"].slice(0, 10) + "..." : model["model_id"]}</Typography>
+                                        </CustomTooltip>
+                                        <CustomTooltip title={model["model_name"]}>
                                             <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_name"].length > 10 ? model["model_name"].slice(0, 10) + "..." : model["model_name"]}</Typography>
-                                        </Tooltip>
+                                        </CustomTooltip>
                                         <Button
                                             variant="outlined"
                                             sx={{ color: "White", borderColor: "white", '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
@@ -288,7 +293,7 @@ const Models = ({user_id}) => {
                                             Check Dataset
                                         </Button>
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{format(new Date(model["created_at"]), "yyyy-dd-MM")}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["notebook_type"].toUpperCase()}</Typography>
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["notebook_type"]}</Typography>
                                         <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["score"]}</Typography>
                                     </Stack>
                                 </CardContent>
@@ -304,7 +309,7 @@ const Models = ({user_id}) => {
                                     <Button
                                         variant="outlined"
                                         sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
-                                        onClick={() => handleDownload(model["model_id"], model["notebook_type"])}
+                                        onClick={() => handleDownload(model["model_id"], model["model_name"])}
                                         disabled={downloading}
                                     >
                                         {downloading ? "Downloading..." : "Download Model"}
