@@ -59,17 +59,17 @@ export const UPDATE_ACCESS = (uid) => `${notebooksUrl}/update_access?uid=${uid}`
 
 export const DELETE_NOTEBOOK = (uid) => `${notebooksUrl}/delete_notebook?uid=${uid}`;
 
-export const USER_NOTEBOOKS_DETAILS = (user_id) => `${notebooksUrl}/get_notebook_details?user_id=${user_id}`;
+export const USER_NOTEBOOKS_DETAILS = (user_id, changed) => `${notebooksUrl}/get_notebook_details?user_id=${user_id}&changed=${changed}`;
 
 export const GET_DATASET = (path) => `${balancerUrl}/get/object?path=${path}`
 
-export const GET_MODELS_USER = (user_id) => `${modelsUrl}/model/user?user_id=${user_id}`;
+export const GET_MODELS_USER = (user_id, changed) => `${modelsUrl}/model/user?user_id=${user_id}&changed=${changed}`;
 
-export const GET_MODELS = `${modelsUrl}/model/all`;
+export const GET_MODELS = (changed) => `${modelsUrl}/model/all?changed=${changed}`;
 
-export const GET_MODEL_DETAILS = (model_id) => `${modelsUrl}/model_details?model_id=${model_id}`;
+export const GET_MODEL_DETAILS = (model_id, changed) => `${modelsUrl}/model_details?model_id=${model_id}&changed=${changed}`;
 
-export const GET_MODEL = (model_id) => `${modelsUrl}/model?model_id=${model_id}`;
+export const GET_MODEL = (model_id, changed) => `${modelsUrl}/model?model_id=${model_id}&changed=${changed}`;
 
 export const DOWNLOAD_MODEL = (model_id) => `${modelsUrl}/models/download?model_id=${model_id}`;
 

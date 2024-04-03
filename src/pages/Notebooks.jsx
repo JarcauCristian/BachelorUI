@@ -135,6 +135,8 @@ const Notebooks = () => {
 
             const aux = notebooks.filter((obj) => obj["notebook_id"] !== notebook_id);
 
+            localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-notebooks-changed`, JSON.stringify(true));
+
             setNotebooks(aux);
             setFilterNotebooks(aux);
         }).catch(() => {
@@ -147,11 +149,14 @@ const Notebooks = () => {
         if (isRun.current) return;
 
         isRun.current = true;
+
+        const changed = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-notebooks-changed`);
+
         const user_id = Cookies.get("userID").split("-").join("_");
         setLoading(true);
         axios({
             method: 'GET',
-            url: USER_NOTEBOOKS_DETAILS(user_id),
+            url: USER_NOTEBOOKS_DETAILS(user_id, changed ? JSON.parse(changed) : false),
             timeout: 1000*10,
             headers: {
                 'Content-Type': "application/json",
@@ -162,6 +167,7 @@ const Notebooks = () => {
             setNotebooks(sortedData);
             setFilterNotebooks(sortedData);
             setLoading(false);
+            localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-notebooks-changed`, JSON.stringify(false));
         }).catch((_) => {
             handleToast("Error getting Notebooks!", "error");
             setLoading(false);

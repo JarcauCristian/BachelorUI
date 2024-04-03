@@ -25,7 +25,6 @@ function ResponsiveAppBar({logout, role, username}) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [hoverEffect, setHoverEffect] = React.useState([]);
   const [logoutHover, setLogoutHover] = React.useState(false);
-  const [logoHover, setLogoHover] = React.useState(false);
   const [windowDimensions, setWindowDimensions] = React.useState(getWindowDimensions());
   const isRun = React.useRef(false);
   const navigate = useNavigate();
@@ -72,14 +71,6 @@ function ResponsiveAppBar({logout, role, username}) {
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
-
-  const handleLogoEnter = () => {
-      setLogoHover(true);
-  }
-
-  const handleLogoLeave = () => {
-      setLogoHover(false);
-  }
 
   // Hover over one item form an array
   const handleMouseEnter = (index) => {
@@ -134,16 +125,14 @@ function ResponsiveAppBar({logout, role, username}) {
   }, []);
 
   return (
-    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ height: 84, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", height: 84, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <Button sx={{ fontSize: logoHover ? 45 : 40, cursor: "pointer" }}
-                   onMouseLeave={handleLogoLeave}
-                   onMouseEnter={handleLogoEnter}
+          <Button sx={{ fontSize: 22, cursor: "pointer", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}
                    onClick={windowDimensions > 1500 ? goToHome : handleOpenMenu} >
             <AdjustIcon sx={{fontSize: 40, color: "white", marginRight: 1}} />
             <Typography variant="p" sx={{color: "white", marginRight: 2}}>
-              AI1
+              DataForge AI
             </Typography>
           </Button>
           {windowDimensions > 1000 ?
@@ -169,35 +158,35 @@ function ResponsiveAppBar({logout, role, username}) {
             )) : undefined}
           </Box> :
               <Box>
-            <Menu
-                sx={{ mt: "45px" }}
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorEl)}
-                onClose={handleCloseMenu}
-            >
-              {pages ? pages.map((page) => (
-                  <MenuItem key={page}>
-                    <Typography textAlign="center" onClick={() => handleRedirect(page)} >
-                      {page}
-                      <Divider sx={{ color: "black", backgroundColor: "black" }}/>
-                    </Typography>
-                  </MenuItem>
-              )) : undefined}
-            </Menu>
-          </Box>
+                <Menu
+                    sx={{ mt: "45px" }}
+                    id="menu-appbar"
+                    anchorEl={anchorEl}
+                    anchorOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                    open={Boolean(anchorEl)}
+                    onClose={handleCloseMenu}
+                >
+                  {pages ? pages.map((page) => (
+                      <MenuItem key={page}>
+                        <Typography textAlign="center" onClick={() => handleRedirect(page)} >
+                          {page}
+                          <Divider sx={{ color: "black", backgroundColor: "black" }}/>
+                        </Typography>
+                      </MenuItem>
+                  )) : undefined}
+                </Menu>
+              </Box>
             }
 
-          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", flexGrow: 0, marginLeft: windowDimensions > 1000 ? 0 : windowDimensions/10 - 3}}>
+          <Box sx={{ marginLeft: 30, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center"}}>
             <Chip label={username} sx={{backgroundColor: "white", color: "black", fontWeight: "bold", marginRight: 2}}/>
             <Button
                 sx={{

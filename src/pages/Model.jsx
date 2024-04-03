@@ -116,6 +116,7 @@ const Model = () => {
                     score: score
                 }
             }).then((_) => {
+                localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`, JSON.stringify(true));
                 handleToast("Score Updated Successfully", "success");
             }).catch((_) => {
                 handleToast("Problem Updating Score", "error");
@@ -172,11 +173,13 @@ const Model = () => {
 
         isRun.current = true;
 
+        const changed = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`);
+
         setLoadingMessage("Getting Model Details");
         setLoading(true);
         axios({
             method: 'GET',
-            url: GET_MODEL_DETAILS(modelID),
+            url: GET_MODEL_DETAILS(modelID, changed ? JSON.parse(changed) : false),
             headers: {
                 'Content-Type': "application/json",
                 "Authorization": "Bearer " + Cookies.get("token")
@@ -185,7 +188,7 @@ const Model = () => {
             setModelData(response.data);
             axios({
                 method: 'GET',
-                url: GET_MODEL(modelID),
+                url: GET_MODEL(modelID, changed ? JSON.parse(changed) : false),
                 headers: {
                     'Content-Type': "application/json",
                     "Authorization": "Bearer " + Cookies.get("token")
@@ -194,6 +197,7 @@ const Model = () => {
                 setLoading(false);
                 setModelDetails(response.data);
                 setModelDescription(JSON.parse(response.data.description));
+                localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`, JSON.stringify(false));
             }).catch((_) => {
                 handleToast("Failed to load model Details!", "error");
                 setLoading(false);

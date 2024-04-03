@@ -51,7 +51,9 @@ const Models = ({user_id}) => {
 
         isRun.current = true;
 
-        const url = user_id ? GET_MODELS_USER(user_id) : GET_MODELS;
+        const changed = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`);
+
+        const url = user_id ? GET_MODELS_USER(user_id, changed ? JSON.parse(changed) : false) : GET_MODELS(changed ? JSON.parse(changed) : false);
 
         setLoading(true);
         axios({
@@ -66,6 +68,7 @@ const Models = ({user_id}) => {
             setLoading(false);
             setModels(response.data);
             setFilterModels(response.data);
+            localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`, JSON.stringify(false));
         }).catch((error) => {
             setModels([]);
             setLoading(false);
