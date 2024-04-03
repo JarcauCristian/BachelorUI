@@ -172,7 +172,7 @@ const LandingPage = ({role, userID}) => {
         <div style={{backgroundColor: "#D9D9D9", height: "100vh", marginTop: 82 }}>
             <Snackbar
                 open={open}
-                autoHideDuration={2000}
+                autoHideDuration={5000}
                 anchorOrigin={{ vertical, horizontal }}
                 onClose={handleClose}
             >

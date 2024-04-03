@@ -6,10 +6,10 @@ import {
     AccordionSummary,
     Alert,
     Backdrop,
-    CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
+    CircularProgress, createTheme, Dialog, DialogActions, DialogContent, DialogTitle,
     Divider, FormControl, FormGroup, FormLabel, Input,
     List,
-    Snackbar, Tooltip,
+    Snackbar, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, ThemeProvider
 } from "@mui/material";
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
@@ -23,11 +23,30 @@ import {
     GET_MODEL_DETAILS,
     UPDATE_MODEL_SCORE,
     PREDICTION,
-    GET_MODEL_IMAGES
+    GET_MODEL_IMAGES, GET_MODEL_SCORE
 } from "../components/utils/apiEndpoints";
 import {format} from "date-fns";
 import Transition from '../components/utils/transition';
 import Box from "@mui/material/Box";
+import CustomTooltip from "../components/CustomTooltip";
+import Paper from "@mui/material/Paper";
+
+const theme = createTheme({
+    components: {
+        MuiListItemText: {
+            styleOverrides: {
+                primary: {
+                    color: 'white',
+                    fontSize: '1.10rem',
+                },
+                secondary: {
+                    color: 'lightgray',
+                    fontSize: '1rem',
+                },
+            },
+        },
+    },
+});
 
 const Model = () => {
     const {modelID} = useParams();
@@ -48,6 +67,7 @@ const Model = () => {
     const [dialogOpen, setDialogOpen] = React.useState(false);
     const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
     const [images, setImages] = React.useState({});
+    const fileInputRef = React.useRef(null);
 
     const handleDialogClose = () => {
         if (dialogOpen) setDialogOpen(false);
@@ -78,6 +98,8 @@ const Model = () => {
     const handlePrediction = () => {
         let formData = new FormData()
         formData.append("file", file)
+        setLoading(true);
+        setLoadingMessage("Getting prediction...");
         axios({
             method: "POST",
             url: PREDICTION(modelID),
@@ -89,9 +111,16 @@ const Model = () => {
         }).then((response) => {
             setPredictions(response.data);
             setDialogOpen(true);
+            setLoading(false);
+            setLoadingMessage("");
         }).catch((error) => {
-            console.error(error);
-            handleToast("Failed to get predictions!", "error");
+            setLoading(false);
+            setLoadingMessage("");
+            if (error.response) {
+                handleToast(error.response.data, "error");
+            } else {
+                handleToast("Encounter an error when loading predictions!", "error");
+            }
         })
     }
 
@@ -103,7 +132,7 @@ const Model = () => {
 
     const handleScore = () => {
         if (score < 0 || score > 10) {
-            handleToast("Score should be between 0 and 10", "error");
+            handleToast("Score should be between 0 and 10!", "error");
         } else {
             axios({
                 method: "POST",
@@ -118,11 +147,37 @@ const Model = () => {
             }).then((_) => {
                 localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`, JSON.stringify(true));
                 handleToast("Score Updated Successfully", "success");
-            }).catch((_) => {
-                handleToast("Problem Updating Score", "error");
+                localStorage.setItem(`${modelID}-updated-score`, JSON.stringify(true));
+            }).catch((error) => {
+                if (error.response) {
+                    handleToast(error.response.data, "error");
+                } else {
+                    handleToast("Problem Updating Score", "error");
+                }
             })
         }
     }
+
+    React.useEffect(() => {
+        const updated = localStorage.getItem(`${modelID}-updated-score`);
+
+        if (updated) {
+            axios({
+                method: "GET",
+                url: GET_MODEL_SCORE(modelID),
+                headers: {
+                    "Authorization": "Bearer " + Cookies.get("token")
+                }
+            }).then((response) => {
+                const newModelDetails = modelDetails;
+
+                newModelDetails["score"] = response.data;
+
+                setModelDetails(newModelDetails);
+            })
+            localStorage.removeItem(`${modelID}-updated-score`);
+        }
+    })
 
     const handleClose = (event, reason) => {
         if (reason === 'clickaway') {
@@ -132,13 +187,19 @@ const Model = () => {
         setOpen(false);
     };
 
-    const handleBackdropClose = () => {
-        setLoading(false);
-    }
-
     const getImages = async () => {
         setLoadingMessage("Getting Images");
         setLoading(true);
+
+        const localStorageImages = localStorage.getItem(`${modelID}-images`);
+
+        if (localStorageImages) {
+            setImages(JSON.parse(localStorageImages));
+            setImageDialogOpen(true);
+            setLoadingMessage("");
+            setLoading(false);
+            return;
+        }
 
         try {
             const response = await axios({
@@ -147,7 +208,8 @@ const Model = () => {
                 headers: {
                     'Content-Type': "application/json",
                     "Authorization": "Bearer " + Cookies.get("token")
-                }
+                },
+                timeout: 10000
             })
 
             if (response.status === 200) handleToast("Images loaded successfully!");
@@ -159,12 +221,86 @@ const Model = () => {
                 newImages[newKey] = v;
             }
 
+            localStorage.setItem(`${modelID}-images`, JSON.stringify(images));
+
             setLoading(false);
             setImages(newImages);
             setImageDialogOpen(true);
+            setLoadingMessage("");
         } catch (_) {
             setLoading(false);
             handleToast("Could not load model images!", "error");
+        }
+    }
+
+    const SectionTitle = ({ children }) => (
+        <Typography sx={{
+            fontWeight: "bold",
+            fontSize: "1.25rem",
+            mt: 2,
+            width: '100%',
+            textAlign: 'left',
+            pl: 2,
+        }}>
+            {children}
+        </Typography>
+    );
+
+    const clearFile = () => {
+        setFile(null);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    }
+
+    const convertToCSV = (data) => {
+        const headers = Object.keys(data[0]);
+        const csvRows = [headers.join(',')];
+
+        data.forEach(row => {
+            const values = headers.map(header => {
+                const escaped = (''+row[header]).replace(/"/g, '\\"'); // escape double quotes
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        });
+
+        return csvRows.join('\n');
+    };
+
+    const downloadPredictions = () => {
+        const newPredictions = [];
+
+        for (let [k, v] of Object.entries(predictions)) {
+            const prediction = {}
+            prediction["row_index"] = k;
+            if (modelDetails["target_column"] !== "") {
+                prediction["prediction"] = modelDescription["column_categories"][modelDetails["target_column"]][v];
+            } else {
+                prediction["prediction"] = v;
+            }
+
+            newPredictions.push(prediction);
+        }
+
+        if (newPredictions.length > 0) {
+            const csvData = convertToCSV(newPredictions);
+
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `predictions-${modelID}.csv`;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            URL.revokeObjectURL(url);
+        } else {
+            handleToast("Please get the predictions first!", "warning");
         }
     }
 
@@ -183,7 +319,8 @@ const Model = () => {
             headers: {
                 'Content-Type': "application/json",
                 "Authorization": "Bearer " + Cookies.get("token")
-            }
+            },
+            timeout: 30000
         }).then((response) => {
             setModelData(response.data);
             axios({
@@ -192,7 +329,8 @@ const Model = () => {
                 headers: {
                     'Content-Type': "application/json",
                     "Authorization": "Bearer " + Cookies.get("token")
-                }
+                },
+                timeout: 30000
             }).then((response) => {
                 setLoading(false);
                 setModelDetails(response.data);
@@ -210,10 +348,10 @@ const Model = () => {
     }, [modelID])
 
     return (
-        <div style={{ backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
+        <div style={{ overflow: "auto", backgroundColor: "white", width: "100vw", height: "100vh" }}>
             <Snackbar
                 open={open}
-                autoHideDuration={2000}
+                autoHideDuration={5000}
                 anchorOrigin={{ vertical, horizontal }}
                 onClose={handleClose}
             >
@@ -222,7 +360,6 @@ const Model = () => {
             <Backdrop
                 sx={{ color: 'gray', zIndex: (theme) => theme.zIndex.drawer + 1, display: "flex", flexDirection: "column" }}
                 open={loading}
-                onClick={handleBackdropClose}
             >
                 <CircularProgress color="inherit" />
                 <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
@@ -233,22 +370,41 @@ const Model = () => {
                 keepMounted
                 onClose={handleDialogClose}
                 aria-describedby="alert-dialog-slide-description"
+                maxWidth="xl"
             >
                 <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>Model Predictions</DialogTitle>
                 <DialogContent>
                     {predictions && (
-                        <List>
-                            {Object.entries(predictions).map(([key, value]) => (
-                                <ListItem key={key}>
-                                    <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>
-                                        Row: {key} - Prediction: {value}
-                                    </Typography>
-                                </ListItem>
-                            ))}
-                        </List>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }} aria-label="customized table">
+                                <TableHead>
+                                    <TableRow>
+                                       <TableCell align="center">
+                                           <Typography variant="subtitle1">Row Index</Typography>
+                                       </TableCell>
+                                        <TableCell align="center">
+                                            <Typography variant="subtitle1">Prediction</Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {Object.entries(predictions).map(([key, value]) => (
+                                        <TableRow key={key}>
+                                            <TableCell align="center">
+                                                {key}
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                {modelDetails["target_column"] === "" ? value : modelDescription["column_categories"][modelDetails["target_column"]][value]}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                     )}
                 </DialogContent>
                 <DialogActions>
+                    <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={downloadPredictions}>Download Predictions</Button>
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleDialogClose}>Close</Button>
                 </DialogActions>
             </Dialog>
@@ -257,6 +413,7 @@ const Model = () => {
                 TransitionComponent={Transition}
                 keepMounted
                 onClose={handleDialogClose}
+                maxWidth="xl"
                 aria-describedby="alert-dialog-slide-description"
             >
                 <DialogTitle sx={{ fontWeight: "bold", fontSize: 20 }}>Model Images</DialogTitle>
@@ -267,7 +424,7 @@ const Model = () => {
                                 <ListItem key={key} alignItems="flex-start">
                                     <Box>
                                         <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: 16, marginBottom: 1 }}>
-                                            Image Name: {key}
+                                            Image Name: {key.split(".")[0]}
                                         </Typography>
                                         <img src={value} alt={key} style={{ maxWidth: '100%', height: 'auto', borderRadius: 4 }} />
                                     </Box>
@@ -280,8 +437,8 @@ const Model = () => {
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleDialogClose}>Close</Button>
                 </DialogActions>
             </Dialog>
-            <div style={{ width: "100vw", height: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>
-                <Card sx={{ width: "90vw", height: "55vh", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
+            <div style={{ marginTop: 10, width: "100vw", height: 1300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>
+                <Card sx={{ height: 550, width: "85vw", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
                     {modelDetails && (
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
@@ -293,11 +450,11 @@ const Model = () => {
                                     <Typography sx={{ fontWeight: "bold" }}>MODEL ID</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Tooltip title={modelDetails.model_id.toUpperCase()}>
+                                    <CustomTooltip title={modelDetails.model_id.toUpperCase()}>
                                         <Typography>
                                             {modelDetails.model_id.length > 28 ? modelDetails.model_id.toUpperCase().slice(0, 28) + "..." : modelDetails.model_id.toUpperCase()}
                                         </Typography>
-                                    </Tooltip>
+                                    </CustomTooltip>
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
@@ -309,11 +466,11 @@ const Model = () => {
                                     <Typography sx={{ fontWeight: "bold" }}>MODEL NAME</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Tooltip title={modelDetails["model_name"].toUpperCase()}>
+                                    <CustomTooltip title={modelDetails["model_name"].toUpperCase()}>
                                         <Typography>
                                             {modelDetails["model_name"].length > 28 ? modelDetails["model_name"].toUpperCase().slice(0, 28) + "..." : modelDetails["model_name"].toUpperCase()}
                                         </Typography>
-                                    </Tooltip>
+                                    </CustomTooltip>
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
@@ -325,11 +482,11 @@ const Model = () => {
                                     <Typography sx={{ fontWeight: "bold" }}>DESCRIPTION</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Tooltip title={modelData["description"]}>
+                                    <CustomTooltip title={modelData["description"]}>
                                         <Typography>
                                             {modelData["description"].length > 70 ? modelData["description"].slice(0, 70) + "..." : modelData["description"]}
                                         </Typography>
-                                    </Tooltip>
+                                    </CustomTooltip>
                                 </AccordionDetails>
                             </Accordion>
                             <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
@@ -377,7 +534,7 @@ const Model = () => {
                         </div>
                     )}
                     {modelDetails && (
-                        <FormGroup sx={{width: 500, color: "#FFFFFF", display: modelDetails.notebook_type === "transformers" ? "none" : "block"}}>
+                        <FormGroup sx={{width: 500, color: "#FFFFFF", display: modelDetails.notebook_type === "transformers" ? "none" : "flex", flexDirection:  "column"}}>
                             <Snackbar
                                 open={open}
                                 autoHideDuration={3000}
@@ -391,105 +548,234 @@ const Model = () => {
                             <FormLabel sx={{fontWeight: "bold", color: "white"}}>Upload a CSV File</FormLabel>
                             <Divider sx={{fontSize: 2, backgroundColor: "white"}}/>
                             <FormControl>
-                                <Input sx={{marginTop: 5, backgroundColor: 'white', borderRadius: 2}} type="file" onChange={handleFilesChange}/>
+                                <TextField
+                                    type="file"
+                                    fullWidth
+                                    sx={{ backgroundColor: "white", mt: 2 }}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                    inputProps={{
+                                        accept: ".csv",
+                                        ref: fileInputRef,
+                                    }}
+                                    onChange={handleFilesChange}
+                                />
                             </FormControl>
-                            <Button variant="contained" sx={{backgroundColor: "white", color: "black", marginTop: 10, '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={handlePrediction}>Get Prediction</Button>
+                            <Stack direction="row" spacing={2} sx={{ marginTop: 3 }}>
+                                <Button fullWidth variant="contained" sx={{ height: 40, fontWeight: "bold", backgroundColor: "white", color: "black", '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={handlePrediction}>Get Prediction</Button>
+                                <Button fullWidth variant="contained" sx={{ height: 40, fontWeight: "bold", backgroundColor: "white", color: "black", '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={clearFile}>Clear File</Button>
+                            </Stack>
                         </FormGroup>
                     )}
                     {!modelDetails && (
                         <Typography variant="h5" sx={{ color: "white" }}>Model Data Could Not Be Loaded</Typography>
                     )}
                 </Card>
-                <div style={{ marginTop: 10, width: "100vw", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
-                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
-                        <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL PARAMETERS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
+                <div style={{ width: "100vw", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                    <Card sx={{
+                        width: 300,
+                        height: "50vh",
+                        overflow: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        borderRadius: 5,
+                        backgroundColor: "#36454f",
+                        color: "white",
+                        boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.7)",
+                        padding: '20px',
+                        '&::-webkit-scrollbar': {
+                            width: '0.4em'
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+                            webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderRadius: '4px'
+                        }
+                    }} variant="outlined">
+                        <Typography variant="h6" component="div" sx={{
+                            fontWeight: "bold",
+                            fontSize: "1.25rem",
+                            marginBottom: 2,
+                        }}>
+                            MODEL PARAMETERS
+                        </Typography>
+                        <Divider flexItem sx={{ backgroundColor: "white", height: 2, width: '100%' }}/>
                         {modelData.params && (
-                            <List>
+                            <List sx={{
+                                width: '100%',
+                                marginTop: 2,
+                            }}>
                                 {Object.entries(modelData.params).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.replace(/_/g, " ").toUpperCase()} secondary={value} />
+                                    <ListItem key={key} sx={{
+                                        flexDirection: "column",
+                                        alignItems: "flex-start",
+                                        padding: '8px 0',
+                                    }}>
+                                        <ThemeProvider theme={theme}>
+                                            <ListItemText
+                                                primary={key.replace(/_/g, " ").toUpperCase()}
+                                                secondary={value}
+                                                primaryTypographyProps={{variant: 'subtitle1'}}
+                                                secondaryTypographyProps={{variant: 'body1'}}
+                                            />
+                                        </ThemeProvider>
                                     </ListItem>
                                 ))}
                             </List>
                         )}
                     </Card>
-                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
-                        <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL METRICS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
+                    <Card sx={{
+                        width: 300,
+                        height: "50vh",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        borderRadius: 5,
+                        backgroundColor: "#36454f",
+                        color: "white",
+                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.7)",
+                        padding: '20px',
+                        overflow: 'auto',
+                        '&::-webkit-scrollbar': {
+                            width: '0.4em'
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+                            webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderRadius: '4px'
+                        }
+                    }} variant="outlined">
+                        <Typography variant="h6" component="div" sx={{
+                            fontWeight: "bold",
+                            fontSize: '1.25rem',
+                            marginBottom: 2,
+                        }}>
+                            MODEL METRICS
+                        </Typography>
+                        <Divider flexItem sx={{ backgroundColor: "white", height: 2, width: '100%' }}/>
                         {modelData["metrics"] && (
-                            <List>
+                            <List sx={{
+                                width: '100%',
+                                marginTop: 2,
+                            }}>
                                 {Object.entries(modelData["metrics"]).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.replace(/_/g, " ").toUpperCase()} secondary={value} />
+                                    <ListItem key={key} sx={{
+                                        flexDirection: "column",
+                                        alignItems: "flex-start",
+                                        padding: '8px 0', // spacing between items
+                                    }}>
+                                        <ThemeProvider theme={theme}>
+                                            <ListItemText
+                                                primary={key.replace(/_/g, " ").toUpperCase()}
+                                                secondary={value}
+                                                primaryTypographyProps={{variant: 'subtitle1'}}
+                                                secondaryTypographyProps={{variant: 'body2'}}
+                                            />
+                                        </ThemeProvider>
                                     </ListItem>
                                 ))}
                             </List>
                         )}
                     </Card>
-                    <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
-                        <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>MODEL TAGS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
-                        {modelData.tags && (
-                            <List>
-                                {Object.entries(modelData.tags).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.replace(/_/g, " ").toUpperCase()} secondary={value} />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        )}
-                    </Card>
-                    <Card sx={{minWidth: 280, minHeight: "40vh", overflowY: "scroll", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5, backgroundColor: "#36454f", color: "white" }} variant="outlined">
-                        <Typography variant="p" sx={{ fontWeight: "bold", fontSize: 20 }}>TRAIN DATASET DETAILS</Typography>
-                        <Divider flexItem sx={{ backgroundColor: "black", height: 2 }}/>
+                    <Card sx={{
+                        width: 300,
+                        height: "50vh",
+                        overflowY: "auto",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        borderRadius: 5,
+                        backgroundColor: "#36454f",
+                        color: "white",
+                        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.7)",
+                        padding: '20px',
+                        '&::-webkit-scrollbar': {
+                            width: '0.4em'
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+                            webkitBoxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderRadius: '4px'
+                        }
+                    }} variant="outlined">
+                        <Typography variant="h6" component="div" sx={{
+                            fontWeight: "bold",
+                            fontSize: '1.25rem',
+                            width: '100%',
+                            textAlign: 'center',
+                            marginBottom: 2,
+                        }}>
+                            TRAIN DATASET DETAILS
+                        </Typography>
+                        <Divider flexItem sx={{ backgroundColor: "white", height: 2, width: '100%' }}/>
                         {modelDescription["column_dtypes"] && (
-                            <Typography sx={{ fontWeight: "bold" }}>Column Types</Typography>
-                        )}
-                        {modelDescription["column_dtypes"] && (
-                            <List>
-                                {Object.entries(modelDescription["column_dtypes"]).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.toUpperCase()} secondary={value} />
-                                    </ListItem>
-                                ))}
-                            </List>
+                            <>
+                                <SectionTitle>Column Types:</SectionTitle>
+                                <List sx={{ width: '100%', pl: 2 }}>
+                                    {Object.entries(modelDescription["column_dtypes"]).map(([key, value]) => (
+                                        <ListItem key={key} sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+                                            <ThemeProvider theme={theme}>
+                                                <ListItemText primary={key.toUpperCase() + ":"} secondary={value !== null ? value : "-"} />
+                                            </ThemeProvider>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </>
                         )}
                         {modelDescription["column_ranges"] && (
-                            <Typography sx={{ fontWeight: "bold" }}>Column Ranges</Typography>
-                        )}
-                        {modelDescription["column_ranges"] && (
-                            <List>
-                                {Object.entries(modelDescription["column_ranges"]).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.toUpperCase()} secondary={value} />
-                                    </ListItem>
-                                ))}
-                            </List>
+                            <>
+                                <SectionTitle>Column Ranges:</SectionTitle>
+                                <List sx={{ width: '100%', pl: 2 }}>
+                                    {Object.entries(modelDescription["column_ranges"]).map(([key, value]) => (
+                                        <ListItem key={key} sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+                                            <ThemeProvider theme={theme}>
+                                                <ListItemText primary={key.toUpperCase() + ":"} secondary={value !== null ? value[0] + " - " + value[1] : "-"} />
+                                            </ThemeProvider>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </>
                         )}
                         {modelDescription["column_categories"] && (
-                            <Typography sx={{ fontWeight: "bold" }}>Column Categories</Typography>
-                        )}
-                        {modelDescription["column_categories"] && (
-                            <List>
-                                {Object.entries(modelDescription["column_categories"]).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.toUpperCase()} secondary={value} />
-                                    </ListItem>
-                                ))}
-                            </List>
+                            <>
+                                <SectionTitle>Column Categories:</SectionTitle>
+                                <List sx={{ width: '100%', pl: 2 }}>
+                                    {Object.entries(modelDescription["column_categories"]).map(([key, value]) => (
+                                        <ListItem key={key} sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+                                            <ThemeProvider theme={theme}>
+                                                <ListItemText primary={key.toUpperCase() + ":"} secondary={
+                                                    value !== null ? value.join(", ") : "-"
+                                                } />
+                                            </ThemeProvider>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </>
                         )}
                         {modelDescription["column_unique_values"] && (
-                            <Typography sx={{ fontWeight: "bold" }}>Column Unique Values</Typography>
-                        )}
-                        {modelDescription["column_unique_values"] && (
-                            <List>
-                                {Object.entries(modelDescription["column_unique_values"]).map(([key, value]) => (
-                                    <ListItem key={key}>
-                                        <ListItemText primary={key.toUpperCase()} secondary={value} />
-                                    </ListItem>
-                                ))}
-                            </List>
+                            <>
+                                <SectionTitle>Column Unique Values:</SectionTitle>
+                                <List sx={{ width: '100%', pl: 2 }}>
+                                    {Object.entries(modelDescription["column_unique_values"]).map(([key, value]) => (
+                                        <ListItem key={key} sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+                                            <ThemeProvider theme={theme}>
+                                                <ListItemText primary={key.toUpperCase() + ":"} secondary={value !== null ? value : "-"} />
+                                            </ThemeProvider>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </>
                         )}
                     </Card>
                 </div>

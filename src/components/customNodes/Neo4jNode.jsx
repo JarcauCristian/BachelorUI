@@ -175,8 +175,22 @@ function Neo4jNode({ data, isConnectable }) {
             return;
         }
 
+        const regexExpDesc = /^[a-z0-9A-Z _.,?"';:]+$/
+
+        if (regexExpDesc.test(JSON.stringify(description))) {
+            data.toast("Notebook description can only contain lowercase and uppercase letters, numbers, spaces, underscores and punctuations!", "info");
+            return;
+        }
+
         if ([undefined, "", null].includes(modelName)) {
             data.toast("Please enter a name for the model that will result from the notebook!", "info");
+            return;
+        }
+
+        const regexExp = /^[a-z_]+$/
+
+        if (!regexExp.test(JSON.stringify(modelName))) {
+            data.toast("Model Name can contain only lowercase letters and underscores!", "info");
             return;
         }
 

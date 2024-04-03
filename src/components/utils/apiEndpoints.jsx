@@ -69,9 +69,11 @@ export const GET_MODELS = (changed) => `${modelsUrl}/model/all?changed=${changed
 
 export const GET_MODEL_DETAILS = (model_id, changed) => `${modelsUrl}/model_details?model_id=${model_id}&changed=${changed}`;
 
+export const GET_MODEL_SCORE = (modelID) => `${modelsUrl}/model_score?model_id=${modelID}`;
+
 export const GET_MODEL = (model_id, changed) => `${modelsUrl}/model?model_id=${model_id}&changed=${changed}`;
 
-export const DOWNLOAD_MODEL = (model_id) => `${modelsUrl}/models/download?model_id=${model_id}`;
+export const DOWNLOAD_MODEL = (model_id) => `${modelsUrl}/model/download?model_id=${model_id}`;
 
 export const UPDATE_MODEL_SCORE = `${modelsUrl}/update_score`;
 
