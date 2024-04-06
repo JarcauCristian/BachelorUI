@@ -360,7 +360,7 @@ const Notebooks = () => {
                                         sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                                         fullWidth
                                     >
-                                        Filter Models
+                                        Filter Notebooks
                                     </Button>
                                 </Stack>
                             </CardActions>
