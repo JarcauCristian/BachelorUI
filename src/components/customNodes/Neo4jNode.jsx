@@ -32,6 +32,15 @@ function Neo4jNode({ data, isConnectable }) {
     const [isHovered, setIsHovered] = React.useState(false);
     const dummyPassword = "*********";
     const navigate = useNavigate();
+    const [width, setWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     React.useEffect(() => {
         const lastClearedTime = localStorage.getItem(`lastClearedTime-${data.name}_${data.user}`);
@@ -240,13 +249,13 @@ function Neo4jNode({ data, isConnectable }) {
             keepMounted
             open={open} 
             onClose={handleClose} 
-            fullWidth maxWidth="xll"
+            fullWidth maxWidth={width < 1200 ? "xl" : width < 1000 ? "x" : "xll"}
             sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <DialogTitle>
                     DATASET INFORMATION
                 </DialogTitle>
                 {datasetInformation && (
-                    <DialogContent sx={{ width: 1700 }}>
+                    <DialogContent sx={{ width: "auto" }}>
                             <Typography variant="p" sx={{ fontWeight: "bold" }}>
                                 {datasetInformation.name.toUpperCase() + " BY " + datasetInformation.user}
                             </Typography>

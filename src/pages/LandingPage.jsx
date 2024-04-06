@@ -29,6 +29,16 @@ const LandingPage = ({role, userID}) => {
     const [open, setOpen] = React.useState(false);
     const {REACT_APP_ADMIN_USERNAME, REACT_APP_ADMIN_PASSWORD, REACT_APP_TOKEN_URL, REACT_APP_CLIENT_ID} = process.env
     const navigate = useNavigate();
+    const [width, setWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const handleMouseEnter = () => {
         setIsHovered(true);
     }
@@ -169,7 +179,7 @@ const LandingPage = ({role, userID}) => {
     }, [role, REACT_APP_ADMIN_PASSWORD, REACT_APP_ADMIN_USERNAME, REACT_APP_CLIENT_ID, REACT_APP_TOKEN_URL])
 
     return (
-        <div style={{backgroundColor: "#D9D9D9", height: "100vh", marginTop: 82 }}>
+        <div style={{backgroundColor: "#D9D9D9", height: "100%", marginTop: 82 }}>
             <Snackbar
                 open={open}
                 autoHideDuration={5000}
@@ -195,10 +205,10 @@ const LandingPage = ({role, userID}) => {
                     ))}
                 </List>
             </Dialog>
-            <Paper elevation={10} sx={{backgroundColor: "#FFFFFF", width: "100vw", height: "50vh", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
-                <Card sx={{ minWidth: 500, height: "80%", borderRadius: 5, backgroundColor: "black", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+            <Paper elevation={10} sx={{backgroundColor: "#FFFFFF", width: "100vw", height: width < 1200 ? "auto" : 500, display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                <Card sx={{ mt: width < 1200 ? 2 : 0, mb: width < 1200 ? 2 : 0, height: width < 1200 ? "40%" : "80%", borderRadius: 5, backgroundColor: "black", display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly"}}>
                     <CardContent>
-                        <Typography variant="h3" sx={{color: "white"}}>
+                        <Typography variant={width < 1200 ? "h5" : "h3"} sx={{color: "white"}}>
                             Streamline Your AI Workflows
                         </Typography>
                         <Typography variant="p" sx={{color: "white"}}>
@@ -224,10 +234,10 @@ const LandingPage = ({role, userID}) => {
                         >Lets Get Started!</Button>
                     </CardActions>
                 </Card>
-                <img src={bk} alt="Background!" width="40%" height="100%"/>
+                <img src={bk} alt="Background!" width="40%" height="100%" style={{ display: width < 1200 ? "none" : "block" }}/>
             </Paper>
-            <Paper elevation={10} sx={{backgroundColor: "black", width: "100vw", height: "50vh", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
-                <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
+            <Paper elevation={10} sx={{ backgroundColor: "black", width: "100vw", height: "100%", display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                <Card sx={{ mt: 2, mb: 2, width: width < 1200 ? 300 : 250, height: width < 1200 ? 400 : 350, display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
                     <CardContent>
                         <DatasetIcon sx={{fontSize: 100, color: "black", marginLeft: "25%"}} />
                         <Typography variant="h3" sx={{marginTop: 10}}>
@@ -239,7 +249,7 @@ const LandingPage = ({role, userID}) => {
                         </Typography>
                     </CardContent>
                 </Card>
-                <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
+                <Card sx={{ mt: 2, mb: 2, width: width < 1200 ? 300 : 250, height: width < 1200 ? 400 : 350, display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
                     <CardContent>
                         <EventNoteIcon sx={{fontSize: 100, color: "black", marginLeft: "25%"}} />
                         <Typography variant="h3" sx={{marginTop: 10}}>
@@ -251,7 +261,7 @@ const LandingPage = ({role, userID}) => {
                         </Typography>
                     </CardContent>
                 </Card>
-                <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
+                <Card sx={{ mt: 2, mb: 2, width: width < 1200 ? 300 : 250, height: width < 1200 ? 400 : 350, display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
                     <CardContent>
                         <AutoAwesomeMotionIcon sx={{fontSize: 100, color: "black", marginLeft: "25%"}} />
                         <Typography variant="h3" sx={{marginTop: 10}}>
@@ -263,7 +273,7 @@ const LandingPage = ({role, userID}) => {
                         </Typography>
                     </CardContent>
                 </Card>
-                <Card sx={{minWidth: 250, minHeight: "40vh", display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
+                <Card sx={{ mt: 2, mb: 2, width: width < 1200 ? 300 : 250, height: width < 1200 ? 400 : 350, display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
                     <CardContent>
                         <ModelTrainingIcon sx={{fontSize: 100, color: "black", marginLeft: "25%"}} />
                         <Typography variant="h3" sx={{marginTop: 10}}>

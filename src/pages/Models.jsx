@@ -11,13 +11,12 @@ import {
     Snackbar,
     Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
     TextField,
-    Tooltip, Divider
+    Tooltip, Divider, Grid
 } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DemoContainer} from "@mui/x-date-pickers/internals/demo";
@@ -31,9 +30,8 @@ import Checkbox from '@mui/material/Checkbox';
 import CustomTooltip from "../components/CustomTooltip";
 import InfoIcon from "@mui/icons-material/Info";
 
-const Models = ({user_id}) => {
+const Models = ({user}) => {
     const [models, setModels] = React.useState([]);
-    const [downloading, setDownloading] = React.useState(false);
     const [filterModels, setFilterModels] = React.useState([]);
     const isRun = React.useRef(false);
     const [toastMessage, setToastMessage] = React.useState("");
@@ -43,10 +41,21 @@ const Models = ({user_id}) => {
     const [dialogContent, setDialogContent] = React.useState(false);
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const [loading, setLoading] = React.useState(false);
+    const [loadingMessage, setLoadingMessage] = React.useState("");
     const [modelIDFilter, setModelIDFilter] = React.useState("");
-    const [creationDate, setCreationDate] = React.useState("");
+    const [creationDate, setCreationDate] = React.useState(null);
     const [checked, setChecked] = React.useState(false);
+    const [filterDialogOpen, setFilterDialogOpen] = React.useState(false);
     const navigate = useNavigate();
+    const [width, setWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     React.useEffect(() => {
         if (isRun.current) return;
@@ -55,9 +64,10 @@ const Models = ({user_id}) => {
 
         const changed = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`);
 
-        const url = user_id ? GET_MODELS_USER(user_id, changed ? JSON.parse(changed) : false) : GET_MODELS(changed ? JSON.parse(changed) : false);
+        const url = user ? GET_MODELS_USER(Cookies.get("userID").split("-").join("_"), changed ? JSON.parse(changed) : false) : GET_MODELS(changed ? JSON.parse(changed) : false);
 
         setLoading(true);
+        setLoadingMessage("Loading Models...");
         axios({
             method: "GET",
             url: url,
@@ -68,12 +78,14 @@ const Models = ({user_id}) => {
             }
         }).then((response) => {
             setLoading(false);
+            setLoadingMessage("");
             setModels(response.data);
             setFilterModels(response.data);
             localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-models-changed`, JSON.stringify(false));
         }).catch((error) => {
             setModels([]);
             setLoading(false);
+            setLoadingMessage("");
             if (error.response) {
                 if (error.response.status === 404) {
                     handleToast("No models found!", "warning");
@@ -82,10 +94,10 @@ const Models = ({user_id}) => {
                 }
               }
         })
-    }, [user_id]);
+    }, [user]);
 
     const handleFilterApplication = () => {
-        if (user_id) {
+        if (user) {
             if (modelIDFilter !== '' || creationDate !== '') {
                 const filteredModels = models.filter((model) => {
                     const matchesID = modelIDFilter ? model.model_id === modelIDFilter : true;
@@ -125,11 +137,17 @@ const Models = ({user_id}) => {
         if (reason === 'clickaway') {
             return;
         }
-
         setOpen(false);
+
     };
+
+    const handleDialogClose = () => {
+        if (dialogOpen) setDialogOpen(false);
+        if (filterDialogOpen)  setFilterDialogOpen(false);
+    }
+
     const clearFilters = () => {
-        setCreationDate("");
+        setCreationDate(null);
         setModelIDFilter("");
         setFilterModels(models);
     };
@@ -139,8 +157,9 @@ const Models = ({user_id}) => {
     }
 
     const handleDownload = async (model_id, model_name) => {
+        setLoading(true);
+        setLoadingMessage("Donwloading Model...");
         try {
-            setDownloading(true);
             const response = await axios({
                 method: "GET",
                 url: DOWNLOAD_MODEL(model_id),
@@ -149,6 +168,8 @@ const Models = ({user_id}) => {
                 },
                 responseType: 'blob'
             })
+            setLoading(false);
+            setLoadingMessage("");
 
             const contentDisposition = response.headers['content-disposition'];
             let filename = model_name + ".onnx"; // Default filename if not specified in header
@@ -168,15 +189,11 @@ const Models = ({user_id}) => {
 
             window.URL.revokeObjectURL(url);
             link.remove();
-            setDownloading(false);
           } catch (error) {
+            setLoading(false);
+            setLoadingMessage("");
             handleToast("Error Downloading the model!", "error");
-            setDownloading(false);
           }
-    }
-
-    const handleDialogClose = () => {
-        setDialogOpen(false);
     }
 
     const handleDialogOpen = (content) => {
@@ -185,7 +202,7 @@ const Models = ({user_id}) => {
     }
 
     return (
-        <div style={{backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat', height: "100vh", width: "100vw", marginTop: 82 }}>
+        <div style={{backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat', height: "100%", width: "100%", marginTop: 82 }}>
             <Snackbar
                 open={open}
                 autoHideDuration={5000}
@@ -199,11 +216,11 @@ const Models = ({user_id}) => {
                 open={loading}
             >
                 <CircularProgress color="inherit" />
-                <Typography variant="h4" sx={{ color: "white" }}>Loading Models</Typography>
+                <Typography variant="h4" sx={{ color: "white" }}>{loadingMessage}</Typography>
             </Backdrop>
             <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth maxWidth="xll" TransitionComponent={Transition} keepMounted>
                 <DialogTitle>CSV Data Information</DialogTitle>
-                <DialogContent sx={{ width: 1700 }}>
+                <DialogContent sx={{ width: "auto" }}>
                     <TableContainer sx={{ mb: 2, mt: 2 }} component={Paper}>
                         <Table>
                             <TableHead>
@@ -235,154 +252,30 @@ const Models = ({user_id}) => {
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={() => setDialogOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-            <div style={{display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-start", width: "90vw", height: "100vh"}}>
-                <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
-                    <Card variant="outlined" sx={{ height: "10%", width: "80%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
-                        <CardContent>
-                            <Stack spacing={4} direction="row">
-                                {user_id &&
-                                    <CustomTooltip title="The ID of the model.">
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  ID</Typography>
-                                    </CustomTooltip>}
-                                {!user_id &&
-                                    <CustomTooltip title="The ID of the user who created the model.">
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  ID</Typography>
-                                    </CustomTooltip>}
-                                <CustomTooltip title="The name of the model.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Name</Typography>
-                                </CustomTooltip>
-                                <CustomTooltip title="The description of the model.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Description</Typography>
-                                </CustomTooltip>
-                                <CustomTooltip title="The date when the model was created.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Creation</Typography>
-                                </CustomTooltip>
-                                <CustomTooltip title="The type of the model can be classification, regression or clustering.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Type</Typography>
-                                </CustomTooltip>
-                                <CustomTooltip title="Overall score of the model.">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Score</Typography>
-                                </CustomTooltip>
-                            </Stack>
-                        </CardContent>
-                        <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
-                        <CardActions>
-                            <Stack spacing={4} direction="row">
-                                <Tooltip title="Access Model">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Access</Typography>
-                                </Tooltip>
-                                <Tooltip title="Download Model">
-                                    <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>Download</Typography>
-                                </Tooltip>
-                            </Stack>
-                        </CardActions>
-                    </Card>
-                    {filterModels.length !== 0 ?
-                        filterModels.map((model) => (
-                            <Card key={model["model_id"]} variant="outlined" sx={{ overflowX: "scroll", height: "10%", width: "80%", borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", mt: 2, mb: 2}}>
-                                <CardContent sx={{ width: "85%", overflow: "auto"}}>
-                                    <Stack spacing={4} direction="row">
-                                        <CustomTooltip title={model["model_id"]}>
-                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_id"].length > 10 ? model["model_id"].slice(0, 10) + "..." : model["model_id"]}</Typography>
-                                        </CustomTooltip>
-                                        <CustomTooltip title={model["model_name"]}>
-                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["model_name"].length > 10 ? model["model_name"].slice(0, 10) + "..." : model["model_name"]}</Typography>
-                                        </CustomTooltip>
-                                        <Button
-                                            variant="outlined"
-                                            sx={{ color: "White", borderColor: "white", '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
-                                            onClick={() => handleDialogOpen(model.description)}
-                                        >
-                                            Check Dataset
-                                        </Button>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{format(new Date(model["created_at"]), "yyyy-dd-MM")}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["notebook_type"]}</Typography>
-                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold"}}>{model["score"]}</Typography>
-                                    </Stack>
-                                </CardContent>
-                                <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
-                                <CardActions>
-                                    <Button
-                                        variant="outlined"
-                                        sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
-                                        onClick={() => handleEnter(model["model_id"])}
-                                    >
-                                        Check Model
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        sx={{ color: "White", borderColor: "white", marginRight: 2, '&:hover': { backgroundColor: 'grey', borderColor: "white" }}}
-                                        onClick={() => handleDownload(model["model_id"], model["model_name"])}
-                                        disabled={downloading}
-                                    >
-                                        {downloading ? "Downloading..." : "Download Model"}
-                                    </Button>
-                                </CardActions>
-                            </Card>
-                        ))
-                        :
-                        <Typography variant="h3" sx={{ color: "black"}}>
-                            No models were found!
-                        </Typography>
-                    }
-                </div>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        maxHeight: 500,
-                        minWidth: 200,
-                        overflowX: "hidden",
-                        backgroundColor: 'black',
-                        borderRadius: 2,
-                        color: 'white',
-                        alignItems: "center",
-                        p: 2,
-                        borderLeft: '1px solid #e1e4e8',
-                        overflowY: 'auto'
-                    }}
-                >
-                    <Typography variant="h6" sx={{ mb: 2, color: 'white' }}>
-                        Filter Options
-                    </Typography>
+            <Dialog open={filterDialogOpen} onClose={handleDialogClose} fullWidth TransitionComponent={Transition} keepMounted maxWidth="sm" sx={{ '& .MuiDialog-paper': { backgroundColor: 'black', color: 'white' } }}>
+                <DialogTitle sx={{ color: 'white' }}>Filter Options</DialogTitle>
+                <DialogContent>
                     <TextField
                         label="Model ID"
                         variant="outlined"
                         value={modelIDFilter}
                         onChange={(e) => setModelIDFilter(e.target.value)}
-                        sx={{ mb: 2,
-                            "& .MuiInputLabel-root": { color: "white" },
-                            "& .MuiCalendarMonthIcon": {color: "white"},
-                            "& .MuiOutlinedInput-root": {
-                                "& fieldset": {
-                                    borderColor: "white",
-                                },
-                                "&:hover fieldset": {
-                                    borderColor: "white",
-                                },
-                                "&.Mui-focused fieldset": {
-                                    borderColor: "white",
-                                },
-                                "& input": { color: "white",
-                                },
-
-                            },
-                        }}
-                        InputLabelProps={{
-                            style: { color: 'white' },
-                        }}
-                        InputProps={{
-                            style: { color: 'white' }
-                        }}
+                        sx={{ mb: 2, "& .MuiInputLabel-root": { color: "white" }, "& .MuiOutlinedInput-root": { "& fieldset": { borderColor: "white" }, "&:hover fieldset": { borderColor: "white" }, "&.Mui-focused fieldset": { borderColor: "white" }, "& input": { color: "white" } } }}
+                        InputLabelProps={{ style: { color: 'white' } }}
+                        InputProps={{ style: { color: 'white' } }}
                         fullWidth
                     />
-                    {!user_id && (
-                        <FormControlLabel control={<Checkbox sx={{ color: "white" }} checked={checked} onChange={(e) => setChecked(e.target.checked)} inputProps={{ 'aria-label': 'controlled' }} />} label="Models Based on My Datasets" />
+                    {!user && (
+                        <FormControlLabel
+                            control={<Checkbox sx={{ color: "white" }} checked={checked} onChange={(e) => setChecked(e.target.checked)} />}
+                            label="Models Based on My Datasets"
+                        />
                     )}
-                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <DemoContainer components={['DatePicker']}>
-                            <DatePicker label="Created On or Before"
+                    <LocalizationProvider fullWidth dateAdapter={AdapterDayjs}>
+                        <DemoContainer fullWidth components={['DatePicker']}>
+                            <DatePicker fullWidth label="Created On or Before"
                                         sx={{ mb: 2,
+                                            width: "100%",
                                             "& .MuiInputLabel-root": { color: "white" }, // label color
                                             "& .MuiOutlinedInput-root": {
                                                 "& fieldset": {
@@ -397,28 +290,151 @@ const Models = ({user_id}) => {
                                                 "& input": { color: "white" }, // text color
                                             },
                                         }}
+                                        value={creationDate}
                                         onChange={(e) => setCreationDate(e)}
                             />
                         </DemoContainer>
                     </LocalizationProvider>
                     <Button
                         variant="contained"
-                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                         onClick={handleFilterApplication}
+                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                         fullWidth
                     >
                         Apply Filters
                     </Button>
                     <Button
                         variant="contained"
-                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                         onClick={clearFilters}
+                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
                         fullWidth
                     >
                         Clear Filters
                     </Button>
-                </Box>
-            </div>
+                </DialogContent>
+            </Dialog>
+            <Grid container spacing={2}>
+                <Grid item xs={6} md={10}>
+                    <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", marginTop: 30, width: "100vw", height: "100vh"}}>
+                        <Card variant="outlined" sx={{ overflow: "auto", height: "10%", width: "90%", marginBottom: 10, borderRadius: 5, backgroundColor: "black", color: "white", display: "flex", alignItems: "center", justifyContent: "space-evenly"}}>
+                            <CardContent>
+                                <Stack spacing={4} direction="row">
+                                    {user &&
+                                        <CustomTooltip title="The ID of the model.">
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  ID</Typography>
+                                        </CustomTooltip>}
+                                    {!user &&
+                                        <CustomTooltip title="The ID of the user who created the model.">
+                                            <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/> ID</Typography>
+                                        </CustomTooltip>}
+                                    <CustomTooltip title="The name of the model.">
+                                        <Typography variant="p" sx={{ fontSize:  20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Model Name</Typography>
+                                    </CustomTooltip>
+                                    <CustomTooltip title="The description of the model.">
+                                        <Typography variant="p" sx={{ fontSize:  20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Description</Typography>
+                                    </CustomTooltip>
+                                    <CustomTooltip title="The date when the model was created.">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Creation</Typography>
+                                    </CustomTooltip>
+                                    <CustomTooltip title="The type of the model can be classification, regression or clustering.">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Type</Typography>
+                                    </CustomTooltip>
+                                    <CustomTooltip title="Overall score of the model.">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/>  Score</Typography>
+                                    </CustomTooltip>
+                                </Stack>
+                            </CardContent>
+                            <Divider orientation="vertical" flexItem sx={{ backgroundColor: "white", width: 3 }}/>
+                            <CardActions>
+                                <Stack spacing={4} direction="row">
+                                    <CustomTooltip title="Access Model">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/> Access</Typography>
+                                    </CustomTooltip>
+                                    <CustomTooltip title="Download Model In ONNX Format.">
+                                        <Typography variant="p" sx={{ fontSize: 20, fontWeight: "bold", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", cursor: "pointer"}}><InfoIcon sx={{ marginRight: 1 }}/> Download</Typography>
+                                    </CustomTooltip>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() => setFilterDialogOpen(true)}
+                                        sx={{ mt: 2, py: 1.5, backgroundColor: 'white', color: 'black', '&:hover': { backgroundColor: 'grey' } }}
+                                        fullWidth
+                                    >
+                                        Filter Models
+                                    </Button>
+                                </Stack>
+                            </CardActions>
+                        </Card>
+                        {filterModels.length !== 0 ?
+                                <TableContainer component={Paper} sx={{ overflow: "auto", width: "90%", height: "auto", backgroundColor: "black", color: "white", mt: 2, mb: 2 }}>
+                                    <Table sx={{ minWidth: 650, overflow: "auto" }} aria-label="model table">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>ID</TableCell>
+                                                <TableCell sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>Model Name</TableCell>
+                                                <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>Dataset</TableCell>
+                                                <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>Created At</TableCell>
+                                                <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>Notebook Type</TableCell>
+                                                <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>Score</TableCell>
+                                                <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.10rem", color: "white", fontWeight: "bold" }}>Actions</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {filterModels.map((model) => (
+                                                <TableRow
+                                                    key={model["model_id"]}
+                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                >
+                                                    <TableCell component="th" scope="row" sx={{ color: "white", fontWeight: "bold" }}>
+                                                        <Tooltip title={model["model_id"]}>
+                                                            <span style={{ fontSize: width < 1500 ? "0.75rem" : "1.1rem" }}>{model["model_id"].length > 50 ? model["model_id"].slice(0, 50) + "..." : model["model_id"]}</span>
+                                                        </Tooltip>
+                                                    </TableCell>
+                                                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                                                        <Tooltip title={model["model_name"]}>
+                                                            <span style={{ fontSize: width < 1500 ? "0.75rem" : "1.1rem" }}>{model["model_name"].length > 50 ? model["model_name"].slice(0, 50) + "..." : model["model_name"]}</span>
+                                                        </Tooltip>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <Button
+                                                            variant="outlined"
+                                                            sx={{ fontSize: width < 1500 ? "0.6rem" : ".9rem", backgroundColor: "white", color: "black", borderColor: "gray", '&:hover': { backgroundColor: 'grey', borderColor: "white", color: "white"  }}}
+                                                            onClick={() => handleDialogOpen(model.description)}
+                                                        >
+                                                            Check Dataset
+                                                        </Button>
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.1rem", color: "white", fontWeight: "bold" }}>{format(new Date(model["created_at"]), "yyyy-dd-MM")}</TableCell>
+                                                    <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.1rem", color: "white", fontWeight: "bold" }}>{model["notebook_type"]}</TableCell>
+                                                    <TableCell align="right" sx={{ fontSize: width < 1500 ? "0.75rem" : "1.1rem", color: "white", fontWeight: "bold" }}>{model["score"]}</TableCell>
+                                                    <TableCell align="right" >
+                                                        <Button
+                                                            variant="outlined"
+                                                            sx={{ mr: 2, fontSize: width < 1500 ? "0.6rem" : ".9rem", backgroundColor: "white", color: "black", borderColor: "gray", '&:hover': { backgroundColor: 'grey', borderColor: "white", color: "white" }}}
+                                                            onClick={() => handleEnter(model["model_id"])}
+                                                        >
+                                                            Check Model
+                                                        </Button>
+                                                        <Button
+                                                            variant="outlined"
+                                                            sx={{ mr: 2, fontSize: width < 1500 ? "0.6rem" : ".9rem", backgroundColor: "white", color: "black", borderColor: "gray", '&:hover': { backgroundColor: 'grey', borderColor: "white", color: "white" }}}
+                                                            onClick={() => handleDownload(model["model_id"], model["model_name"])}
+                                                        >
+                                                            Download Model
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            :
+                            <Typography variant="h3" sx={{ fontSize: width < 1000 ? "1.5rem" : "3rem", color: "black"}}>
+                                No models were found!
+                            </Typography>
+                        }
+                    </div>
+                </Grid>
+            </Grid>
         </div>
     );
 }

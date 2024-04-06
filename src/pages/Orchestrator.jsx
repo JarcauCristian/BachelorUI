@@ -72,7 +72,6 @@ const Orchestrator = () => {
     const [loadingMessage, setLoadingMessage] = React.useState("");
     const isRun = React.useRef(false);
     const isDrawerRun = React.useRef(false);
-
     const handleToast = (message, severity)  => {
         setToastMessage(message);
         setToastSeverity(severity);
@@ -700,7 +699,7 @@ const Orchestrator = () => {
     }, [pipelines, pipelinesBlocksNames, tabsName, value]);
 
     return (
-        <div style={{ display: "flex", flexDirection: "row", alignItems: tabs.length > 0 ? "center" : "", justifyContent: tabs.length > 0 ? "space-between" : "", backgroundColor: "white", width: "100vw", height: "100vh", marginTop: 82 }}>
+        <div style={{ display: "flex", flexDirection: "row", alignItems: tabs.length > 0 ? "center" : "", justifyContent: tabs.length > 0 ? "space-between" : "", backgroundColor: "white", width: "100%", height: "100%", marginTop: 82 }}>
             <Snackbar
                 open={toastOpen}
                 autoHideDuration={5000}
@@ -892,7 +891,7 @@ const Orchestrator = () => {
                 </Box>
             </Drawer>
             <Box>
-                <Box sx={{ borderBottom: 2, borderColor: 'black', display: 'flex', flexDirection: 'row' }}>
+                <Box sx={{ width: "100vw", borderBottom: 2, borderColor: 'black', display: 'flex', flexDirection: 'row' }}>
                     <Tabs value={value} onChange={handleChange}>
                         {tabs.map((entry, index) => (
                             React.cloneElement(entry, { key: index })

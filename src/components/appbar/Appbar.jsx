@@ -13,6 +13,8 @@ import {Divider} from "@mui/material";
 import useAppBarHeight from "../utils/appBarHeight";
 import Chip from '@mui/material/Chip';
 import {useNavigate} from "react-router-dom";
+import AccountBoxIcon from '@mui/icons-material/AccountBox';
+import CustomTooltip from "../CustomTooltip";
 
 
 // Function to get the width of the window
@@ -30,6 +32,15 @@ function ResponsiveAppBar({logout, role, username}) {
   const navigate = useNavigate();
   const [appBarRef] = useAppBarHeight();
   const [pages, setPages] = React.useState([]);
+  const [width, setWidth] = React.useState(window.innerWidth);
+
+  React.useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
 
   // First use effect for setting up the app bar.
@@ -125,17 +136,17 @@ function ResponsiveAppBar({logout, role, username}) {
   }, []);
 
   return (
-    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around", height: 84, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+    <AppBar ref={appBarRef} position="fixed" style={{ backgroundColor: "#000"}} sx={{ height: 84, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
       <Container maxWidth="xl">
-        <Toolbar disableGutters>
+        <Toolbar disableGutters  sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}>
           <Button sx={{ fontSize: 22, cursor: "pointer", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center" }}
                    onClick={windowDimensions > 1500 ? goToHome : handleOpenMenu} >
             <AdjustIcon sx={{fontSize: 40, color: "white", marginRight: 1}} />
-            <Typography variant="p" sx={{color: "white", marginRight: 2}}>
+            <Typography variant="p" sx={{color: "white", marginRight: 2, fontSize: width < 1200 ? "0.75rem" : "1.25rem"}}>
               DataForge AI
             </Typography>
           </Button>
-          {windowDimensions > 1000 ?
+          {windowDimensions > 1100 ?
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages ? pages.map((page, index) => (
               <Button
@@ -186,13 +197,20 @@ function ResponsiveAppBar({logout, role, username}) {
               </Box>
             }
 
-          <Box sx={{ marginLeft: 30, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center"}}>
-            <Chip label={username} sx={{backgroundColor: "white", color: "black", fontWeight: "bold", marginRight: 2}}/>
+          <Box sx={{ marginLeft: width < 1200 ? 0 : 30, display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center"}}>
+            {width < 1000 ?
+                <CustomTooltip title={username}>
+                  <AccountBoxIcon />
+                </CustomTooltip>
+                :
+                <Chip label={username} sx={{ backgroundColor: "white", color: "black", fontWeight: "bold", marginRight: 2}}/>
+            }
+
             <Button
                 sx={{
                   color: "white",
                   display: "block",
-                  fontSize: 20,
+                  fontSize: width < 1200 ? 15 : 20,
                   border: logoutHover ? "2px solid white" : "0px",
                   fontFamily: "monospace",
                   fontWeight: "bold"

@@ -25,6 +25,15 @@ const DatasetGraph = () => {
     const [toastSeverity, setToastSeverity] = React.useState("error");
     const {vertical, horizontal} = {vertical: "top", horizontal: "right"};
     const isRun = React.useRef(false);
+    const [width, setWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     React.useEffect(() => {
         if (isRun.current) return;
@@ -183,7 +192,7 @@ const DatasetGraph = () => {
                     <MiniMap style={{height: 120}} zoomable pannable/>
                 </ReactFlow>
                 :
-                <Typography variant="h2" sx={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>NO DATASETS TO DISPLAY</Typography>
+                <Typography variant="h2" sx={{ fontSize: width < 1000 ? "1rem" : "3rem", position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>NO DATASETS TO DISPLAY</Typography>
             }
         </div>
     );

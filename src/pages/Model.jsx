@@ -68,6 +68,15 @@ const Model = () => {
     const [imageDialogOpen, setImageDialogOpen] = React.useState(false);
     const [images, setImages] = React.useState({});
     const fileInputRef = React.useRef(null);
+    const [width, setWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const handleDialogClose = () => {
         if (dialogOpen) setDialogOpen(false);
@@ -437,11 +446,11 @@ const Model = () => {
                     <Button variant="filled" sx={{ backgroundColor: "black", color: "white", '&:hover': { color: "black" } }} onClick={handleDialogClose}>Close</Button>
                 </DialogActions>
             </Dialog>
-            <div style={{ marginTop: 10, width: "100vw", height: 1300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>
-                <Card sx={{ height: 550, width: "85vw", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: "row", "alignItems": "center", justifyContent: "space-evenly" }}>
+            <div style={{ marginTop: 100, width: "100vw", height: "auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly" }}>
+                <Card sx={{ overflow: "auto", height: 550, width: "85vw", backgroundColor: "black", borderRadius: 5, display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly" }}>
                     {modelDetails && (
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
+                        <div style={{ marginTop: width < 1200 ? 10 : 0, display: "flex", flexDirection: "column" }}>
+                            <Accordion sx={{ width: width < 1200 ? "40vw" : "23vw" }} expanded={expanded === 'panel1'} onChange={handleChange('panel1')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel1a-content"
@@ -457,7 +466,7 @@ const Model = () => {
                                     </CustomTooltip>
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
+                            <Accordion sx={{ width: width < 1200 ? "40vw" : "23vw" }} expanded={expanded === 'panel2'} onChange={handleChange('panel2')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel2a-content"
@@ -473,7 +482,7 @@ const Model = () => {
                                     </CustomTooltip>
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
+                            <Accordion sx={{ width: width < 1200 ? "40vw" : "23vw" }} expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel2a-content"
@@ -489,7 +498,7 @@ const Model = () => {
                                     </CustomTooltip>
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
+                            <Accordion sx={{ width: width < 1200 ? "40vw" : "23vw" }} expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel3a-content"
@@ -503,7 +512,7 @@ const Model = () => {
                                     </Typography>
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
+                            <Accordion sx={{ width: width < 1200 ? "40vw" : "23vw" }} expanded={expanded === 'panel5'} onChange={handleChange('panel5')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel5a-content"
@@ -515,7 +524,7 @@ const Model = () => {
                                     <Button variant="contained" fullWidth sx={{backgroundColor: "black", color: "white", marginTop: 2, '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={getImages}>Show images</Button>
                                 </AccordionDetails>
                             </Accordion>
-                            <Accordion sx={{ width: "23vw" }} expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
+                            <Accordion sx={{ width: width < 1200 ? "40vw" : "23vw" }} expanded={expanded === 'panel6'} onChange={handleChange('panel6')}>
                                 <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel4a-content"
@@ -529,12 +538,12 @@ const Model = () => {
                                     </Typography>
                                 </AccordionDetails>
                             </Accordion>
-                            <Input type="number" label="Score" placeholder="Enter the score for the model" sx={{ color: "black", backgroundColor: "white", marginTop: 2, width: "23vw" }} onChange={handleScoreChange} />
-                            <Button variant="contained" sx={{backgroundColor: "white", color: "black", marginTop: 2, width: "23vw", '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={handleScore}>Give Score</Button>
+                            <Input type="number" label="Score" placeholder="Enter the score for the model" sx={{ color: "black", backgroundColor: "white", marginTop: 2, width: width < 1200 ? "40vw" : "23vw" }} onChange={handleScoreChange} />
+                            <Button variant="contained" sx={{backgroundColor: "white", color: "black", marginTop: 2, width: width < 1200 ? "40vw" : "23vw", '&:hover': { bgcolor: 'grey', borderColor: "white" }}} onClick={handleScore}>Give Score</Button>
                         </div>
                     )}
                     {modelDetails && (
-                        <FormGroup sx={{width: 500, color: "#FFFFFF", display: modelDetails.notebook_type === "transformers" ? "none" : "flex", flexDirection:  "column"}}>
+                        <FormGroup sx={{ mt: width < 1200 ? 5 : 0, mb: width < 1200 ? 2 : 0, width: 500, color: "#FFFFFF", display: modelDetails.notebook_type === "transformers" ? "none" : "flex", flexDirection:  "column"}}>
                             <Snackbar
                                 open={open}
                                 autoHideDuration={3000}
@@ -572,9 +581,11 @@ const Model = () => {
                         <Typography variant="h5" sx={{ color: "white" }}>Model Data Could Not Be Loaded</Typography>
                     )}
                 </Card>
-                <div style={{ width: "100vw", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-evenly"}}>
+                <div style={{ width: "100vw", height: "auto", display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly"}}>
                     <Card sx={{
                         width: 300,
+                        mt: 2,
+                        mb: 2,
                         height: "50vh",
                         overflow: "auto",
                         display: "flex",
@@ -631,6 +642,8 @@ const Model = () => {
                     </Card>
                     <Card sx={{
                         width: 300,
+                        mt: 2,
+                        mb: 2,
                         height: "50vh",
                         display: "flex",
                         flexDirection: "column",
@@ -687,6 +700,8 @@ const Model = () => {
                     </Card>
                     <Card sx={{
                         width: 300,
+                        mt: 2,
+                        mb: 2,
                         height: "50vh",
                         overflowY: "auto",
                         display: "flex",

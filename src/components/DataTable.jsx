@@ -14,6 +14,15 @@ const DataTable = ({data, descriptions}) => {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [paginatedData, setPaginatedData] = React.useState(data.slice(0, 5));
+    const [width, setWidth] = React.useState(window.innerWidth);
+
+    React.useEffect(() => {
+        const handleResize = () => setWidth(window.innerWidth);
+
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const columns = Object.keys(data[0]).map((key) => ({
         field: key,
@@ -37,7 +46,7 @@ const DataTable = ({data, descriptions}) => {
     return (
         <div style={{ padding: 20 }}>
             <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="customized table">
+                <Table sx={{ minWidth: width < 1200 ? 0 : 650 }} aria-label="customized table">
                     <TableHead>
                         <TableRow>
                             {columns.map((column) => (

@@ -40,7 +40,7 @@ function App() {
                               <Route path="datasets" element={<DatasetGraph/>}/>
                               <Route path="notebooks" element={<Notebooks/>}/>
                               <Route path="/notebooks/:notebookID" element={<Notebook />} />
-                              <Route path="models" element={<Models user_id={userID}/>}/>
+                              <Route path="models" element={<Models user={true} />}/>
                               <Route path="/models/:modelID" element={<Model />} />
                           </Route> :
                   ""}
