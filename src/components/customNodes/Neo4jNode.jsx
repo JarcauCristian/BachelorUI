@@ -30,6 +30,7 @@ function Neo4jNode({ data, isConnectable }) {
     const [modelName, setModelName] = React.useState(null);
     const [password, setPassword] = React.useState("");
     const [isHovered, setIsHovered] = React.useState(false);
+    const [notebookID, setNotebookID] = React.useState("");
     const dummyPassword = "*********";
     const navigate = useNavigate();
     const [width, setWidth] = React.useState(window.innerWidth);
@@ -224,6 +225,7 @@ function Neo4jNode({ data, isConnectable }) {
         }).then((response) => {
             data.load(false);
             setPassword(response.data.password);
+            setNotebookID(response.data.uid);
             setPasswordOpen(true);
         }).catch((_) => {
             data.load(false);
@@ -301,7 +303,7 @@ function Neo4jNode({ data, isConnectable }) {
                 </DialogTitle>
                 <DialogContent sx={{ maxWidth: 1000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                     <Typography variant="p" sx={{ fontWeight: "bold" }}>
-                        USERNAME: ai1
+                        USERNAME: {notebookID}
                     </Typography>
                     <Typography variant="p" sx={{ fontWeight: "bold" }} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
                         PASSWORD: {isHovered ? password : dummyPassword}
