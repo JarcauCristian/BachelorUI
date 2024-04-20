@@ -307,7 +307,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
     React.useEffect(() => {
         if (!data.created) {
-            localStorage.setItem(`${data.pipeline_name}-${data.nodeID}-block-content`, JSON.stringify(blockContent));
+            localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-${data.pipeline_name}-${data.nodeID}-block-content`, JSON.stringify(blockContent));
         }
     }, [data.nodeID, data.created, blockContent, data.pipeline_name]);
 
@@ -316,7 +316,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
         isRun.current = true;
 
-        const isBlockContent = localStorage.getItem(`${data.pipeline_name}-${data.nodeID}-block-content`);
+        const isBlockContent = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-${data.pipeline_name}-${data.nodeID}-block-content`);
 
         if (isBlockContent) {
             setBlockContent(JSON.parse(isBlockContent));
@@ -363,7 +363,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
         isVariablesRun.current = true;
 
-        const inter = JSON.parse(localStorage.getItem(`${data.pipeline_name}-${data.nodeID}-variables`));
+        const inter = JSON.parse(localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-${data.pipeline_name}-${data.nodeID}-variables`));
         const aux = {}
 
         if (inter) {
@@ -453,7 +453,7 @@ function TextUpdaterNode({ data, isConnectable }) {
 
         if (!checkRangesAndRegex()) return;
 
-        localStorage.setItem(`${data.pipeline_name}-${data.nodeID}-variables`, JSON.stringify(textEntries));
+        localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-${data.pipeline_name}-${data.nodeID}-variables`, JSON.stringify(textEntries));
 
         if (fileInput) {
             data.toast("Uploading File!", "success");

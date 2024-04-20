@@ -118,7 +118,7 @@ const Orchestrator = () => {
                         }
                     };
                 });
-                localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
+                localStorage.setItem(`changed-pipelines-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
                 setPipelinesBlocksNames(prevState => [...prevState, []]);
                 setTabsName(prevState => [...prevState, tabName]);
                 setTabs(prevComponents => [...prevComponents, <Tab key={tabs.length} label={tabName} icon={<ClearIcon onClick={() => handleTabClose(tabName, [...tabsName, tabName])} />} iconPosition="end" {...a11yProps(tabs.length)}/>]);
@@ -233,7 +233,7 @@ const Orchestrator = () => {
             }
         }
 
-        localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
+        localStorage.setItem(`changed-pipelines-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(true));
         setLoading(false);
         setLoadingMessage("");
     }, [])
@@ -444,7 +444,7 @@ const Orchestrator = () => {
         setLoading(true);
         setDisclaimerOpen(true);
         setLoadingMessage("Loading Pipelines");
-        let changed = localStorage.getItem(`changed-${Cookies.get("userID").split("-").join("_")}`);
+        let changed = localStorage.getItem(`changed-pipelines-${Cookies.get("userID").split("-").join("_")}`);
         if ([undefined, null, "", false].includes(changed)) {
             changed = false
         } else {
@@ -458,7 +458,7 @@ const Orchestrator = () => {
             for (let i of response.data) {
                 const name = i.name.replace("_" + Cookies.get("userID").split("-").join("_"), "");
                 const type = i.type === "streaming" ? "stream" : "batch";
-                const nodesInStorage = localStorage.getItem(`pipeline-${name}`);
+                const nodesInStorage = localStorage.getItem(`pipeline-${Cookies.get("userID").split("-").join("_")}-${name}`);
                 if (i.blocks.length > 0) {
                     const loaders = [];
                     const transformers = [];
@@ -630,11 +630,11 @@ const Orchestrator = () => {
                 setTabsName(prevState => [...prevState, name]);
                 setTabs(prevComponents => [...prevComponents, <Tab key={tabs.length} label={name} icon={<ClearIcon onClick={() => handleTabClose(name, names)} />} iconPosition="end" {...a11yProps(tabs.length)}/>]);
             }
-            localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
+            localStorage.setItem(`changed-pipelines-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
             setLoading(false);
             setLoadingMessage("");
         }).catch((_) => {
-            localStorage.setItem(`changed-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
+            localStorage.setItem(`changed-pipelines-${Cookies.get("userID").split("-").join("_")}`, JSON.stringify(false));
             handleToast("Error getting the pipelines!", "error");
             setLoading(false);
             setLoadingMessage("");
@@ -649,13 +649,13 @@ const Orchestrator = () => {
             tabs.length > 0
         ) {
             if (!creation) {
-                const edges = localStorage.getItem(`${tabsName[value]}-edges`)
+                const edges = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-${tabsName[value]}-edges`)
                 let aux_pipeline = pipelines[tabsName[value]];
                 let pipeline_type = "stream" in pipelines[tabsName[value]] ? "stream" : "batch";
                 if (edges) {
                     aux_pipeline[pipeline_type]["edges"] = JSON.parse(edges);
                 }
-                localStorage.setItem(`pipeline-${tabsName[value]}`, JSON.stringify(aux_pipeline));
+                localStorage.setItem(`pipeline-${Cookies.get("userID").split("-").join("_")}-${tabsName[value]}`, JSON.stringify(aux_pipeline));
             }
         }
     }, [tabs.length, value, tabsName, pipelines]);

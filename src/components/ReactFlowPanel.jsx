@@ -140,10 +140,30 @@ const ReactFlowPanel = (props) => {
         const nodeToDelete = nodes.find((n) => n.id === nodeId);
         if (!nodeToDelete) return;
 
-        localStorage.removeItem(`${other.pipeline_name}-${nodeToDelete.id}-block-content`);
+        localStorage.removeItem(`${Cookies.get("userID").split("-").join("_")}-${other.pipeline_name}-${nodeToDelete.id}-block-content`);
 
         setNodes((nds) => nds.filter((n) => n.id !== nodeId));
         setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+
+        let localStoragePipeline = localStorage.getItem(`pipeline-${Cookies.get("userID").split("-").join("_")}-${other.pipeline_name}`);
+        const toSave = {[other.type]: {}}
+        if (localStoragePipeline) {
+            localStoragePipeline = JSON.parse(localStoragePipeline);
+
+            for (let [k, v] of Object.entries(localStoragePipeline[other.type])) {
+                if (k === "loader" && nodeToDelete.data.type === "loader") {
+                    toSave[other.type][k] = "";
+                } else if (k === "exporter" && nodeToDelete.data.type === "exporter") {
+                    toSave[other.type][k] = "";
+                } else if (k === "transformers" && nodeToDelete.data.type === "transformers") {
+                    toSave[other.type][k] = v.filter((n) => n.nodeId !== nodeId);
+                } else {
+                    toSave[other.type][k] = v;
+                }
+            }
+        }
+
+        localStorage.setItem(`pipeline-${Cookies.get("userID").split("-").join("_")}-${other.pipeline_name}`, JSON.stringify(toSave));
 
         setLocalUpdate(true);
         other.setPipes((prevState) => {
@@ -219,7 +239,7 @@ const ReactFlowPanel = (props) => {
         if (other.type === "batch") {
             for (let node of nodes) {
                 if (Object.keys(node.data.params).length > 0) {
-                    const blockVariable = localStorage.getItem(`${other.pipeline_name}-${node.id}-variables`);
+                    const blockVariable = localStorage.getItem(`${Cookies.get("userID").split("-").join("_")}-${other.pipeline_name}-${node.id}-variables`);
                     if (blockVariable) {
                         for (let [key, value] of Object.entries(JSON.parse(blockVariable))) {
                             variables[key] = value;
@@ -307,11 +327,8 @@ const ReactFlowPanel = (props) => {
                 }
             }
 
-            // const isInStorage = localStorage.getItem(`${other.pipeline_name}-${node.id}-block-content`);
             const blob = node.data.language === "yaml" ? new Blob([node.data.content], { type: "text/yaml"}) :
                 new Blob([node.data.content], { type: "application/octet-stream"});
-
-
 
             const file = new File([blob], "random");
             const formData = new FormData();
@@ -464,7 +481,7 @@ const ReactFlowPanel = (props) => {
     React.useEffect(() => {
         const interval = setInterval(() => {
             if (!other.created) {
-                localStorage.setItem(`${other.pipeline_name}-edges`, JSON.stringify(edges));
+                localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-${other.pipeline_name}-edges`, JSON.stringify(edges));
             }
         }, 1000);
 
