@@ -224,6 +224,7 @@ function Neo4jNode({ data, isConnectable }) {
             }
         }).then((response) => {
             data.load(false);
+            localStorage.setItem(`${Cookies.get("userID").split("-").join("_")}-notebooks-changed`, JSON.stringify(true));
             setPassword(response.data.password);
             setNotebookID(response.data.uid);
             setPasswordOpen(true);
