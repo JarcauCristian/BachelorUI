@@ -81,13 +81,13 @@ const DatasetGraph = () => {
                         positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0], newYOffset];
                     } else if (categoryNodes[i]["under_nodes"].length === 2 || categoryNodes[i]["under_nodes"].length - i === 2) {
                         positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0], newYOffset];
-                        positions[categoryNodes[i]["under_nodes"][j + 1]] = [positions[categoryNodes[i]["name"]][0] + 100, newYOffset];
+                        positions[categoryNodes[i]["under_nodes"][j + 1]] = [positions[categoryNodes[i]["name"]][0] + 150, newYOffset];
                     } else if (categoryNodes[i]["under_nodes"].length - i === 1) {
                         positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0] , newYOffset];
                     } else {
                         positions[categoryNodes[i]["under_nodes"][j]] = [positions[categoryNodes[i]["name"]][0] , newYOffset];
-                        positions[categoryNodes[i]["under_nodes"][j + 1]] = [positions[categoryNodes[i]["name"]][0]  + 100, newYOffset];
-                        positions[categoryNodes[i]["under_nodes"][j + 2]] = [positions[categoryNodes[i]["name"]][0]  - 100, newYOffset];
+                        positions[categoryNodes[i]["under_nodes"][j + 1]] = [positions[categoryNodes[i]["name"]][0]  + 150, newYOffset];
+                        positions[categoryNodes[i]["under_nodes"][j + 2]] = [positions[categoryNodes[i]["name"]][0]  - 150, newYOffset];
                     }
                 }
             }

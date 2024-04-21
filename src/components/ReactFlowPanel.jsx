@@ -155,8 +155,8 @@ const ReactFlowPanel = (props) => {
                     toSave[other.type][k] = "";
                 } else if (k === "exporter" && nodeToDelete.data.type === "exporter") {
                     toSave[other.type][k] = "";
-                } else if (k === "transformers" && nodeToDelete.data.type === "transformers") {
-                    toSave[other.type][k] = v.filter((n) => n.nodeId !== nodeId);
+                } else if (k === "transformers" && nodeToDelete.data.type === "transformer") {
+                    toSave[other.type][k] = v.filter((n) => n.id !== nodeId);
                 } else {
                     toSave[other.type][k] = v;
                 }

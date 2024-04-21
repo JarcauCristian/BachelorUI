@@ -51,6 +51,7 @@ function TextUpdaterNode({ data, isConnectable }) {
     }, {}));
     const [newCategory, setNewCategory] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
+    const fileRef = React.useRef(null);
 
     const handleBackdropClose = () => {
         setLoading(false);
@@ -97,6 +98,10 @@ function TextUpdaterNode({ data, isConnectable }) {
         delete newValues["column_descriptions"];
         setValues(newValues);
         setContent("");
+
+        if (fileRef.current) {
+            fileRef.current.value = null;
+        }
     }
 
     const handleInputChange = (e) => {
@@ -110,11 +115,6 @@ function TextUpdaterNode({ data, isConnectable }) {
                 return;
             }
             newValue = files[0];
-            const newValues = values;
-            delete newValues["columnNames"];
-            delete newValues["column_descriptions"];
-            setValues(newValues);
-            setContent("");
         } else if (value === 'on' && typeof values[name] === "boolean") {
             newValue = checked;
         } else {
@@ -175,6 +175,7 @@ function TextUpdaterNode({ data, isConnectable }) {
                             key={key}
                             name={key}
                             type="file"
+                            inputRef={fileRef}
                             fullWidth
                             InputLabelProps={{
                                 shrink: true,
@@ -382,7 +383,15 @@ function TextUpdaterNode({ data, isConnectable }) {
         let condition = true;
 
         for (let [key, value] of Object.entries(values)) {
+            if (key === "column_descriptions" || (data.type === "loader" && key === "target_column") || key === "columnNames") {
+                continue;
+            }
+
             if (data.params[key]["type"] === "str") {
+                if (key === "new_category" && ![null, "", undefined].includes(values["category"])){
+                    continue;
+                }
+
                 const regexPattern = new RegExp(data.params[key]["regex"]);
                 if (!regexPattern.test(value)) {
                     if (data.params[key]["regex"] === "^[a-z0-9_]+$") {
@@ -413,8 +422,8 @@ function TextUpdaterNode({ data, isConnectable }) {
         let fileInput = null;
 
         for (const [key, value] of Object.entries(values)) {
-            if (data.params[key] === 'file') {
-                fileInput = value;
+            if (key === 'file') {
+                fileInput = value
             } else {
                 if (key === 'columnNames') {
                     continue;
