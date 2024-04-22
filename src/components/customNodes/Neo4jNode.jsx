@@ -158,11 +158,19 @@ function Neo4jNode({ data, isConnectable }) {
             return;
         }
 
-        localStorage.setItem(`${data.name}-${data.user}-dataset-info`, JSON.stringify({
+        const toSave = JSON.stringify({
             "datasetInfo": datasetInfo,
             "columnsDescriptions": descriptions,
             "csvData": JSON.stringify(cData)
-        }));
+        })
+
+        const dataSize = new Blob([toSave]).size;
+
+        const LIMIT = 4 * 1024 * 1024;
+
+        if (dataSize <= LIMIT) {
+            localStorage.setItem(`${data.name}-${data.user}-dataset-info`, toSave);
+        }
 
         data.load(false);
     }
@@ -265,7 +273,7 @@ function Neo4jNode({ data, isConnectable }) {
                             <br />
                             <Tooltip title={datasetInformation.description}>
                                 <Typography variant="p" sx={{ fontWeight: "bold" }}>
-                                    Description: {datasetInformation.description.length > 20 ? datasetInformation.description.slice(0, 20) : datasetInformation.description}
+                                    Description: {datasetInformation.description.length > 100 ? datasetInformation.description.slice(0, 100) : datasetInformation.description}
                                 </Typography>
                             </Tooltip>
                             {(csvData && columnsDescriptions) && (

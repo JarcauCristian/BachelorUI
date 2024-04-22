@@ -7,7 +7,7 @@ import {
     TableContainer,
     TableHead,
     TablePagination,
-    TableRow,
+    TableRow, Tooltip,
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 const DataTable = ({data, descriptions}) => {
@@ -62,7 +62,13 @@ const DataTable = ({data, descriptions}) => {
                             <TableRow key={index}>
                                 {columns.map((column) => (
                                     <TableCell key={column.field} align="center">
-                                        {row[column.field]}
+                                        {row[column.field].length > 50 ?
+                                            <Tooltip title={row[column.field]}>
+                                                {row[column.field].slice(0, 50) + "..."}
+                                            </Tooltip>
+                                            :
+                                            row[column.field]
+                                        }
                                     </TableCell>
                                 ))}
                             </TableRow>
