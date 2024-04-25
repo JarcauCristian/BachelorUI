@@ -16,7 +16,7 @@ import DatasetGraph from "./pages/DatasetGraph";
 import Datasets from "./pages/Datasets";
 
 function App() {
-    const { isLogin, token, userRole, userID, username, keycloakInstance } = useAuth();
+    const { isLogin, userRole, userID, username, keycloakInstance } = useAuth();
     
     return (
         <BrowserRouter>

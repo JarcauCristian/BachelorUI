@@ -8,7 +8,6 @@ const useAuth = () => {
     const isRun = useRef(false);
     const isPut = useRef(false);
     const [isLogin, setLogin] = useState(false);
-    const [token, setToken] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [userID, setUserID] = useState(null);
     const [username, setUsername] = useState(null);
@@ -28,7 +27,6 @@ const useAuth = () => {
 
         client.init({onLoad: "login-required"}).then((res) => {
             setLogin(res);
-            setToken(client.token);
             Cookies.set('token', client.token, { expires: 1 });
             for (let i = 0; i < roles.length; i++) {
                 if (client.hasRealmRole(roles[i])) {
@@ -69,6 +67,6 @@ const useAuth = () => {
         });
     });
 
-    return { isLogin, token, userRole, userID, username, keycloakInstance };
+    return { isLogin, userRole, userID, username, keycloakInstance };
 }
 export default useAuth;

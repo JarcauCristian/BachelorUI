@@ -18,10 +18,10 @@ import {useNavigate} from "react-router-dom";
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
 import Transition from '../components/utils/transition';
 
+const roles = ['data-scientist', 'data-producer'];
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
     const [hasRole, setHasRole] = React.useState(false);
-    const [roles, setRoles] = React.useState([]);
     const isRun = React.useRef(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
@@ -99,7 +99,7 @@ const LandingPage = ({role, userID}) => {
             axios(
                 {
                     method: 'post',
-                    url: "https://62.72.21.79:8442/auth/admin/realms/react-keycloak/users/" + userID + "/role-mappings/realm",
+                    url: "https://keycloak.sedimark.work/auth/admin/realms/react-keycloak/users/" + userID + "/role-mappings/realm",
                     headers: {
                         'Content-Type': "application/json",
                         'Authorization': "Bearer " + token
@@ -108,7 +108,7 @@ const LandingPage = ({role, userID}) => {
                         {id: roles[find_index].id, name: roles[find_index].name}
                     ]
                 }
-            ).then((response) => {
+            ).then((_) => {
                 handleToast("Role Added Successfully!", "success");
                 setHasRole(true);
                 window.location.reload();
@@ -131,52 +131,7 @@ const LandingPage = ({role, userID}) => {
         } else {
             setHasRole(true);
         }
-
-        const data = {
-            client_id: REACT_APP_CLIENT_ID,
-            username: REACT_APP_ADMIN_USERNAME,
-            password: REACT_APP_ADMIN_PASSWORD,
-            grant_type: "password"
-        }
-
-
-        axios({
-            method: 'post',
-            url: REACT_APP_TOKEN_URL,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            data: qs.stringify(data),
-        }).then(response => {
-                const token = response.data.access_token;
-                axios(
-                    {
-                        method: 'get',
-                        url: "https://62.72.21.79:8442/auth/admin/realms/react-keycloak/roles",
-                        headers: {
-                            'Content-Type': "application/json",
-                            'Authorization': "Bearer " + token
-                        }
-                    }
-                ).then((response) => {
-                    let aux_array = [];
-                    for (let i = 0; i < response.data.length; i++) {
-                        if (response.data[i]["name"].includes("data")) {
-                            aux_array.push({
-                                "id": response.data[i]["id"],
-                                "name": response.data[i]["name"]
-                            })
-                        }
-                    }
-                    setRoles(aux_array);
-                }).catch((error) => {
-                    console.error('Error:', error);
-                })
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-    }, [role, REACT_APP_ADMIN_PASSWORD, REACT_APP_ADMIN_USERNAME, REACT_APP_CLIENT_ID, REACT_APP_TOKEN_URL])
+    }, [role])
 
     return (
         <div style={{backgroundColor: "#D9D9D9", height: "100%", marginTop: 82 }}>
