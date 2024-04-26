@@ -92,6 +92,7 @@ const LandingPage = ({role, userID}) => {
             url: ADD_ROLE,
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Cookies.get("token")}`
             },
             data: data,
         }).then((_) => {
@@ -119,6 +120,7 @@ const LandingPage = ({role, userID}) => {
             url: GET_ROLES,
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Cookies.get("token")}`
             }
         }).then((response) => {
             setRoles(response.data);
