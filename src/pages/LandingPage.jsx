@@ -18,10 +18,10 @@ import {useNavigate} from "react-router-dom";
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
 import Transition from '../components/utils/transition';
 
-const roles = ['data-scientist', 'data-producer'];
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
     const [hasRole, setHasRole] = React.useState(false);
+    const [roles, setRoles] = React.useState([]);
     const isRun = React.useRef(false);
     const [toastMessage, setToastMessage] = React.useState("");
     const [toastSeverity, setToastSeverity] = React.useState("error");
@@ -94,11 +94,11 @@ const LandingPage = ({role, userID}) => {
             },
             data: qs.stringify(data),
         }).then(response => {
-            const token = response.data.access_token;
+            const token = response.data["access_token"];
             console.log(roles[find_index].id);
             axios(
                 {
-                    method: 'post',
+                    method: 'POST',
                     url: "https://keycloak.sedimark.work/auth/admin/realms/react-keycloak/users/" + userID + "/role-mappings/realm",
                     headers: {
                         'Content-Type': "application/json",
@@ -112,13 +112,12 @@ const LandingPage = ({role, userID}) => {
                 handleToast("Role Added Successfully!", "success");
                 setHasRole(true);
                 window.location.reload();
-            }).catch((error) => {
+            }).catch((_) => {
                 handleToast("Error Adding Role!", "error");
             })
-        })
-            .catch(error => {
+        }).catch(error => {
                 console.error('Error:', error);
-            });
+        });
     }
 
     React.useEffect(() => {
@@ -131,7 +130,52 @@ const LandingPage = ({role, userID}) => {
         } else {
             setHasRole(true);
         }
-    }, [role])
+
+        const data = {
+            client_id: REACT_APP_CLIENT_ID,
+            username: REACT_APP_ADMIN_USERNAME,
+            password: REACT_APP_ADMIN_PASSWORD,
+            grant_type: "password"
+        }
+
+
+        axios({
+            method: 'POST',
+            url: REACT_APP_TOKEN_URL,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            data: qs.stringify(data),
+        }).then(response => {
+            const token = response.data["access_token"];
+            axios(
+                {
+                    method: 'GET',
+                    url: "https://keycloak.sedimark.work/auth/admin/realms/react-keycloak/roles",
+                    headers: {
+                        'Content-Type': "application/json",
+                        'Authorization': "Bearer " + token
+                    }
+                }
+            ).then((response) => {
+                let aux_array = [];
+                for (let i = 0; i < response.data.length; i++) {
+                    if (response.data[i]["name"].includes("data")) {
+                        aux_array.push({
+                            "id": response.data[i]["id"],
+                            "name": response.data[i]["name"]
+                        })
+                    }
+                }
+                setRoles(aux_array);
+            }).catch((_) => {
+                handleToast("Could not fetch interface roles from the backend! (Please try again later.)", "error");
+            })
+        }).catch(_ => {
+            handleToast("Could not fetch the token for making an operation!", "error");
+        });
+
+    }, [role, REACT_APP_TOKEN_URL, REACT_APP_ADMIN_USERNAME, REACT_APP_ADMIN_PASSWORD, REACT_APP_CLIENT_ID])
 
     return (
         <div style={{backgroundColor: "#D9D9D9", height: "100%", marginTop: 82 }}>
@@ -154,7 +198,7 @@ const LandingPage = ({role, userID}) => {
                                         <PersonIcon />
                                     </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText primary={rl.name} />
+                                <ListItemText primary={rl.name} sx={{ color: "black" }}/>
                             </ListItemButton>
                         </ListItem>
                     ))}
