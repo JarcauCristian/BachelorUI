@@ -17,6 +17,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import {useNavigate} from "react-router-dom";
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion';
 import Transition from '../components/utils/transition';
+import {ADD_ROLE, GET_ROLES} from "../components/utils/apiEndpoints";
+import Cookies from "js-cookie";
 
 const LandingPage = ({role, userID}) => {
     const [isHovered, setIsHovered] = React.useState(false);
@@ -79,44 +81,25 @@ const LandingPage = ({role, userID}) => {
         }
 
         const data = {
-            client_id: REACT_APP_CLIENT_ID,
-            username: REACT_APP_ADMIN_USERNAME,
-            password: REACT_APP_ADMIN_PASSWORD,
-            grant_type: "password"
+            user_id: Cookies.get("userID"),
+            role_name: roles[find_index].name,
+            role_id: roles[find_index].id
         }
 
 
         axios({
-            method: 'post',
-            url: REACT_APP_TOKEN_URL,
+            method: 'POST',
+            url: ADD_ROLE,
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
             },
-            data: qs.stringify(data),
-        }).then(response => {
-            const token = response.data["access_token"];
-            console.log(roles[find_index].id);
-            axios(
-                {
-                    method: 'POST',
-                    url: "https://keycloak.sedimark.work/auth/admin/realms/react-keycloak/users/" + userID + "/role-mappings/realm",
-                    headers: {
-                        'Content-Type': "application/json",
-                        'Authorization': "Bearer " + token
-                    },
-                    data: [
-                        {id: roles[find_index].id, name: roles[find_index].name}
-                    ]
-                }
-            ).then((_) => {
-                handleToast("Role Added Successfully!", "success");
-                setHasRole(true);
-                window.location.reload();
-            }).catch((_) => {
-                handleToast("Error Adding Role!", "error");
-            })
-        }).catch(error => {
-                console.error('Error:', error);
+            data: data,
+        }).then((_) => {
+            handleToast("Role Added Successfully!", "success");
+            setHasRole(true);
+            window.location.reload();
+        }).catch((_) => {
+            handleToast("Role could not be added!", "error");
         });
     }
 
@@ -131,51 +114,19 @@ const LandingPage = ({role, userID}) => {
             setHasRole(true);
         }
 
-        const data = {
-            client_id: REACT_APP_CLIENT_ID,
-            username: REACT_APP_ADMIN_USERNAME,
-            password: REACT_APP_ADMIN_PASSWORD,
-            grant_type: "password"
-        }
-
-
         axios({
-            method: 'POST',
-            url: REACT_APP_TOKEN_URL,
+            method: 'GET',
+            url: GET_ROLES,
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            data: qs.stringify(data),
-        }).then(response => {
-            const token = response.data["access_token"];
-            axios(
-                {
-                    method: 'GET',
-                    url: "https://keycloak.sedimark.work/auth/admin/realms/react-keycloak/roles",
-                    headers: {
-                        'Content-Type': "application/json",
-                        'Authorization': "Bearer " + token
-                    }
-                }
-            ).then((response) => {
-                let aux_array = [];
-                for (let i = 0; i < response.data.length; i++) {
-                    if (response.data[i]["name"].includes("data")) {
-                        aux_array.push({
-                            "id": response.data[i]["id"],
-                            "name": response.data[i]["name"]
-                        })
-                    }
-                }
-                setRoles(aux_array);
-            }).catch((_) => {
-                handleToast("Could not fetch interface roles from the backend! (Please try again later.)", "error");
-            })
-        }).catch(_ => {
-            handleToast("Could not fetch the token for making an operation!", "error");
+                'Content-Type': 'application/json',
+            }
+        }).then((response) => {
+            setRoles(response.data);
+        }).catch((_) => {
+            handleToast("Could not fetch the roles of the platform!", "error");
         });
 
-    }, [role, REACT_APP_TOKEN_URL, REACT_APP_ADMIN_USERNAME, REACT_APP_ADMIN_PASSWORD, REACT_APP_CLIENT_ID])
+    }, [role])
 
     return (
         <div style={{backgroundColor: "#D9D9D9", height: "100%", marginTop: 82 }}>

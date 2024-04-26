@@ -4,6 +4,11 @@ const neo4jUrl = "https://ingress.sedimark.work/neo4j";
 const modelsUrl = "https://ingress.sedimark.work/models";
 const notebooksUrl = "https://ingress.sedimark.work/notebook_manager";
 const balancerUrl = "https://ingress.sedimark.work/balancer";
+const keycloakUrl = "https://ingress.sedimark.work/keycloak";
+
+export const GET_ROLES = `${keycloakUrl}/roles`;
+
+export const ADD_ROLE = `${keycloakUrl}/role/add`;
 
 export const BLOCK_MODEL = (block_name) => `${baseUrl}/block/model?block_name=${block_name}`;
 
