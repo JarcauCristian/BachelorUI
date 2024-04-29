@@ -94,7 +94,7 @@ const PipelineSteps = ({createPipeline, pipelineCreated, loading, nodesName, pip
         return new Promise((resolve) => {
             const retry = async () => {
                 if (isResolved) return;
-                if (counter > 15) {
+                if (counter > 1000) {
                     isResolved = true;
                     resolve("failed");
                     return;
