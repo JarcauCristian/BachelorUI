@@ -188,7 +188,7 @@ const LandingPage = ({role, userID}) => {
                 </Card>
                 <img src={bk} alt="Background!" width="40%" height="100%" style={{ display: width < 1200 ? "none" : "block" }}/>
             </Paper>
-            <Paper elevation={10} sx={{ backgroundColor: "black", width: "100vw", height: "100%", display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly"}}>
+            <Paper elevation={10} sx={{ backgroundColor: "black", width: "100vw", height: 500, display: "flex", flexDirection: width < 1200 ? "column" : "row", alignItems: "center", justifyContent: "space-evenly"}}>
                 <Card sx={{ mt: 2, mb: 2, width: width < 1200 ? 300 : 250, height: width < 1200 ? 400 : 350, display: "flex", flexDirection: "column", alignItems: "center", borderRadius: 5}} variant="outlined">
                     <CardContent>
                         <DatasetIcon sx={{fontSize: 100, color: "black", marginLeft: "25%"}} />

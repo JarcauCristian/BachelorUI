@@ -14,6 +14,7 @@ import Model from "./pages/Model";
 import Orchestrator from "./pages/Orchestrator";
 import DatasetGraph from "./pages/DatasetGraph";
 import Datasets from "./pages/Datasets";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
     const { isLogin, userRole, userID, username, keycloakInstance } = useAuth();
@@ -42,8 +43,9 @@ function App() {
                               <Route path="/notebooks/:notebookID" element={<Notebook />} />
                               <Route path="models" element={<Models user={true} />}/>
                               <Route path="/models/:modelID" element={<Model />} />
-                          </Route> :
-                  ""}
+                          </Route> : ""
+              }
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </BrowserRouter>
   );
